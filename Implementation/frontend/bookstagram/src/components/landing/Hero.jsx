@@ -6,25 +6,27 @@ import HERO_IMG from "../../assets/hero-img.png";
 const Hero = () => {
   const { isAuthenticated } = useAuth();
 
-  return <div className="relative bg-gradient-to-br from-violet-50 via-white to-purple-50 overflow-hidden">
-      {/* Floating Background Elements */}
-      <div className="absolute top-20 left-10 w-64 h-64 bg-violet-200/30 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl animate-pulse delay-700"></div>
+  return (
+    <div className="relative bg-gradient-to-br from-fuchsia-50 via-white to-orange-50 overflow-hidden">
+      {/* Floating Background Elements - Swapped to Fuchsia & Orange */}
+      <div className="absolute top-20 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse delay-700"></div>
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-24 lg:py-32 relative">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Left Content */}
           <div className="max-w-xl space-y-8">
-            <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-violet-100 shadow-sm">
-              <Sparkles className="w-4 h-4 text-violet-600" />
-              <span className="text-sm font-medium text-violet-900">
+            <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-fuchsia-100 shadow-sm">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-fuchsia-900">
                 AI-Powered Publishing
               </span>
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-6xl font-bold text-gray-900 leading-tight tracking-tight">
               Create Stunning
-              <span className="block mt-2 bg-gradient-to-r from-violet-600 via-purple-600 to-violet-600 bg-clip-text text-transparent">
+              {/* Gradient: Primary (Fuchsia) to Secondary (Orange) */}
+              <span className="block mt-2 bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
                 Ebooks in Minutes
               </span>
             </h1>
@@ -37,7 +39,7 @@ const Hero = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <Link
                 to={isAuthenticated ? "/dashboard" : "/login"}
-                className="group inline-flex items-center space-x-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-105 transition-all duration-200"
+                className="group inline-flex items-center space-x-2 bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-semibold shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-105 transition-all duration-200"
               >
                 <span>Start Creating for Free</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -45,10 +47,10 @@ const Hero = () => {
 
               <a
                 href="#demo"
-                className="inline-flex items-center space-x-2 text-gray-700 font-medium hover:text-violet-600 transition-colors duration-200"
+                className="inline-flex items-center space-x-2 text-gray-700 font-medium hover:text-primary transition-colors duration-200"
               >
                 <span>Watch Demo</span>
-                <span className="text-violet-600">→</span>
+                <span className="text-primary">→</span>
               </a>
             </div>
 
@@ -70,9 +72,11 @@ const Hero = () => {
             </div>
           </div>
 
+          {/* Right Image/Dashboard Section */}
           <div className="relative lg:pl-8">
             <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-violet-600 to-purple-600 rounded-3xl opacity-20 blur-2xl"></div>
+              {/* Image Glow Swapped to Theme Colors */}
+              <div className="absolute -inset-4 bg-gradient-to-r from-primary to-secondary rounded-3xl opacity-20 blur-2xl"></div>
               <div className="relative bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
                 <img
                   src={HERO_IMG}
@@ -80,9 +84,10 @@ const Hero = () => {
                   className="w-full h-auto"
                 />
 
+                {/* Floating "Processing" Card */}
                 <div className="absolute top-6 right-6 bg-white rounded-2xl shadow-xl p-4 backdrop-blur-sm border border-gray-100 animate-in fade-in slide-in-from-right duration-700">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
                       <Zap className="w-5 h-5 text-white" />
                     </div>
                     <div>
@@ -94,9 +99,10 @@ const Hero = () => {
                   </div>
                 </div>
 
+                {/* Floating "Completed" Card - Kept green as a status indicator */}
                 <div className="absolute bottom-6 left-6 bg-white rounded-2xl shadow-xl p-4 backdrop-blur-sm border border-gray-100 animate-in fade-in slide-in-from-left duration-700 delay-300">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center">
                       <BookOpen className="w-5 h-5 text-white" />
                     </div>
                     <div>
@@ -109,12 +115,14 @@ const Hero = () => {
                 </div>
               </div>
             </div>
-            <div className="absolute -top-8 -left-8 w-20 h-20 bg-violet-400/20 rounded-2xl rotate-12"></div>
-            <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-purple-400/20 rounded-full"></div>
+            {/* Soft decorative blobs */}
+            <div className="absolute -top-8 -left-8 w-20 h-20 bg-primary/20 rounded-2xl rotate-12"></div>
+            <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-secondary/20 rounded-full"></div>
           </div>
         </div>
       </div>
     </div>
+  );
 };
 
 export default Hero;

@@ -4,21 +4,22 @@ import { TESTIMONIALS } from '../../utils/data'
 
 const Testimonials = () => {
   return (
-     <div id='testimonials' className="relative py-24 lg:py-32 bg-gradient-to-br from-violet-50 via-purple-50 to-white overflow-hidden">
-      {/* Decorative Elements */}
-      <div className="absolute top-20 right-10 w-64 h-64 bg-violet-200/30 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-20 left-10 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl"></div>
+     <div id='testimonials' className="relative py-24 lg:py-32 bg-gradient-to-br from-fuchsia-50 via-orange-50 to-white overflow-hidden">
+      {/* Decorative Elements - Swapped to Fuchsia and Orange */}
+      <div className="absolute top-20 right-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-20 left-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl"></div>
       
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
         {/* Header */}
         <div className="text-center mb-20 space-y-4">
-          <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-violet-100 shadow-sm">
-            <Star className="w-4 h-4 text-violet-600 fill-violet-600" />
-            <span className="text-sm font-semibold text-violet-900">Testimonials</span>
+          <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-fuchsia-100 shadow-sm">
+            {/* Swapped to Primary color */}
+            <Star className="w-4 h-4 text-primary fill-primary" />
+            <span className="text-sm font-semibold text-fuchsia-900">Testimonials</span>
           </div>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight">
             Loved by Creators
-            <span className="block mt-2 bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="block mt-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Everywhere
             </span>
           </h2>
@@ -32,32 +33,32 @@ const Testimonials = () => {
           {TESTIMONIALS.map((testimonial, index) => (
             <div
               key={index}
-              className="group relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-100 hover:border-violet-200 hover:shadow-2xl hover:shadow-violet-500/10 transition-all duration-300 hover:-translate-y-2"
+              className="group relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-100 hover:border-fuchsia-200 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 hover:-translate-y-2"
             >
-              {/* Quote Icon */}
-              <div className="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/30 rotate-6 group-hover:rotate-12 transition-transform duration-300">
+              {/* Quote Icon - Using Primary to Secondary Gradient */}
+              <div className="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30 rotate-6 group-hover:rotate-12 transition-transform duration-300">
                 <Quote className="w-6 h-6 text-white" />
               </div>
 
-              {/* Rating Stars */}
+              {/* Rating Stars - Primary color */}
               <div className="flex items-center space-x-1 mb-6">
                 {[...Array(testimonial.rating)].map((_, i) => (
                   <Star
                     key={i}
-                    className="w-5 h-5 text-violet-500 fill-violet-500"
+                    className="w-5 h-5 text-primary fill-primary"
                   />
                 ))}
               </div>
 
               {/* Quote */}
-              <p className="text-gray-700 mb-8 leading-relaxed text-base">
+              <p className="text-gray-700 mb-8 leading-relaxed text-base italic">
                 "{testimonial.quote}"
               </p>
 
               {/* Author Info */}
               <div className="flex items-center space-x-4">
                 <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full blur opacity-30"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-full blur opacity-30"></div>
                   <img
                     className="relative w-14 h-14 rounded-full object-cover ring-2 ring-white shadow-lg"
                     src={testimonial.avatar}
@@ -71,24 +72,24 @@ const Testimonials = () => {
               </div>
 
               {/* Hover Gradient Background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-50/0 to-purple-50/0 group-hover:from-violet-50/50 group-hover:to-purple-50/30 rounded-3xl transition-all duration-300 -z-10"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-50/0 to-orange-50/0 group-hover:from-fuchsia-50/50 group-hover:to-orange-50/30 rounded-3xl transition-all duration-300 -z-10"></div>
             </div>
           ))}
         </div>
 
-        {/* Bottom Stats */}
-        <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        {/* Bottom Stats - Adding subtle color pops to the numbers */}
+        <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto border-t border-gray-100 pt-16">
           <div className="text-center">
-            <div className="text-4xl font-bold text-gray-900 mb-2">50K+</div>
-            <div className="text-gray-600">Happy Creators</div>
+            <div className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-gray-900 to-primary mb-2">50K+</div>
+            <div className="text-gray-600 font-medium">Happy Creators</div>
           </div>
           <div className="text-center">
-            <div className="text-4xl font-bold text-gray-900 mb-2">4.9/5</div>
-            <div className="text-gray-600">Average Rating</div>
+            <div className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-gray-900 to-secondary mb-2">4.9/5</div>
+            <div className="text-gray-600 font-medium">Average Rating</div>
           </div>
           <div className="text-center">
-            <div className="text-4xl font-bold text-gray-900 mb-2">100K+</div>
-            <div className="text-gray-600">Ebooks Created</div>
+            <div className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-gray-900 to-accent mb-2">100K+</div>
+            <div className="text-gray-600 font-medium">Ebooks Created</div>
           </div>
         </div>
       </div>

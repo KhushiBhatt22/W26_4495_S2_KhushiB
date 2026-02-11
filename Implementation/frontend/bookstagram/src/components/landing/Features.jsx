@@ -7,20 +7,23 @@ const Features = () => {
       id="features"
       className="relative py-24 lg:py-32 bg-white overflow-hidden"
     >
-      {/* Subtle Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-b from-violet-50/50 via-transparent to-purple-50/50"></div>
+      {/* Updated Background Pattern with warmer tones */}
+      <div className="absolute inset-0 bg-gradient-to-b from-fuchsia-50/50 via-transparent to-orange-50/50"></div>
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
         <div className="text-center mb-20 space-y-4">
-          <div className="inline-flex items-center space-x-2 bg-violet-100 px-4 py-2 rounded-full">
-            <span className="w-2 h-2 bg-violet-600 rounded-full animate-pulse"></span>
-            <span className="text-sm font-semibold text-violet-900">
+          {/* Badge: Swapped Violet for Fuchsia */}
+          <div className="inline-flex items-center space-x-2 bg-fuchsia-100 px-4 py-2 rounded-full">
+            <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+            <span className="text-sm font-semibold text-fuchsia-900">
               Features
             </span>
           </div>
+          
           <h2 className="text-4xl sm:text-5xl lg:text-5xl font-bold text-gray-900 tracking-tight">
             Everything You Need to
-            <span className="block mt-2 bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+            {/* Swapped Gradient to Fuchsia -> Orange */}
+            <span className="block mt-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Create Your Ebook
             </span>
           </h2>
@@ -36,19 +39,21 @@ const Features = () => {
             return (
               <div
                 key={index}
-                className="group relative bg-white rounded-2xl p-8 border border-gray-100 hover:border-violet-200 transition-all duration-300 hover:shadow-xl hover:shadow-violet-500/10 hover:-translate-y-1"
+                className="group relative bg-white rounded-2xl p-8 border border-gray-100 hover:border-fuchsia-200 transition-all duration-300 hover:shadow-xl hover:shadow-fuchsia-500/10 hover:-translate-y-1"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-violet-50/0 to-purple-50/0 group-hover:from-violet-50/50 group-hover:to-purple-50/30 rounded-2xl transition-all duration-300"></div>
+                {/* Subtle Hover Glow */}
+                <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-50/0 to-orange-50/0 group-hover:from-fuchsia-50/50 group-hover:to-orange-50/30 rounded-2xl transition-all duration-300"></div>
 
                 <div className="relative space-y-4">
                   <div
-                    className={`w-14 h-14 bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center shadow-lg shadow-${feature.gradient}/20 group-hover:scale-110 transition-transform duration-300`}
+                    className={`w-14 h-14 bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}
                   >
                     <Icon className="w-7 h-7 text-white" />
                   </div>
 
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-violet-900 transition-colors">
+                    {/* Hover text color change to Primary (Fuchsia) */}
+                    <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary transition-colors">
                       {feature.title}
                     </h3>
                     <p className="text-gray-600 leading-relaxed text-sm">
@@ -57,7 +62,7 @@ const Features = () => {
                   </div>
 
                   <div className="pt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <span className="text-violet-600 text-sm font-medium inline-flex items-center">
+                    <span className="text-primary text-sm font-medium inline-flex items-center">
                       Learn more
                       <svg
                         className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"
@@ -82,9 +87,10 @@ const Features = () => {
 
         <div className="text-center mt-16">
           <p className="text-gray-600 mb-6">Ready to get started?</p>
+          {/* Main CTA: Swapped to Pink/Orange Gradient */}
           <a
             href="/signup"
-            className="inline-flex items-center space-x-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-105 transition-all duration-200"
+            className="inline-flex items-center space-x-2 bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-semibold shadow-lg shadow-fuchsia-500/30 hover:shadow-fuchsia-500/50 hover:scale-105 transition-all duration-200"
           >
             <span>Start Creating Today</span>
             <svg
