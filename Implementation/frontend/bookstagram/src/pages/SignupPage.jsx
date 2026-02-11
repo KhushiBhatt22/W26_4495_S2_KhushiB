@@ -26,13 +26,12 @@ const SignupPage = () => {
       const response = await axiosInstance.post(API_PATHS.AUTH.REGISTER, formData);
       const { token } = response.data;
 
-      // Fetch profile to get user details
       const profileResponse = await axiosInstance.get(API_PATHS.AUTH.GET_PROFILE, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       login(profileResponse.data, token);
-      toast.success("Account created successfully!");
+      toast.success("Welcome to Bookstagram!");
       navigate("/dashboard");
 
     } catch (error) {
@@ -41,19 +40,27 @@ const SignupPage = () => {
       setIsLoading(false);
     }
   };
+
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-violet-400 to-violet-500 rounded-full mb-4 shadow-md">
+    <div className="min-h-screen bg-gradient-to-br from-fuchsia-50 via-white to-orange-50 flex items-center justify-center p-6 relative overflow-hidden">
+      
+      {/* Background Decorative Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse delay-700"></div>
+
+      <div className="w-full max-w-md relative">
+        <div className="text-center mb-8 space-y-2">
+          {/* Logo with Brand Gradient */}
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl mb-4 shadow-lg shadow-primary/20">
             <BookOpen className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900">Create an Account</h1>
-          <p className="text-slate-600 mt-2">Start your journey of creating amazing eBooks today.</p>
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Create an Account</h1>
+          <p className="text-gray-500">Join the future of AI-powered storytelling.</p>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-xl shadow-lg p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Card with Glassmorphism effect */}
+        <div className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl shadow-2xl shadow-primary/5 p-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <InputField
               label="Full Name"
               name="name"
@@ -84,14 +91,17 @@ const SignupPage = () => {
               onChange={handleChange}
               required
             />
-            <Button type="submit" isLoading={isLoading} className="w-full">
-              Create Account
-            </Button>
+            
+            <div className="pt-2">
+              <Button type="submit" isLoading={isLoading} className="w-full">
+                Get Started
+              </Button>
+            </div>
           </form>
 
-          <p className="text-center text-sm text-slate-600 mt-8">
+          <p className="text-center text-sm text-gray-600 mt-8">
             Already have an account?{' '}
-            <Link to="/login" className="font-medium text-violet-600 hover:text-violet-700">
+            <Link to="/login" className="font-bold text-primary hover:text-secondary transition-colors hover:underline">
               Sign in
             </Link>
           </p>
@@ -101,4 +111,4 @@ const SignupPage = () => {
   )
 }
 
-export default SignupPage
+export default SignupPage;
