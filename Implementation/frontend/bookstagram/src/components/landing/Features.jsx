@@ -21,15 +21,15 @@ const Features = () => {
           </div>
           
           <h2 className="text-4xl sm:text-5xl lg:text-5xl font-bold text-gray-900 tracking-tight">
-            Everything You Need to
+            Write, Share and
             {/* Swapped Gradient to Fuchsia -> Orange */}
             <span className="block mt-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Create Your Ebook
+              Go Viral!
             </span>
           </h2>
           <p className="text-base text-gray-600 max-w-2xl mx-auto">
-            Our platform is packed with powerful features to help you write,
-            design, and publish your ebook effortlessly.
+            An all-in-one social ecosystem to generate stunning eBooks with AI 
+            and share them with an active community of followers.
           </p>
         </div>
 

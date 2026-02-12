@@ -24,16 +24,15 @@ const Hero = () => {
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-6xl font-bold text-gray-900 leading-tight tracking-tight">
-              Create Stunning
+              From first draft
               {/* Gradient: Primary (Fuchsia) to Secondary (Orange) */}
               <span className="block mt-2 bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
-                Ebooks in Minutes
+                to viral stories
               </span>
             </h1>
 
             <p className="text-lg text-gray-600 leading-relaxed">
-              From idea to published ebook, our AI-powered platform helps you
-              write, design, and export professional-quality books effortlessly.
+              Our AI helps you write and design professional eBooks effortlessly, so you can focus on what matters; connecting with your fans and sharing your creative journey with the world.
             </p>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -58,6 +57,11 @@ const Hero = () => {
               <div>
                 <div className="text-2xl font-bold text-gray-900">50K+</div>
                 <div className="text-sm text-gray-600">Books Created</div>
+              </div>
+              <div className="w-px h-12 bg-gray-200"></div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">20K+</div>
+                <div className="text-sm text-gray-600">Stories Created</div>
               </div>
               <div className="w-px h-12 bg-gray-200"></div>
               <div>

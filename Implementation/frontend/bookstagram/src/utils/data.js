@@ -1,4 +1,4 @@
-import { Lightbulb, BookOpen, Download, Library, SquarePlay } from "lucide-react";
+import { Lightbulb, BookOpen, Download, Library, Heart, Users } from "lucide-react";
 
 export const FEATURES = [
   {
@@ -33,12 +33,16 @@ export const FEATURES = [
     // Triple blend for variety
     gradient: "from-primary via-accent to-secondary",
   },
+  {
+    title: "Build Your Fanbase", // New Social Feature
+    description: "Gain followers, manage your author profile, and grow your influence in the creative world.",
+    icon: Users,
+    gradient: "from-secondary to-primary",
+  },
    {
-    title: "Create and share story",
-    description:
-      "Generate fun and creative story with our powerful AI. At this platform you can share your stories and generate fun images.",
-    icon: SquarePlay,
-    // Triple blend for variety
+    title: "Go Viral with Stories", // Your new feature polished
+    description: "Generate creative stories and AI images that stop the scroll. Share your vision and get the engagement you deserve.",
+    icon: Heart, // 'Heart' or 'SquarePlay' both work great here
     gradient: "from-primary via-accent to-secondary",
   },
 ];
