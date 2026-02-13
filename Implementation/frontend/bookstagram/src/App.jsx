@@ -5,7 +5,7 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ProfilePage from "./pages/ProfilePage";
-
+import DashboardPage from "./pages/DashboardPage";
 const App = () => {
   return (
     <div>
@@ -14,6 +14,13 @@ const App = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+
+        
+        {/* Protected Routes */}
+        <Route 
+        path="/dashboard" 
+        element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} 
+      />
         
         <Route 
         path="/profile" 
