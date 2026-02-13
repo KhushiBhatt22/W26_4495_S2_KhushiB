@@ -32,9 +32,9 @@ app.use("/backend/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes Here
 app.use("/api/auth", authRoutes);
-app.use("/api/books", bookRoutes);
+// app.use("/api/books", bookRoutes);
 app.use("/api/ai", aiRoutes);
-app.use("/api/export", exportRoutes);
+// app.use("/api/export", exportRoutes);
 
 
 // Start Server
