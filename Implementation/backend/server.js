@@ -8,6 +8,7 @@ const authRoutes = require('./routes/authRoutes');
 const bookRoutes = require('./routes/bookRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const exportRoutes = require('./routes/exportRoutes');
+const storyRoutes = require('./routes/storyRoutes');
 
 const app = express();
 
@@ -32,8 +33,9 @@ app.use("/backend/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes Here
 app.use("/api/auth", authRoutes);
-// app.use("/api/books", bookRoutes);
+app.use("/api/books", bookRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/story", storyRoutes);
 // app.use("/api/export", exportRoutes);
 
 
