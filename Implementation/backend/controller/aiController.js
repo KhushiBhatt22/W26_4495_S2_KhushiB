@@ -1,6 +1,5 @@
 const { GoogleGenAI } = require("@google/genai");
 
-// Initialize the Google AI with your API Key
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // @desc    Generate a book outline
@@ -14,9 +13,6 @@ const generateOutline = async (req, res) => {
       return res.status(400).json({ message: "Please provide a topic" });
     }
 
-    // Using gemini-1.5-flash for stability and speed
-    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-
     const prompt = `You are an expert book outline generator. Create a comprehensive book outline based on the following requirements:
 
 Topic: "${topic}"
@@ -26,40 +22,64 @@ Number of Chapters: ${numChapters || 5}
 
 Requirements:
 1. Generate exactly ${numChapters || 5} chapters
-2. Each chapter title should be clear and engaging
-3. Each chapter description should be 2-3 sentences
-4. Return ONLY a valid JSON array.
+2. Each chapter title should be clear, engaging, and follow a logical progression
+3. Each chapter description should be 2-3 sentences explaining what the chapter covers
+4. Ensure chapters build upon each other coherently
+5. Match the "${style}" writing style in your titles and descriptions
 
-Format:
+Output Format:
+Return ONLY a valid JSON array with no additional text, markdown, or formatting. Each object must have exactly two keys: "title" and "description".
+
+Example structure:
 [
-  { "title": "Chapter 1: ...", "description": "..." },
-  { "title": "Chapter 2: ...", "description": "..." }
-]`;
+  {
+    "title": "Chapter 1: Introduction to the Topic",
+    "description": "A comprehensive overview introducing the main concepts. Sets the foundation for understanding the subject matter."
+  },
+  {
+    "title": "Chapter 2: Core Principles",
+    "description": "Explores the fundamental principles and theories. Provides detailed examples and real-world applications."
+  }
+]
 
-    // Correct API call for @google/genai ^1.40.0
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text(); // Call as a function
+Generate the outline now:`;
 
-    // Extract JSON array from the response string
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: prompt,
+    });
+
+    const text = response.text;
+
+    // Find and extract the JSON array from the response text
     const startIndex = text.indexOf("[");
     const endIndex = text.lastIndexOf("]");
 
     if (startIndex === -1 || endIndex === -1) {
-      console.error("AI Response missing JSON:", text);
-      return res.status(500).json({ message: "AI failed to format the outline correctly." });
+      console.error("Could not find JSON array in AI response:", text);
+      return res
+        .status(500)
+        .json({ message: "Failed to parse AI response, no JSON array found." });
     }
 
     const jsonString = text.substring(startIndex, endIndex + 1);
-    const outline = JSON.parse(jsonString);
 
-    res.status(200).json({ outline });
+    // Validate if the response is valid JSON
+    try {
+      const outline = JSON.parse(jsonString);
+      res.status(200).json({ outline });
+    } catch (e) {
+      console.error("Failed to parse AI response:", jsonString);
+      res.status(500).json({
+        message:
+          "Failed to generate a valid outline. The AI response was not valid JSON.",
+      });
+    }
   } catch (error) {
     console.error("Error generating outline:", error);
-    res.status(500).json({ 
-      message: "Server error during AI outline generation",
-      error: error.message 
-    });
+    res
+      .status(500)
+      .json({ message: "Server error during AI outline generation" });
   }
 };
 
@@ -71,56 +91,50 @@ const generateChapterContent = async (req, res) => {
     const { chapterTitle, chapterDescription, style } = req.body;
 
     if (!chapterTitle) {
-      return res.status(400).json({ message: "Please provide a chapter title" });
+      return res
+        .status(400)
+        .json({ message: "Please provide a chapter title" });
     }
 
-    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+   const prompt = `You are an expert writer specializing in ${style} content. Write a complete chapter for a book with the following specifications:
 
-    const prompt = `You are an expert writer in ${style} style. Write a complete, detailed chapter for:
-Title: "${chapterTitle}"
-Description: ${chapterDescription}
-Write in plain text without markdown formatting. Aim for depth and engagement.`;
+Chapter Title: "${chapterTitle}"
+${chapterDescription ? `Chapter Description: ${chapterDescription}` : ''}
+Writing Style: ${style}
+Target Length: Comprehensive and detailed (aim for 1500-2500 words)
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    
-    res.status(200).json({ content: response.text() });
+Requirements:
+1. Write in a ${style.toLowerCase()} tone throughout the chapter
+2. Structure the content with clear sections and smooth transitions
+3. Include relevant examples, explanations, or anecdotes as appropriate for the style
+4. Ensure the content flows logically from introduction to conclusion
+5. Make the content engaging and valuable to readers
+${chapterDescription ? '6. Cover all points mentioned in the chapter description' : ''}
+
+Format Guidelines:
+- Start with a compelling opening paragraph
+- Use clear paragraph breaks for readability
+- Include subheadings if appropriate for the content length
+- End with a strong conclusion or transition to the next chapter
+- Write in plain text without markdown formatting
+
+Begin writing the chapter content now:`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: prompt,
+    });
+
+    res.status(200).json({ content: response.text });
   } catch (error) {
     console.error("Error generating chapter:", error);
-    res.status(500).json({ 
-      message: "Server error during AI chapter generation",
-      error: error.message 
-    });
-  }
-};
-
-// @desc    Generate prompt for Story Images (Bookstagram Feature)
-// @route   POST /api/ai/generate-story
-// @access  Private
-const generateStoryImagePrompt = async (req, res) => {
-  try {
-    const { userPrompt, style } = req.body;
-
-    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    // This logic creates a highly descriptive prompt for an image generator
-    const prompt = `Create a detailed image description for a ${style} illustration. 
-    Subject: ${userPrompt}. 
-    Style details: ${style === 'cartoon' ? 'vibrant colors, 3D render style' : 'minimalist pencil sketch, storyboard style'}. 
-    Format: 9:16 vertical aspect ratio. 
-    Return only the descriptive prompt text.`;
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    
-    res.status(200).json({ imagePrompt: response.text() });
-  } catch (error) {
-    res.status(500).json({ message: "Error generating story prompt" });
+    res
+      .status(500)
+      .json({ message: "Server error during AI chapter generation" });
   }
 };
 
 module.exports = {
   generateOutline,
   generateChapterContent,
-  generateStoryImagePrompt
 };
