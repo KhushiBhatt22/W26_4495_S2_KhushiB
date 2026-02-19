@@ -33,6 +33,7 @@ const LoginPage = () => {
       login(profileResponse.data, token);
       toast.success("Welcome back to Bookstagram!");
       navigate("/dashboard");
+      // navigate("/home");
     } catch (error) {
       localStorage.clear()
       toast.error(error.response?.data?.message || "Login failed. Please try again.");
