@@ -1,151 +1,123 @@
-W26_4495_S2_KhushiB
-Team Members
+# W26_4495_S2_KhushiB
 
-Khushi Bhatt – 300394398 – khushi.bhatt0405@gmail.com
- – Team Leader
+## Team Members
 
-Aditi Aditi – 300396361 – a60@student.douglascollege.ca
- – Team Member
+- Khushi Bhatt – 300394398 – khushi.bhatt0405@gmail.com – Team Leader  
+- Aditi Aditi – 300396361 – a60@student.douglascollege.ca – Team Member  
 
-Project Name: Bookstagram
+---
+
+# Project Name: Bookstagram
 
 Bookstagram is a full-stack MERN (MongoDB, Express, React, Node.js) social platform that transforms writing into a community-driven and AI-powered experience.
 
-The platform allows users to:
+## Features
 
-Create and share book-style content
+- Create and share book-style content  
+- Generate AI-powered story outlines and e-books  
+- Post short visual story threads  
+- Engage with a creative community  
 
-Generate AI-powered story outlines and e-books
+The platform integrates Google Gemini AI for intelligent content generation and uses JWT-based authentication for secure user access.
 
-Post short visual story threads
+---
 
-Engage with a creative community
+## Tech Stack
 
-It integrates Google Gemini AI for intelligent content generation and uses JWT-based authentication for secure user access.
+- Frontend: React (Vite)  
+- Backend: Node.js + Express  
+- Database: MongoDB Atlas  
+- Authentication: JWT  
+- AI Integration: Google Gemini API  
 
-Tech Stack
+---
 
-Frontend: React (Vite)
-
-Backend: Node.js + Express
-
-Database: MongoDB Atlas
-
-Authentication: JWT
-
-AI Integration: Google Gemini API
-
-Installation Instructions
+# Installation Instructions
 
 Follow these steps to run the project locally.
 
-1. Clone the Repository
+## 1. Clone the Repository
 
-Go to the main branch of the repository.
-
-Click Code.
-
-Copy the HTTPS URL.
-
-Open VS Code.
-
-Open Terminal and run:
+1. Go to the main branch of the repository.
+2. Click Code.
+3. Copy the HTTPS URL.
+4. Open VS Code.
+5. Run:
 
 git clone <repository_url>
 
-Navigate into the project folder.
+6. Navigate into the project folder.
 
-2. MongoDB Atlas Setup
+---
 
-Visit: https://www.mongodb.com/
+## 2. MongoDB Atlas Setup
 
-Log in or create an account.
+1. Visit https://www.mongodb.com/
+2. Log in or create an account.
+3. Click New Project.
+4. Enter a project name and click Next.
+5. Click Clusters in the side menu.
+6. Click Build a Cluster.
+7. Select Free Tier.
+8. Enter a cluster name.
+9. Choose a cloud provider and region close to you.
+10. Click Create Deployment.
+11. Add IP Address (Allow access from anywhere if unsure).
+12. Create a Database User with username and password.
+13. Click Choose a connection method.
+14. Select Drivers.
+15. Copy the Node.js connection string.
 
-Click New Project.
+---
 
-Enter a project name and click Next.
+## 3. Update .env File (Backend Folder)
 
-Click Clusters in the side menu.
+Inside Implementation/backend create a .env file and add:
 
-Click Build a Cluster.
+MONGO_URI=your_mongodb_connection_string  
+PORT=8000  
+GEMINI_API_KEY=your_gemini_api_key  
+JWT_SECRET=your_generated_secret  
 
-Select Free Tier.
+Replace <db_password> with your database password.
 
-Enter a cluster name.
+### Generate JWT Secret
 
-Choose a cloud provider and region close to you.
-
-Click Create Deployment.
-
-Add IP Address (select "Allow access from anywhere" if unsure).
-
-Create a Database User with a username and password.
-
-Click Choose a connection method.
-
-Select Drivers.
-
-Copy the Node.js connection string.
-
-3. Update .env File (Backend Folder)
-
-Inside:
-
-Implementation/backend
-
-Create a .env file and add:
-
-MONGO_URI=your_mongodb_connection_string
-PORT=8000
-GEMINI_API_KEY=your_gemini_api_key
-JWT_SECRET=your_generated_secret
-
-Important:
-
-Replace <db_password> in the connection string with your database user password.
-
-Do not commit the .env file to GitHub.
-
-Generate JWT Secret
-
-Run the following command in terminal:
+Run:
 
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 
 Copy the output and paste it as JWT_SECRET.
 
-4. Generate Google Gemini API Key
+---
 
-Visit: https://ai.google.dev/
+## 4. Generate Google Gemini API Key
 
-Generate an API key.
-
-Copy and paste it inside .env:
+1. Visit https://ai.google.dev/
+2. Generate an API key.
+3. Add to .env:
 
 GEMINI_API_KEY=your_key_here
-Running the Project
-Start Backend
 
-Open terminal:
+---
 
-cd Implementation
-cd backend
-npm install
-npm run dev
+# Running the Project
 
-Backend runs on:
+## Start Backend
 
-http://localhost:8000
-Start Frontend
+cd Implementation  
+cd backend  
+npm install  
+npm run dev  
 
-Open a new terminal:
+Backend runs on http://localhost:8000
 
-cd Implementation
-cd frontend
-cd bookstagram
-npm install
-npm run dev
+## Start Frontend
 
-Frontend runs on:
+cd Implementation  
+cd frontend  
+cd bookstagram  
+npm install  
+npm run dev  
 
-http://localhost:5173
+Frontend runs on http://localhost:5173
