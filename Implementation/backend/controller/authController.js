@@ -13,21 +13,15 @@ const generateToken = (id) => {
 // @access  Public
 exports.registerUser = async (req, res) => {
   const { name, email, password } = req.body;
-
   try {
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Please fill all fields" });
     }
-
-    // Check if user exists
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: "User already exists" });
     }
-
-    // Create user
     const user = await User.create({ name, email, password });
-
     if (user) {
       res.status(201).json({
         message: "User registered successfully",
@@ -46,10 +40,8 @@ exports.registerUser = async (req, res) => {
 // @access  Public
 exports.loginUser = async (req, res) => {
   const { email, password } = req.body;
-
   try {
     const user = await User.findOne({ email }).select("+password");
-
     if (user && (await user.matchPassword(password))) {
       res.json({
         message: "Login successful",
@@ -61,6 +53,39 @@ exports.loginUser = async (req, res) => {
     } else {
       res.status(401).json({ message: "Invalid credentials" });
     }
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Google login / register
+// @route   POST /api/auth/google
+// @access  Public
+exports.googleAuth = async (req, res) => {
+  const { name, email, googleId, avatar } = req.body;
+  try {
+    if (!email || !googleId) {
+      return res.status(400).json({ message: "Invalid Google data" });
+    }
+
+    let user = await User.findOne({ email });
+
+    if (user) {
+      // Link googleId if not already linked
+      if (!user.googleId) {
+        user.googleId = googleId;
+        if (!user.avatar) user.avatar = avatar;
+        await user.save();
+      }
+    } else {
+      // Create new user
+      user = await User.create({ name, email, googleId, avatar });
+    }
+
+    res.status(200).json({
+      message: "Google login successful",
+      token: generateToken(user._id),
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
@@ -85,21 +110,15 @@ exports.getProfile = async (req, res) => {
 };
 
 // @desc    Update user profile
-// @route   PUT /api/auth/me
+// @route   PUT /api/auth/profile
 // @access  Private
 exports.updateUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-
     if (user) {
       user.name = req.body.name || user.name;
-
       const updatedUser = await user.save();
-
-      res.json({
-        _id: updatedUser._id,
-        name: updatedUser.name,
-      });
+      res.json({ _id: updatedUser._id, name: updatedUser.name });
     } else {
       res.status(404).json({ message: "User not found" });
     }
