@@ -35,7 +35,7 @@ app.use("/backend/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/ai", aiRoutes);
-app.use("/api/story", storyRoutes);
+// app.use("/api/story", storyRoutes);
 // app.use("/api/export", exportRoutes);
 
 

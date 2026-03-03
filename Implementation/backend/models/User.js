@@ -1,4 +1,3 @@
-// models/User.js
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
@@ -16,9 +15,13 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: false, // false because Google users won't have a password
       minlength: 6,
       select: false,
+    },
+    googleId: {
+      type: String,
+      default: null, // only set for Google OAuth users
     },
     avatar: {
       type: String,
@@ -32,9 +35,9 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Password hashing middleware
+// Password hashing middleware — skip if no password (Google users)
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+  if (!this.password || !this.isModified("password")) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
@@ -42,6 +45,7 @@ userSchema.pre("save", async function (next) {
 
 // Method to compare password
 userSchema.methods.matchPassword = async function (enteredPassword) {
+  if (!this.password) return false;
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
