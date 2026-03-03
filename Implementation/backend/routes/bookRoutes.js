@@ -20,13 +20,12 @@ const upload = require("../middlewares/uploadMiddleware");
 
 router.use(protect);
 
-router.get("/feed", getPublicFeed);
-router.post("/:id/like", toggleLike);
-router.post("/:id/comment", addComment);
+// router.get("/feed", getPublicFeed);
+// router.post("/:id/like", toggleLike);
+// router.post("/:id/comment", addComment);
 
 router.route("/").post(createBook).get(getBooks);
 router.route("/:id").get(getBookById).put(updateBook).delete(deleteBook);
 router.route("/cover/:id").put(upload, updateBookCover);
-
 
 module.exports = router;
