@@ -6,17 +6,17 @@ const followSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-    }, // person who is following
+    }, 
     following: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-    }, // person being followed
+    }, 
   },
   { timestamps: true }
 );
 
-// Prevent duplicate follows
+
 followSchema.index({ follower: 1, following: 1 }, { unique: true });
 
 module.exports = mongoose.model("Follow", followSchema);
