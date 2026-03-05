@@ -7,8 +7,8 @@ const connectDB = require("./config/db");
 const authRoutes = require('./routes/authRoutes');
 const bookRoutes = require('./routes/bookRoutes');
 const aiRoutes = require('./routes/aiRoutes');
-const exportRoutes = require('./routes/exportRoutes');
-const storyRoutes = require('./routes/storyRoutes');
+// const exportRoutes = require('./routes/exportRoutes');
+// const storyRoutes = require('./routes/storyRoutes');
 
 const app = express();
 

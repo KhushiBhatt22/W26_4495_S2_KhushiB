@@ -6,7 +6,7 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import DashboardPage from "./pages/DashboardPage";
 import EditorPage from "./pages/EditorPage";
-import ViewBookPage from "./pages/ViewBookPage";
+// import ViewBookPage from "./pages/ViewBookPage";
 import ProfilePage from "./pages/ProfilePage";
 // import HomePage from "./pages/HomePage";
 
@@ -30,10 +30,10 @@ const App = () => {
         path="/editor/:bookId" 
         element={<ProtectedRoute><EditorPage /></ProtectedRoute>} 
       />
-      <Route 
+      {/* <Route 
         path="/view-book/:bookId" 
         element={<ProtectedRoute><ViewBookPage /></ProtectedRoute>} 
-      />
+      /> */}
       <Route 
         path="/profile" 
         element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} 
