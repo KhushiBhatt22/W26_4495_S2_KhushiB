@@ -10,7 +10,7 @@ const axiosInstance = axios.create({
   },
 });
 
-// Request Interceptor
+// Request Interceptor - auto create JWT token to header, supports protected routes
 axiosInstance.interceptors.request.use(
   (config) => {
     const accessToken = localStorage.getItem("token");
