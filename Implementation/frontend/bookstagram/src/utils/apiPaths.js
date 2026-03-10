@@ -25,11 +25,15 @@ export const API_PATHS = {
     DOC: "/api/export",
   },
   SOCIAL: {
-    GET_USER_PROFILE: "/api/social/profile",   // + /:userId
-    FOLLOW: "/api/social/follow",              // + /:userId
-    UNFOLLOW: "/api/social/follow",            // + /:userId (DELETE)
-    FOLLOW_STATUS: "/api/social/follow-status", // + /:userId
-    LIKE: "/api/social/like",                  // + /:bookId
-    UNLIKE: "/api/social/like",                // + /:bookId (DELETE)
+    GET_USER_PROFILE: "/api/social/profile",   
+    FOLLOW: "/api/social/follow",              
+    UNFOLLOW: "/api/social/follow",            
+    FOLLOW_STATUS: "/api/social/follow-status", 
+    LIKE: "/api/social/like",                  
+    UNLIKE: "/api/social/like",               
   },
+  STORIES: {
+  GET_STORIES: "/api/stories",
+  CREATE_STORY: "/api/stories",
+}
 };
