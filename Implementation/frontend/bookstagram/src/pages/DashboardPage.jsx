@@ -154,7 +154,7 @@ const StoriesStrip = ({ stories, isLoading, user, onStoryClick, viewedIds, onAdd
           ) : stories.length === 0 ? (
             <div className="flex items-center gap-2 text-slate-400 text-sm self-center py-2">
               <Camera className="w-4 h-4 flex-shrink-0" />
-              <span>No stories yet — be the first to share!</span>
+              <span>No stories yet</span>
             </div>
           ) : (
             stories.map((story) => (
