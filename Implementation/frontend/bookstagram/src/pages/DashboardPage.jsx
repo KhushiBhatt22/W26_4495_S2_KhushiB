@@ -10,6 +10,7 @@ import axiosInstance from "../utils/axiosInstance";
 import { API_PATHS } from "../utils/apiPaths";
 import BookCard from "../components/cards/BookCard";
 import CreateBookModal from "../components/modals/CreateBookModal";
+import CreateStoryModal from "../components/modals/CreateStoryModal";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 const timeAgo = (date) => {
@@ -252,6 +253,7 @@ const DashboardPage = () => {
   const [bookToDelete, setBookToDelete] = useState(null);
   const [activeStory, setActiveStory] = useState(null);
   const [viewedStoryIds, setViewedStoryIds] = useState(new Set());
+  const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
 
   // ── Fetch profile
   useEffect(() => {
@@ -398,7 +400,7 @@ const DashboardPage = () => {
         user={user}
         onStoryClick={(s) => setActiveStory(s)}
         viewedIds={viewedStoryIds}
-        onAddClick={() => navigate("/stories/create")}
+        onAddClick={() => setIsStoryModalOpen(true) }
       />
 
       {/* ── 3. Books Section ── */}
@@ -449,6 +451,10 @@ const DashboardPage = () => {
         onClose={() => setIsCreateModalOpen(false)}
         onBookCreated={handleBookCreated}
       />
+      <CreateStoryModal
+      isOpen={isStoryModalOpen}
+        onClose={() => setIsStoryModalOpen(false)}
+/>
 
       {activeStory && (
         <StoryViewer
