@@ -19,6 +19,7 @@ export const API_PATHS = {
   AI: {
     GENERATE_OUTLINE: "/api/ai/generate-outline",
     GENERATE_CHAPTER_CONTENT: "/api/ai/generate-chapter-content",
+    GENERATE_STORY_IMAGE: "/api/ai/generate-story-image",
   },
   EXPORT: {
     PDF: "/api/export",
@@ -33,7 +34,7 @@ export const API_PATHS = {
     UNLIKE: "/api/social/like",               
   },
   STORIES: {
-  GET_STORIES: "/api/stories",
-  CREATE_STORY: "/api/stories",
+  GET_STORIES: "/api/story",
+  CREATE_STORY: "/api/story",
 }
 };

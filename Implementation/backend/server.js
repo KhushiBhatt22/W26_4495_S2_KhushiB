@@ -9,7 +9,7 @@ const bookRoutes = require('./routes/bookRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const exportRoutes = require('./routes/exportRoutes');
 const socialRoutes = require('./routes/socialRoutes');
-//const storyRoutes = require('./routes/storyRoutes');
+const storyRoutes = require('./routes/storyRoutes');
 
 const app = express();
 
@@ -36,7 +36,7 @@ app.use("/backend/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/ai", aiRoutes);
-// app.use("/api/story", storyRoutes);
+app.use("/api/story", storyRoutes);
 app.use("/api/export", exportRoutes);
 app.use("/api/social", socialRoutes);
 

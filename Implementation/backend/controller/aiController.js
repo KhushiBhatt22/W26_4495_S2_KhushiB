@@ -134,7 +134,38 @@ Begin writing the chapter content now:`;
   }
 };
 
+// @desc    Generate a story image
+// @route   POST /api/ai/generate-story-image
+// @access  Private
+const generateStoryImage = async (req, res) => {
+  try {
+    const { prompt, style } = req.body;
+
+    if (!prompt) {
+      return res.status(400).json({ message: "Please provide a prompt" });
+    }
+
+    const response = await ai.models.generateContent({
+      model: "imagen-3.0-generate-002",
+      contents: `Create a ${style || "cartoon"} style illustration: ${prompt}`,
+      // config: { responseModalities: ["IMAGE", "TEXT"] },
+       config: { numberOfImages: 1 },
+    });
+
+    const imageBytes = response.generatedImages?.[0]?.image?.imageBytes;
+
+    if (!imageBytes) {
+      return res.status(500).json({ message: "No image generated" });
+    }
+res.status(200).json({ imageUrl: `data:image/png;base64,${imageBytes}` });
+  } catch (error) {
+    console.error("Error generating story image:", error);
+    res.status(500).json({ message: "Server error during image generation" });
+  }
+};
+
 module.exports = {
   generateOutline,
   generateChapterContent,
+  generateStoryImage,
 };
