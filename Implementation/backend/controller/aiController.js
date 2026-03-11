@@ -1,6 +1,10 @@
 const { GoogleGenAI } = require("@google/genai");
 
+const { HfInference } = require("@huggingface/inference");
+const hf = new HfInference(process.env.HUGGING_FACE_API_KEY);
+
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+//const imageAi = new GoogleGenAI({ apiKey: process.env.GEMINI_IMAGE_API_KEY });
 
 // @desc    Generate a book outline
 // @route   POST /api/ai/generate-outline
@@ -145,21 +149,18 @@ const generateStoryImage = async (req, res) => {
       return res.status(400).json({ message: "Please provide a prompt" });
     }
 
-    const response = await ai.models.generateContent({
-      model: "imagen-3.0-generate-002",
-      contents: `Create a ${style || "cartoon"} style illustration: ${prompt}`,
-      // config: { responseModalities: ["IMAGE", "TEXT"] },
-       config: { numberOfImages: 1 },
+    const blob = await hf.textToImage({
+      model: "black-forest-labs/FLUX.1-schnell",
+      inputs: `Create a ${style || "cartoon"} style illustration: ${prompt}`,
     });
 
-    const imageBytes = response.generatedImages?.[0]?.image?.imageBytes;
+    const buffer = Buffer.from(await blob.arrayBuffer());
+    const base64 = buffer.toString("base64");
 
-    if (!imageBytes) {
-      return res.status(500).json({ message: "No image generated" });
-    }
-res.status(200).json({ imageUrl: `data:image/png;base64,${imageBytes}` });
+    res.status(200).json({ imageUrl: `data:image/png;base64,${base64}` });
+
   } catch (error) {
-    console.error("Error generating story image:", error);
+    console.error("Error generating story image:", error.message);
     res.status(500).json({ message: "Server error during image generation" });
   }
 };
