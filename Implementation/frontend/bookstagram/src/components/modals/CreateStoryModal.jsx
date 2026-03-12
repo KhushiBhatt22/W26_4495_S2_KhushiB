@@ -47,12 +47,14 @@ const CreateStoryModal = ({isOpen, onClose}) => {
 
  return(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative overflow-y-auto max-h-[90vh]">
 
        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold text-slate-900">Create New Story</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors">
+          <button onClick={() => {{ setPrompt(""); setStyle("cartoon"); setGeneratedImage(null); onClose();
+
+           }}} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors">
             <X className="w-4 h-4 text-slate-500" />
           </button>
         </div>
