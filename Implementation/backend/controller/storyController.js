@@ -32,7 +32,7 @@ const getAllStories = async (req, res) => {
   try {
     // We populate 'user' to get the username and profile picture for the circles
     const stories = await Story.find()
-      .populate("user", "username profilePicture") 
+      .populate("user", "name avatar") 
       .sort({ createdAt: -1 });
 
     res.status(200).json(stories);
@@ -46,7 +46,9 @@ const getAllStories = async (req, res) => {
 // @access  Private
 const getUserStories = async (req, res) => {
   try {
-    const stories = await Story.find({ user: req.params.userId }).sort({ createdAt: -1 });
+    const stories = await Story.find({ user: req.params.userId })
+    .populate("user", "name avatar")
+    .sort({ createdAt: -1 });
     res.status(200).json(stories);
   } catch (error) {
     res.status(500).json({ message: "Server error" });

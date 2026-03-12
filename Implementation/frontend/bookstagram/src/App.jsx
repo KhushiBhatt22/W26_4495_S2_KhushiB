@@ -10,6 +10,10 @@ import ProfilePage from "./pages/ProfilePage";
 import NewDashboardPage from "./pages/NewDashboardPage";
 import ViewBookPage from "./pages/ViewBookPage";
 // import HomePage from "./pages/HomePage";
+import ViewBookPage from "./pages/ViewBookPage";
+import ProfilePage from "./pages/ProfilePage";
+import HomePage from "./pages/HomePage";
+
 
 const App = () => {
   return (
@@ -24,6 +28,13 @@ const App = () => {
 
         {/* Protected Routes */}
       {/* <Route 
+        <Route
+        path="/home"
+        element={
+          <ProtectedRoute><HomePage/></ProtectedRoute>
+        }
+        />
+      <Route 
         path="/dashboard" 
         element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} 
       /> */}

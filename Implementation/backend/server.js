@@ -9,7 +9,7 @@ const bookRoutes = require('./routes/bookRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const exportRoutes = require('./routes/exportRoutes');
 const socialRoutes = require('./routes/socialRoutes');
-//const storyRoutes = require('./routes/storyRoutes');
+const storyRoutes = require('./routes/storyRoutes');
 
 const app = express();
 
@@ -26,8 +26,9 @@ app.use(
 connectDB();
 
 // Middleware
-app.use(express.json());
-
+//app.use(express.json());
+ app.use(express.json({ limit: "10mb" }));
+ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // Static folder for uploads
 app.use("/backend/uploads", express.static(path.join(__dirname, "uploads")));
@@ -36,7 +37,7 @@ app.use("/backend/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/ai", aiRoutes);
-// app.use("/api/story", storyRoutes);
+app.use("/api/story", storyRoutes);
 app.use("/api/export", exportRoutes);
 app.use("/api/social", socialRoutes);
 
