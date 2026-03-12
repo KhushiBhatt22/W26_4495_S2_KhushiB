@@ -8,6 +8,7 @@ import DashboardPage from "./pages/DashboardPage";
 import EditorPage from "./pages/EditorPage";
 import ViewBookPage from "./pages/ViewBookPage";
 import ProfilePage from "./pages/ProfilePage";
+import NewDashboardPage from "../../pages/NewDashboardPage";
 
 const App = () => {
   return (
@@ -22,6 +23,10 @@ const App = () => {
       <Route 
         path="/dashboard" 
         element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} 
+      />
+      <Route 
+        path="/newdashboard" 
+        element={<ProtectedRoute><NewDashboardPage /></ProtectedRoute>} 
       />
       <Route 
         path="/editor/:bookId" 

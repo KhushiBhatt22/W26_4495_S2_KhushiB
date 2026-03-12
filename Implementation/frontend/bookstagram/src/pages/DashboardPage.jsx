@@ -1,9 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Plus, Book, X, Clock, Camera, BookOpen, Heart, Users, UserCheck } from "lucide-react";
+import { Plus, Book, X, Clock, Camera, BookOpen, Heart } from "lucide-react";
 
-import DashboardLayout from "../components/layout/DashboardLayout";
+import NewDashboardLayout from "../components/layout/NewDashboardLayout";
 import Button from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../utils/axiosInstance";
@@ -12,7 +12,7 @@ import BookCard from "../components/cards/BookCard";
 import CreateBookModal from "../components/modals/CreateBookModal";
 import CreateStoryModal from "../components/modals/CreateStoryModal";
 
-// ─── Helpers ───────────────────────────────────────────────────────────────
+// ─── Helpers ────────────────────────────────────────────────────────────────
 const timeAgo = (date) => {
   const seconds = Math.floor((new Date() - new Date(date)) / 1000);
   if (seconds < 60) return `${seconds} seconds ago`;
@@ -42,7 +42,7 @@ const avatarColor = (name = "") => {
 const initials = (name = "") =>
   name.trim().split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "?";
 
-// ─── Skeletons ──────────────────────────────────────────────────────────────
+// ─── Skeletons ───────────────────────────────────────────────────────────────
 const BookCardSkeleton = () => (
   <div className="animate-pulse bg-white border border-slate-200 rounded-lg shadow-sm">
     <div className="w-full aspect-[16/25] bg-slate-200 rounded-t-lg"></div>
@@ -60,7 +60,7 @@ const StoryBubbleSkeleton = () => (
   </div>
 );
 
-// ─── Story Components ───────────────────────────────────────────────────────
+// ─── Story Components ────────────────────────────────────────────────────────
 const StoryBubble = ({ story, isViewed, onClick }) => {
   const gradient = STYLE_GRADIENTS[story.style] || STYLE_GRADIENTS.cartoon;
   const name = story.user?.name || "User";
@@ -233,7 +233,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
   );
 };
 
-// ─── Main Merged Page ───────────────────────────────────────────────────────
+// ─── Main Dashboard Page ─────────────────────────────────────────────────────
 const DashboardPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -340,7 +340,8 @@ const DashboardPage = () => {
   };
 
   return (
-    <DashboardLayout>
+    // ✅ Now using NewDashboardLayout — passes onCreateBook to trigger the Create modal
+    <NewDashboardLayout onCreateBook={() => setIsCreateModalOpen(true)}>
 
       {/* ── 1. Profile Header ── */}
       <div className="bg-white border-b border-gray-200">
@@ -352,7 +353,7 @@ const DashboardPage = () => {
                 <div className="h-6 bg-slate-200 rounded w-40" />
                 <div className="h-4 bg-slate-200 rounded w-56" />
                 <div className="flex gap-8 mt-2">
-                  {[1,2,3].map(i => <div key={i} className="h-10 w-16 bg-slate-200 rounded" />)}
+                  {[1, 2, 3].map(i => <div key={i} className="h-10 w-16 bg-slate-200 rounded" />)}
                 </div>
               </div>
             </div>
@@ -400,7 +401,7 @@ const DashboardPage = () => {
         user={user}
         onStoryClick={(s) => setActiveStory(s)}
         viewedIds={viewedStoryIds}
-        onAddClick={() => setIsStoryModalOpen(true) }
+        onAddClick={() => setIsStoryModalOpen(true)}
       />
 
       {/* ── 3. Books Section ── */}
@@ -451,10 +452,11 @@ const DashboardPage = () => {
         onClose={() => setIsCreateModalOpen(false)}
         onBookCreated={handleBookCreated}
       />
+
       <CreateStoryModal
-      isOpen={isStoryModalOpen}
+        isOpen={isStoryModalOpen}
         onClose={() => setIsStoryModalOpen(false)}
-/>
+      />
 
       {activeStory && (
         <StoryViewer
@@ -502,7 +504,7 @@ const DashboardPage = () => {
         </div>
       )}
 
-    </DashboardLayout>
+    </NewDashboardLayout>
   );
 };
 

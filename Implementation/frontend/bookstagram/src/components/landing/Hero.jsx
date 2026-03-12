@@ -37,7 +37,7 @@ const Hero = () => {
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <Link
-                to={isAuthenticated ? "/dashboard" : "/login"}
+                to={isAuthenticated ? "/newdashboard" : "/login"}
                 className="group inline-flex items-center space-x-2 bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-semibold shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-105 transition-all duration-200"
               >
                 <span>Start Creating for Free</span>
