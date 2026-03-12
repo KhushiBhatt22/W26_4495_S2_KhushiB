@@ -294,7 +294,7 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchStories = async () => {
       try {
-        const res = await axiosInstance.get(API_PATHS.STORIES.GET_STORIES);
+        const res = await axiosInstance.get(`${API_PATHS.STORIES.GET_STORIES}/user/${user?._id}`);
         setStories(res.data);
       } catch {
         toast.error("Failed to load your Stories.");
