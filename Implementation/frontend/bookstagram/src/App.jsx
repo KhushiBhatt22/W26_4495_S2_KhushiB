@@ -4,15 +4,12 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
-//import DashboardPage from "./pages/DashboardPage";
+import DashboardPage from "./pages/DashboardPage";
 import EditorPage from "./pages/EditorPage";
-import ProfilePage from "./pages/ProfilePage";
 import NewDashboardPage from "./pages/NewDashboardPage";
-import ViewBookPage from "./pages/ViewBookPage";
-// import HomePage from "./pages/HomePage";
+ import HomePage from "./pages/HomePage";
 import ViewBookPage from "./pages/ViewBookPage";
 import ProfilePage from "./pages/ProfilePage";
-import HomePage from "./pages/HomePage";
 
 
 const App = () => {
@@ -27,7 +24,7 @@ const App = () => {
         
 
         {/* Protected Routes */}
-      {/* <Route 
+      {/* <Route  */}
         <Route
         path="/home"
         element={
@@ -37,9 +34,9 @@ const App = () => {
       <Route 
         path="/dashboard" 
         element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} 
-      /> */}
+      />
        <Route 
-        path="/dashboard" 
+        path="/newdashboard" 
         element={<ProtectedRoute><NewDashboardPage/></ProtectedRoute>} 
       />
       <Route 

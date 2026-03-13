@@ -33,7 +33,7 @@ const LoginPage = () => {
       });
       login(profileResponse.data, token);
       toast.success("Welcome back to Bookstagram!");
-      navigate("/home");
+      navigate("/newdashboard");
     } catch (error) {
       localStorage.clear();
       toast.error(error.response?.data?.message || "Login failed. Please try again.");
@@ -63,7 +63,7 @@ const LoginPage = () => {
 
       login(profileResponse.data, token);
       toast.success("Welcome back to Bookstagram!");
-      navigate("/home");
+      navigate("/newdashboard");
     } catch (error) {
       toast.error("Google login failed. Please try again.");
     } finally {

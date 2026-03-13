@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
-const NewDashboardLayout = ({ children, onCreateBook }) => {
+const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -16,11 +16,11 @@ const NewDashboardLayout = ({ children, onCreateBook }) => {
   const profileRef = useRef(null);
 
   const navItems = [
-    { id: "home",     label: "Home",     icon: Home,          path: "/dashboard" },
+    { id: "home",     label: "Home",     icon: Home,          path: "/newdashboard" },
     { id: "explore",  label: "Explore",  icon: Compass,       path: "/explore" },
     { id: "threads",  label: "Threads",  icon: MessageSquare, path: "/threads" },
     { id: "messages", label: "Messages", icon: Mail,          path: "/messages", badge: notifications },
-    { id: "profile",  label: "Profile",  icon: User,          path: "/profile" },
+    { id: "profile",  label: "Profile",  icon: User,          path: "/dashboard" },
     { id: "settings", label: "Settings", icon: Settings,      path: "/settings" },
   ];
 
@@ -39,7 +39,7 @@ const NewDashboardLayout = ({ children, onCreateBook }) => {
   }, []);
 
   const avatarLetter = user?.name?.charAt(0).toUpperCase() || "U";
-
+  
   return (
     <div style={styles.shell}>
 
@@ -98,7 +98,7 @@ const NewDashboardLayout = ({ children, onCreateBook }) => {
         <div style={{ flex: 1 }} />
 
         {/* Bottom Profile */}
-        <div style={styles.sidebarProfile} onClick={() => navigate("/profile")}>
+        <div style={styles.sidebarProfile} onClick={() => navigate("/dashboard")}>
           <div style={styles.avatarCircle}>
             {user?.avatar
               ? <img src={user.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
@@ -118,6 +118,7 @@ const NewDashboardLayout = ({ children, onCreateBook }) => {
       <div style={styles.mainWrap}>
 
         {/* TOPBAR */}
+        {!hideTopbar && (
         <header style={styles.topbar}>
           <div style={styles.searchWrap}>
             <Search size={14} style={styles.searchIcon} />
@@ -166,7 +167,7 @@ const NewDashboardLayout = ({ children, onCreateBook }) => {
                     </div>
                   </div>
                   <div style={styles.menuDivider} />
-                  <div style={styles.menuItem} onClick={() => { navigate("/profile"); setShowProfileMenu(false); }}>
+                  <div style={styles.menuItem} onClick={() => { navigate("/dashboard"); setShowProfileMenu(false); }}>
                     <User size={14} color="#6b7280" /> My Profile
                   </div>
                   <div style={styles.menuItem} onClick={() => { navigate("/settings"); setShowProfileMenu(false); }}>
@@ -181,7 +182,7 @@ const NewDashboardLayout = ({ children, onCreateBook }) => {
             </div>
           </div>
         </header>
-
+        )}
         {/* PAGE CONTENT */}
         <main style={styles.pageContent}>
           {children}

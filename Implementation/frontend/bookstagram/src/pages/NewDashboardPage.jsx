@@ -7,13 +7,8 @@ import CreateBookModal from "../components/modals/CreateBookModal";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../utils/axiosInstance";
 import { API_PATHS } from "../utils/apiPaths";
-
-const MOCK_STORIES = [
-  { id: 1, name: "Aditi",  color: "#d946ef, #818cf8" },
-  { id: 2, name: "Sara",   color: "#fb923c, #d946ef" },
-  { id: 3, name: "Roshan", color: "#818cf8, #fb923c" },
-  { id: 4, name: "Priya",  color: "#d946ef, #fb923c" },
-];
+import { StoriesStrip, StoryViewer } from "../components/stories/StoriesStrip";
+import CreateStoryModal from "../components/modals/CreateStoryModal";
 
 const MOCK_SUGGESTED = [
   { id: 1, name: "Aditi",  handle: "@aditi_reads",  gradient: "135deg, #fdf4ff, #fce7f3", dot: "#d946ef", mutual: 3 },
@@ -22,31 +17,7 @@ const MOCK_SUGGESTED = [
   { id: 4, name: "Priya",  handle: "@priya_pages",  gradient: "135deg, #fce7f3, #fff7ed", dot: "#d946ef", mutual: 2 },
 ];
 
-// ── Story Ring ──────────────────────────────────────────────────────────────
-const StoryRing = ({ name, color, isMine }) => (
-  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
-    <div style={{
-      width: 56, height: 56, borderRadius: "50%",
-      background: isMine ? "#f3e8ff" : `linear-gradient(${color})`,
-      padding: 2.5,
-      boxShadow: isMine ? "none" : "0 2px 10px rgba(217,70,239,0.25)",
-    }}>
-      <div style={{
-        width: "100%", height: "100%", borderRadius: "50%",
-        background: "#fff",
-        border: "2px solid #fff",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: isMine ? 20 : 15, fontWeight: 700,
-        color: isMine ? "#d946ef" : "#6b7280",
-      }}>
-        {isMine ? "+" : name.charAt(0)}
-      </div>
-    </div>
-    <span style={{ fontSize: 11, color: "#9ca3af", maxWidth: 56, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-      {isMine ? "Your Story" : name}
-    </span>
-  </div>
-);
+
 
 // ── Book Post Card ──────────────────────────────────────────────────────────
 const BookPostCard = ({ book, onLike, onRead }) => {
@@ -184,14 +155,37 @@ const SuggestedUser = ({ user, isFollowing, onToggle }) => (
 
 // ── Main Page ───────────────────────────────────────────────────────────────
 const NewDashboardPage = () => {
+
   const { user } = useAuth();
   const navigate = useNavigate();
+  //existing books
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [followedUsers, setFollowedUsers] = useState([3]);
 
+  //stories 
+  const [stories, setStories] = useState([]);
+  const [isStoriesLoading, setIsStoriesLoading] = useState(true);
+  const [activeStory, setActiveStory] = useState(null);
+  const [viewedStoryIds, setViewedStoryIds] = useState(new Set());
+  const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
+  
   useEffect(() => { fetchFeedBooks(); }, []);
+
+  useEffect(() => {
+    const fetchStories = async () => {
+      try {
+        const res = await axiosInstance.get(API_PATHS.STORIES.GET_STORIES);
+        setStories(res.data);
+      } catch {
+        toast.error("Failed to load stories");
+      } finally {
+        setIsStoriesLoading(false);
+      }
+    };
+    fetchStories();
+  }, []);
 
   const fetchFeedBooks = async () => {
     try {
@@ -208,6 +202,8 @@ const NewDashboardPage = () => {
       setIsLoading(false);
     }
   };
+
+
 
   const handleLike = async (bookId, isLiked) => {
     try {
@@ -241,12 +237,6 @@ const NewDashboardPage = () => {
 
         {/* ── CENTER FEED ── */}
         <div style={pageStyles.feed}>
-
-          {/* Stories */}
-          <div style={pageStyles.storiesWrap}>
-            <StoryRing name="You" color="135deg, #d946ef, #fb923c" isMine />
-            {MOCK_STORIES.map(s => <StoryRing key={s.id} name={s.name} color={s.color} />)}
-          </div>
 
           {/* Feed label */}
           <div style={pageStyles.feedLabel}>
@@ -287,7 +277,7 @@ const NewDashboardPage = () => {
           {/* Suggested People */}
           <div style={{ marginBottom: 24 }}>
             <div style={rightStyles.sectionTitle}>
-              <span>✨ People You May Follow</span>
+              <span>People You May Follow</span>
               <span style={rightStyles.seeAll} onClick={() => navigate("/explore")}>See all →</span>
             </div>
             {MOCK_SUGGESTED.map(u => (
@@ -305,7 +295,7 @@ const NewDashboardPage = () => {
           {/* Trending Books */}
           <div>
             <div style={rightStyles.sectionTitle}>
-              <span>🔥 Trending Books</span>
+              <span>Trending Books</span>
             </div>
             {books.slice(0, 4).map((book, i) => (
               <div
@@ -360,13 +350,6 @@ const pageStyles = {
     padding: "24px 28px",
     //maxWidth: 600,
     minWidth: 0,
-  },
-  storiesWrap: {
-    display: "flex",
-    gap: 16,
-    marginBottom: 22,
-    overflowX: "auto",
-    paddingBottom: 4,
   },
   feedLabel: {
     display: "inline-flex",
