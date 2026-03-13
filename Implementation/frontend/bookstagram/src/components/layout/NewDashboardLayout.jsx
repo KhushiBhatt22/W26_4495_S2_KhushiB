@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
-const NewDashboardLayout = ({ children, onCreateBook }) => {
+const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -39,7 +39,7 @@ const NewDashboardLayout = ({ children, onCreateBook }) => {
   }, []);
 
   const avatarLetter = user?.name?.charAt(0).toUpperCase() || "U";
-
+  
   return (
     <div style={styles.shell}>
 
@@ -118,6 +118,7 @@ const NewDashboardLayout = ({ children, onCreateBook }) => {
       <div style={styles.mainWrap}>
 
         {/* TOPBAR */}
+        {!hideTopbar && (
         <header style={styles.topbar}>
           <div style={styles.searchWrap}>
             <Search size={14} style={styles.searchIcon} />
@@ -181,7 +182,7 @@ const NewDashboardLayout = ({ children, onCreateBook }) => {
             </div>
           </div>
         </header>
-
+        )}
         {/* PAGE CONTENT */}
         <main style={styles.pageContent}>
           {children}
