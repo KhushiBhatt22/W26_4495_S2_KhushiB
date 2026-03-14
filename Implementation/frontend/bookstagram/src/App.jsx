@@ -11,6 +11,7 @@ import NewDashboardPage from "./pages/NewDashboardPage";
 import ViewBookPage from "./pages/ViewBookPage";
 import ProfilePage from "./pages/ProfilePage";
 import ExplorePage from "./pages/ExplorePage";
+import ThreadsPage from "./pages/ThreadsPage";
 
 
 const App = () => {
@@ -54,6 +55,9 @@ const App = () => {
       />
       <Route path="/explore" 
       element={<ProtectedRoute><ExplorePage /></ProtectedRoute>} 
+      />
+      <Route path="/threads" 
+      element={<ProtectedRoute><ThreadsPage /></ProtectedRoute>} 
       />
       </Routes>
     </div>
