@@ -10,6 +10,7 @@ import NewDashboardPage from "./pages/NewDashboardPage";
  import HomePage from "./pages/HomePage";
 import ViewBookPage from "./pages/ViewBookPage";
 import ProfilePage from "./pages/ProfilePage";
+import ExplorePage from "./pages/ExplorePage";
 
 
 const App = () => {
@@ -50,6 +51,9 @@ const App = () => {
       <Route 
         path="/profile" 
         element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} 
+      />
+      <Route path="/explore" 
+      element={<ProtectedRoute><ExplorePage /></ProtectedRoute>} 
       />
       </Routes>
     </div>
