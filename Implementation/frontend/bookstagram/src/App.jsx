@@ -12,6 +12,7 @@ import ViewBookPage from "./pages/ViewBookPage";
 import ProfilePage from "./pages/ProfilePage";
 import ExplorePage from "./pages/ExplorePage";
 import ThreadsPage from "./pages/ThreadsPage";
+import MessagesPage from "./pages/MessagesPage";
 
 
 const App = () => {
@@ -59,7 +60,11 @@ const App = () => {
       <Route path="/threads" 
       element={<ProtectedRoute><ThreadsPage /></ProtectedRoute>} 
       />
+      <Route path="/messages" 
+      element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} 
+      />
       </Routes>
+      
     </div>
   );
 };
