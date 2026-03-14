@@ -13,6 +13,7 @@ import ProfilePage from "./pages/ProfilePage";
 import ExplorePage from "./pages/ExplorePage";
 import ThreadsPage from "./pages/ThreadsPage";
 import MessagesPage from "./pages/MessagesPage";
+import SettingsPage from "./pages/SettingsPage";
 
 
 const App = () => {
@@ -62,6 +63,9 @@ const App = () => {
       />
       <Route path="/messages" 
       element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} 
+      />
+      <Route path="/settings"
+      element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} 
       />
       </Routes>
       
