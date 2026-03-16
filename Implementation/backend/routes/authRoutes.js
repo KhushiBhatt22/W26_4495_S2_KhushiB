@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerUser, loginUser, googleAuth, getProfile, updateUserProfile, uploadProfilePhoto } = require('../controller/authController');
+const { registerUser, loginUser, googleAuth, getProfile, updateUserProfile, uploadProfilePhoto,changePassword} = require('../controller/authController');
 const { protect } = require('../middlewares/authMiddleware');
 const multer = require('multer');
 const path = require('path');
@@ -31,6 +31,7 @@ router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.post('/google', googleAuth);
 router.get('/profile', protect, getProfile);
+router.put('/change-password', protect, changePassword);
 router.put('/profile', protect, updateUserProfile);
 router.put('/profile/photo', protect, (req, res, next) => {
   avatarUpload(req, res, (err) => {
