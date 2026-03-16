@@ -148,7 +148,7 @@ exports.uploadProfilePhoto = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-    const avatarPath = `/uploads/${req.file.filename}`;
+    const avatarPath = `/backend/uploads/${req.file.filename}`;
     user.avatar = avatarPath;
     await user.save();
 
