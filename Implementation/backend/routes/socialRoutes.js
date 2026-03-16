@@ -16,5 +16,6 @@ router.delete("/follow/:userId", protect, unfollowUser);
 router.get("/follow-status/:userId", protect, getFollowStatus);
 router.post("/like/:bookId", protect, likeBook);
 router.delete("/like/:bookId", protect, unlikeBook);
+//router.get("/suggested", protect, getSuggestedUsers);
 
 module.exports = router;
