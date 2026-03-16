@@ -7,6 +7,7 @@ export const API_PATHS = {
     GOOGLE: "/api/auth/google",
     GET_PROFILE: "/api/auth/profile",
     UPDATE_PROFILE: "/api/auth/profile",
+    CHANGE_PASSWORD: "/api/auth/change-password",  // ← ADDED CHANGE PASSWORD PATH
   },
   BOOKS: {
     CREATE_BOOK: "/api/books",
