@@ -135,11 +135,25 @@ const updateBookCover = async (req, res) => {
   }
 };
 
+// @desc    Get ALL books from all users (for Explore page)
+// @route   GET /api/books/all
+// @access  Private
+const getAllBooks = async (req, res) => {
+  try {
+    const books = await Book.find()
+      .populate("userId", "name avatar")
+      .sort({ createdAt: -1 });
+    res.status(200).json(books);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
 module.exports = {
   createBook,
   getBooks,
   getBookById,
   updateBook,
+  getAllBooks,
   deleteBook,
   updateBookCover,
 };
