@@ -48,6 +48,9 @@ exports.loginUser = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        avatar: user.avatar,   // ← ADD
+        bio: user.bio,         // ← ADD
+        isPro: user.isPro,     // ← ADD 
         token: generateToken(user._id),
       });
     } else {
@@ -102,6 +105,7 @@ exports.getProfile = async (req, res) => {
       name: user.name,
       email: user.email,
       avatar: user.avatar,
+      bio: user.bio,
       isPro: user.isPro,
     });
   } catch (error) {
@@ -116,12 +120,65 @@ exports.updateUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     if (user) {
-      user.name = req.body.name || user.name;
-      const updatedUser = await user.save();
-      res.json({ _id: updatedUser._id, name: updatedUser.name });
+    user.name = req.body.name || user.name;
+    if (req.body.bio !== undefined) user.bio = req.body.bio;
+    if (req.body.avatar) user.avatar = req.body.avatar;
+    const updatedUser = await user.save();
+    res.json({
+    _id: updatedUser._id,
+    name: updatedUser.name,
+    avatar: updatedUser.avatar,
+    bio: updatedUser.bio,
+    isPro: updatedUser.isPro, 
+});
     } else {
       res.status(404).json({ message: "User not found" });
     }
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Upload profile photo
+// @route   PUT /api/auth/profile/photo
+// @access  Private
+exports.uploadProfilePhoto = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+    const avatarPath = `/backend/uploads/${req.file.filename}`;
+    user.avatar = avatarPath;
+    await user.save();
+
+    res.json({ message: "Photo updated", avatar: avatarPath });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Change password
+// @route   PUT /api/auth/change-password
+// @access  Private
+exports.changePassword = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("+password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const { currentPassword, newPassword } = req.body;
+
+    // Check current password
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    // Set new password
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: "Password changed successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
