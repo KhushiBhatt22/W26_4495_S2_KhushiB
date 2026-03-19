@@ -108,7 +108,7 @@ const ExplorePage = () => {
   const fetchAllBooks = async () => {
     try {
       // Using existing GET /api/books — swap to /api/books/feed when backend is ready
-      const res = await axiosInstance.get(API_PATHS.BOOKS.GET_BOOKS);
+      const res = await axiosInstance.get(API_PATHS.BOOKS.GET_ALL_BOOKS);
       const enriched = (res.data || []).map(b => ({
         ...b,
         isLiked: false,

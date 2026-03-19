@@ -16,6 +16,7 @@ export const API_PATHS = {
     UPDATE_BOOK: "/api/books",
     DELETE_BOOK: "/api/books",
     UPDATE_COVER: "/api/books/cover",
+    GET_ALL_BOOKS: "/api/books/all", 
   },
   AI: {
     GENERATE_OUTLINE: "/api/ai/generate-outline",

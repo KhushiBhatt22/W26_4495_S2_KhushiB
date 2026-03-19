@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: false, minlength: 6, select: false },
     googleId: { type: String, default: null },
     avatar: { type: String, default: "" },
-    bio: { type: String, default: "", maxlength: 160 },  // ← ADD THIS
+    bio: { type: String, default: "", maxlength: 160 },
     isPro: { type: Boolean, default: false },
   },
   { timestamps: true }

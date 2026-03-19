@@ -10,6 +10,7 @@ const {
   getPublicFeed,
   toggleLike,
   addComment,
+  getAllBooks
 } = require("../controller/bookController");
 
 const { protect } = require("../middlewares/authMiddleware");
@@ -17,7 +18,7 @@ const upload = require("../middlewares/uploadMiddleware");
 
 // Apply protect middleware to all routes in this file
 
-
+router.get("/all", protect, getAllBooks);
 router.use(protect);
 
 // router.get("/feed", getPublicFeed);

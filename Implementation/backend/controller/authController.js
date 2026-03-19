@@ -105,7 +105,7 @@ exports.getProfile = async (req, res) => {
       name: user.name,
       email: user.email,
       avatar: user.avatar,
-      bio: user.bio,
+      bio: user.bio,  
       isPro: user.isPro,
     });
   } catch (error) {
@@ -157,7 +157,6 @@ exports.uploadProfilePhoto = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 // @desc    Change password
 // @route   PUT /api/auth/change-password
 // @access  Private
@@ -166,16 +165,12 @@ exports.changePassword = async (req, res) => {
     const user = await User.findById(req.user.id).select("+password");
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const { currentPassword, newPassword } = req.body;
-
-    // Check current password
-    const isMatch = await user.matchPassword(currentPassword);
+    const isMatch = await user.matchPassword(req.body.currentPassword);
     if (!isMatch) {
       return res.status(400).json({ message: "Current password is incorrect" });
     }
 
-    // Set new password
-    user.password = newPassword;
+    user.password = req.body.newPassword;
     await user.save();
 
     res.json({ message: "Password changed successfully" });

@@ -142,6 +142,8 @@ exports.getFeed = async (req, res) => {
     // Get all users the current user follows
     const following = await Follow.find({ follower: currentUserId }).select("following");
     const followingIds = following.map((f) => f.following);
+    const user = await User.findById(profileUserId).select("name email avatar bio");
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     if (followingIds.length === 0) {
       return res.json([]);
