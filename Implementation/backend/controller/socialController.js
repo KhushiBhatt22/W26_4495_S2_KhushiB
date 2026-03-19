@@ -109,7 +109,7 @@ exports.getUserProfile = async (req, res) => {
     const profileUserId = req.params.userId;
     const currentUserId = req.user._id;
 
-    const user = await User.findById(profileUserId).select("name email avatar");
+    const user = await User.findById(profileUserId).select("name email avatar bio");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     // Get books
