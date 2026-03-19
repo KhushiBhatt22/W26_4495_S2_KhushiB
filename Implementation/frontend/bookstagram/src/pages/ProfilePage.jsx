@@ -6,11 +6,19 @@ import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../utils/axiosInstance";
 import { API_PATHS } from "../utils/apiPaths";
 
+const BASE_URL = "http://localhost:8000";
+
+// Helper to fix avatar URL
+const getAvatarUrl = (avatar) => {
+  if (!avatar) return null;
+  if (avatar.startsWith("http")) return avatar;
+  return `${BASE_URL}${avatar}`;
+};
+
 const ProfilePage = () => {
   const { userId } = useParams();
   const { user: currentUser } = useAuth();
 
-  // If no userId in URL, show current user's profile
   const profileId = userId || currentUser?._id;
   const isOwnProfile = profileId === currentUser?._id;
 
@@ -69,13 +77,15 @@ const ProfilePage = () => {
         setBooks((prev) =>
           prev.map((b) => b._id === bookId ? { ...b, isLiked: false, likesCount: res.data.likesCount } : b)
         );
-        if (selectedBook?._id === bookId) setSelectedBook((p) => ({ ...p, isLiked: false, likesCount: res.data.likesCount }));
+        if (selectedBook?._id === bookId)
+          setSelectedBook((p) => ({ ...p, isLiked: false, likesCount: res.data.likesCount }));
       } else {
         const res = await axiosInstance.post(`${API_PATHS.SOCIAL.LIKE}/${bookId}`);
         setBooks((prev) =>
           prev.map((b) => b._id === bookId ? { ...b, isLiked: true, likesCount: res.data.likesCount } : b)
         );
-        if (selectedBook?._id === bookId) setSelectedBook((p) => ({ ...p, isLiked: true, likesCount: res.data.likesCount }));
+        if (selectedBook?._id === bookId)
+          setSelectedBook((p) => ({ ...p, isLiked: true, likesCount: res.data.likesCount }));
       }
     } catch (error) {
       toast.error("Something went wrong");
@@ -90,6 +100,7 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+
       {/* ── Profile Header ── */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-6 py-10">
@@ -99,7 +110,11 @@ const ProfilePage = () => {
             <div className="relative">
               <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg overflow-hidden">
                 {profile?.avatar ? (
-                  <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
+                  <img
+                    src={getAvatarUrl(profile.avatar)}
+                    alt={profile.name}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <span className="text-white text-4xl font-bold">
                     {profile?.name?.charAt(0).toUpperCase()}
@@ -121,15 +136,24 @@ const ProfilePage = () => {
                         : "bg-gradient-to-r from-primary to-secondary text-white shadow hover:opacity-90"
                     }`}
                   >
-                    {isFollowing ? <><UserCheck size={16} /> Following</> : <><Users size={16} /> Follow</>}
+                    {isFollowing
+                      ? <><UserCheck size={16} /> Following</>
+                      : <><Users size={16} /> Follow</>
+                    }
                   </button>
                 )}
               </div>
 
-              <p className="text-gray-500 text-sm mb-5">{profile?.email}</p>
+              {/* Email */}
+              <p className="text-gray-500 text-sm mb-2">{profile?.email}</p>
+
+              {/* Bio ── shows only if bio exists */}
+              {profile?.bio && (
+                <p className="text-gray-700 text-sm mb-5 max-w-md">{profile.bio}</p>
+              )}
 
               {/* Stats */}
-              <div className="flex justify-center sm:justify-start gap-8">
+              <div className="flex justify-center sm:justify-start gap-8 mt-4">
                 <div className="text-center">
                   <p className="text-xl font-bold text-gray-900">{stats.postsCount}</p>
                   <p className="text-sm text-gray-500">Books</p>
@@ -148,7 +172,7 @@ const ProfilePage = () => {
         </div>
       </div>
 
-      {/* ── Books Grid (Instagram style) ── */}
+      {/* ── Books Grid ── */}
       <div className="max-w-4xl mx-auto px-6 py-8">
         {books.length === 0 ? (
           <div className="text-center py-20">
@@ -164,10 +188,9 @@ const ProfilePage = () => {
                 className="relative aspect-square cursor-pointer group overflow-hidden rounded-md bg-gray-200"
                 onClick={() => setSelectedBook(book)}
               >
-                {/* Cover Image */}
                 {book.coverImage ? (
                   <img
-                    src={`http://localhost:8000${book.coverImage}`}
+                    src={`${BASE_URL}${book.coverImage}`}
                     alt={book.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
@@ -177,7 +200,7 @@ const ProfilePage = () => {
                   </div>
                 )}
 
-                {/* Hover overlay with likes */}
+                {/* Hover overlay */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
                   <span className="flex items-center gap-1 text-white font-semibold text-sm">
                     <Heart size={18} fill="white" />
@@ -190,7 +213,7 @@ const ProfilePage = () => {
         )}
       </div>
 
-      {/* ── Book Detail Modal (like Instagram post view) ── */}
+      {/* ── Book Detail Modal ── */}
       {selectedBook && (
         <div
           className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
@@ -204,7 +227,7 @@ const ProfilePage = () => {
             <div className="sm:w-1/2 bg-gray-100 flex items-center justify-center min-h-[280px]">
               {selectedBook.coverImage ? (
                 <img
-                  src={`http://localhost:8000${selectedBook.coverImage}`}
+                  src={`${BASE_URL}${selectedBook.coverImage}`}
                   alt={selectedBook.title}
                   className="w-full h-full object-cover"
                 />
@@ -218,13 +241,19 @@ const ProfilePage = () => {
             {/* Right: Details */}
             <div className="sm:w-1/2 p-6 flex flex-col justify-between">
               <div>
-                {/* User */}
+                {/* Author */}
                 <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center overflow-hidden">
                     {profile?.avatar ? (
-                      <img src={profile.avatar} alt="" className="w-full h-full object-cover" />
+                      <img
+                        src={getAvatarUrl(profile.avatar)}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
-                      <span className="text-white text-sm font-bold">{profile?.name?.charAt(0)}</span>
+                      <span className="text-white text-sm font-bold">
+                        {profile?.name?.charAt(0)}
+                      </span>
                     )}
                   </div>
                   <span className="font-semibold text-gray-900 text-sm">{profile?.name}</span>
@@ -232,7 +261,9 @@ const ProfilePage = () => {
 
                 {/* Book Info */}
                 <h2 className="text-xl font-bold text-gray-900 mb-1">{selectedBook.title}</h2>
-                {selectedBook.subtitle && <p className="text-gray-500 text-sm mb-3">{selectedBook.subtitle}</p>}
+                {selectedBook.subtitle && (
+                  <p className="text-gray-500 text-sm mb-3">{selectedBook.subtitle}</p>
+                )}
                 <p className="text-gray-400 text-xs mb-4">by {selectedBook.author}</p>
                 <p className="text-gray-500 text-sm">{selectedBook.chapters?.length || 0} chapters</p>
               </div>
