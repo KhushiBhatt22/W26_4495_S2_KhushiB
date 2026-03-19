@@ -7,7 +7,7 @@ export const API_PATHS = {
     GOOGLE: "/api/auth/google",
     GET_PROFILE: "/api/auth/profile",
     UPDATE_PROFILE: "/api/auth/profile",
-    CHANGE_PASSWORD: "/api/auth/change-password",  // ← ADDED CHANGE PASSWORD PATH
+    CHANGE_PASSWORD: "/api/auth/change-password",
   },
   BOOKS: {
     CREATE_BOOK: "/api/books",
@@ -28,15 +28,17 @@ export const API_PATHS = {
     DOC: "/api/export",
   },
   SOCIAL: {
-    GET_USER_PROFILE: "/api/social/profile",   
-    FOLLOW: "/api/social/follow",              
-    UNFOLLOW: "/api/social/follow",            
-    FOLLOW_STATUS: "/api/social/follow-status", 
-    LIKE: "/api/social/like",                  
-    UNLIKE: "/api/social/like",               
+    GET_USER_PROFILE: "/api/social/profile",
+    FOLLOW: "/api/social/follow",
+    UNFOLLOW: "/api/social/follow",
+    FOLLOW_STATUS: "/api/social/follow-status",
+    LIKE: "/api/social/like",
+    UNLIKE: "/api/social/like",
+    SUGGESTED: "/api/social/suggested",
+    FEED: "/api/social/feed",
   },
   STORIES: {
-  GET_STORIES: "/api/story",
-  CREATE_STORY: "/api/story",
-}
+    GET_STORIES: "/api/story",
+    CREATE_STORY: "/api/story",
+  },
 };
