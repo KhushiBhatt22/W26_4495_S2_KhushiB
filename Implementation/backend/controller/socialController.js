@@ -2,10 +2,35 @@ const Follow = require("../models/Follow");
 const User = require("../models/User");
 const Book = require("../models/Book");
 const Like = require("../models/Like");
+const mongoose = require("mongoose");
+
+// ─── Helper: enrich books with like status + counts ──────────────────────────
+const enrichBooksWithLikes = async (books, currentUserId) => {
+  if (!books || books.length === 0) return [];
+
+  const bookIds = books.map((b) => b._id);
+
+  const [likedDocs, likeCounts] = await Promise.all([
+    Like.find({ userId: currentUserId, bookId: { $in: bookIds } }).select("bookId"),
+    Like.aggregate([
+      { $match: { bookId: { $in: bookIds.map((id) => new mongoose.Types.ObjectId(id.toString())) } } },
+      { $group: { _id: "$bookId", count: { $sum: 1 } } },
+    ]),
+  ]);
+
+  const likedSet = new Set(likedDocs.map((l) => l.bookId.toString()));
+  const likeCountMap = {};
+  likeCounts.forEach((l) => { likeCountMap[l._id.toString()] = l.count; });
+
+  return books.map((b) => ({
+    ...b.toObject(),
+    isLiked: likedSet.has(b._id.toString()),
+    likesCount: likeCountMap[b._id.toString()] || 0,
+  }));
+};
 
 // ─── Follow ──────────────────────────────────────────────────────────────────
 
-// Follow a user
 exports.followUser = async (req, res) => {
   try {
     const followerId = req.user._id;
@@ -22,7 +47,6 @@ exports.followUser = async (req, res) => {
   }
 };
 
-// Unfollow a user
 exports.unfollowUser = async (req, res) => {
   try {
     await Follow.findOneAndDelete({
@@ -35,7 +59,6 @@ exports.unfollowUser = async (req, res) => {
   }
 };
 
-// Check if current user follows another
 exports.getFollowStatus = async (req, res) => {
   try {
     const follow = await Follow.findOne({
@@ -48,7 +71,8 @@ exports.getFollowStatus = async (req, res) => {
   }
 };
 
-// Get a user's public profile with follow status, books, and counts
+// ─── User Profile ─────────────────────────────────────────────────────────────
+
 exports.getUserProfile = async (req, res) => {
   try {
     const profileId = req.params.userId;
@@ -65,25 +89,7 @@ exports.getUserProfile = async (req, res) => {
       Book.find({ userId: profileId }).sort({ createdAt: -1 }),
     ]);
 
-    // Attach like status and count to each book
-    const likedBookIds = await Like.find({
-      userId: currentUserId,
-      bookId: { $in: books.map((b) => b._id) },
-    }).select("bookId");
-    const likedSet = new Set(likedBookIds.map((l) => l.bookId.toString()));
-
-    const likeCounts = await Like.aggregate([
-      { $match: { bookId: { $in: books.map((b) => b._id) } } },
-      { $group: { _id: "$bookId", count: { $sum: 1 } } },
-    ]);
-    const likeCountMap = {};
-    likeCounts.forEach((l) => { likeCountMap[l._id.toString()] = l.count; });
-
-    const enrichedBooks = books.map((b) => ({
-      ...b.toObject(),
-      isLiked: likedSet.has(b._id.toString()),
-      likesCount: likeCountMap[b._id.toString()] || 0,
-    }));
+    const enrichedBooks = await enrichBooksWithLikes(books, currentUserId);
 
     res.json({
       user,
@@ -94,21 +100,51 @@ exports.getUserProfile = async (req, res) => {
       books: enrichedBooks,
     });
   } catch (err) {
-    console.error("getUserProfile error:", err.message);
+    console.error("getUserProfile error:", err);
     res.status(500).json({ message: err.message });
   }
 };
 
-// ─── Like / Unlike ───────────────────────────────────────────────────────────
+// ─── Feed ─────────────────────────────────────────────────────────────────────
 
-// Like a book
+exports.getFeed = async (req, res) => {
+  try {
+    const currentUserId = req.user._id;
+
+    const following = await Follow.find({ follower: currentUserId }).select("following");
+    const followingIds = following.map((f) => f.following);
+
+    // Return empty array if not following anyone — don't 500
+    if (followingIds.length === 0) {
+      return res.json([]);
+    }
+
+    const books = await Book.find({ userId: { $in: followingIds } })
+      .populate("userId", "name avatar")
+      .sort({ createdAt: -1 })
+      .limit(50);
+
+    // Guard: no books from followed users yet
+    if (books.length === 0) {
+      return res.json([]);
+    }
+
+    const enriched = await enrichBooksWithLikes(books, currentUserId);
+    res.json(enriched);
+  } catch (err) {
+    console.error("getFeed error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ─── Like / Unlike ────────────────────────────────────────────────────────────
+
 exports.likeBook = async (req, res) => {
   try {
     const userId = req.user._id;
     const bookId = req.params.bookId;
 
     await Like.create({ userId, bookId });
-
     const likesCount = await Like.countDocuments({ bookId });
     res.json({ message: "Liked", likesCount });
   } catch (err) {
@@ -117,14 +153,12 @@ exports.likeBook = async (req, res) => {
   }
 };
 
-// Unlike a book
 exports.unlikeBook = async (req, res) => {
   try {
     const userId = req.user._id;
     const bookId = req.params.bookId;
 
     await Like.findOneAndDelete({ userId, bookId });
-
     const likesCount = await Like.countDocuments({ bookId });
     res.json({ message: "Unliked", likesCount });
   } catch (err) {
@@ -132,6 +166,7 @@ exports.unlikeBook = async (req, res) => {
   }
 };
 
+// <<<<<<< Aditi_0044
 // ─── Feed ────────────────────────────────────────────────────────────────────
 
 // Get feed: books from users the current user follows, enriched with like status
@@ -183,17 +218,18 @@ exports.getFeed = async (req, res) => {
   }
 };
 
-// ─── Suggested Users ─────────────────────────────────────────────────────────
+// // ─── Suggested Users ─────────────────────────────────────────────────────────
+// =======
+// // ─── Suggested Users ──────────────────────────────────────────────────────────
+// >>>>>>> main
 
 exports.getSuggestedUsers = async (req, res) => {
   try {
     const currentUserId = req.user._id;
 
-    // Get users the current user already follows
     const following = await Follow.find({ follower: currentUserId }).select("following");
     const followingIds = following.map((f) => f.following);
 
-    // Suggest users not yet followed (exclude self)
     const suggested = await User.find({
       _id: { $nin: [...followingIds, currentUserId] },
     })

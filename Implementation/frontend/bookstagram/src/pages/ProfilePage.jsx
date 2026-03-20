@@ -28,6 +28,7 @@ const BookCardSkeleton = () => (
   </div>
 );
 
+// ── Component ─────────────────────────────────────────────────────────────────
 const ProfilePage = () => {
   const { userId } = useParams();
   const { user: currentUser } = useAuth();
@@ -52,7 +53,7 @@ const ProfilePage = () => {
       setLoading(true);
       const res = await axiosInstance.get(`${API_PATHS.SOCIAL.GET_USER_PROFILE}/${profileId}`);
       setProfile(res.data.user);
-      setBooks(res.data.books);
+      setBooks(res.data.books || []);
       setStats({
         postsCount: res.data.postsCount,
         followersCount: res.data.followersCount,
@@ -71,7 +72,7 @@ const ProfilePage = () => {
       if (isFollowing) {
         await axiosInstance.delete(`${API_PATHS.SOCIAL.UNFOLLOW}/${profileId}`);
         setIsFollowing(false);
-        setStats((p) => ({ ...p, followersCount: p.followersCount - 1 }));
+        setStats((p) => ({ ...p, followersCount: Math.max(0, p.followersCount - 1) }));
         toast.success("Unfollowed");
       } else {
         await axiosInstance.post(`${API_PATHS.SOCIAL.FOLLOW}/${profileId}`);
