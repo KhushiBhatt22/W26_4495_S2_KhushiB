@@ -12,15 +12,15 @@ export const timeAgo = (date) => {
 };
 
 export const STYLE_GRADIENTS = {
-  cartoon:    "from-pink-500 via-fuchsia-500 to-purple-600",
-  sketch:     "from-slate-400 via-zinc-500 to-gray-600",
+  cartoon: "from-pink-500 via-fuchsia-500 to-purple-600",
+  sketch: "from-slate-400 via-zinc-500 to-gray-600",
   storyboard: "from-amber-400 via-orange-500 to-red-500",
-  colorful:   "from-cyan-400 via-teal-400 to-emerald-500",
+  colorful: "from-cyan-400 via-teal-400 to-emerald-500",
 };
 
 const AVATAR_COLORS = [
   "bg-rose-400", "bg-fuchsia-500", "bg-violet-500",
-  "bg-blue-500",  "bg-teal-500",   "bg-amber-500",
+  "bg-blue-500", "bg-teal-500", "bg-amber-500",
 ];
 
 export const avatarColor = (name = "") => {
@@ -77,7 +77,12 @@ export const AddStoryBubble = ({ user, onClick }) => {
       <div className="relative">
         <div className="w-[62px] h-[62px] rounded-full overflow-hidden border-2 border-slate-200 bg-slate-100 group-hover:border-slate-300 transition-colors">
           {user?.avatar ? (
-            <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+            <img
+              src={user.avatar.startsWith("http") ? user.avatar : `http://localhost:8000${user.avatar}`}
+              alt={user.name}
+              className="w-full h-full object-cover"
+              onError={(e) => { e.target.style.display = "none"; }}
+            />
           ) : (
             <div className={`w-full h-full flex items-center justify-center ${color}`}>
               <span className="text-white font-bold text-base">{initials(user?.name)}</span>

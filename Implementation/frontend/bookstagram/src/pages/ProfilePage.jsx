@@ -1,25 +1,32 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Heart, BookOpen, Users, UserCheck } from "lucide-react";
+import { Book, Users, UserCheck, Heart} from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../utils/axiosInstance";
-import { API_PATHS, BASE_URL } from "../utils/apiPaths";
+import { API_PATHS } from "../utils/apiPaths";
+import NewDashboardLayout from "../components/layout/NewDashboardLayout";
+import BookCard from "../components/cards/BookCard";
+import CreateBookModal from "../components/modals/CreateBookModal";
 
-// ── URL helpers ───────────────────────────────────────────────────────────────
+const BASE_URL = "http://localhost:8000";
+
 const getAvatarUrl = (avatar) => {
   if (!avatar) return null;
   if (avatar.startsWith("http")) return avatar;
   return `${BASE_URL}${avatar}`;
 };
 
-const getCoverUrl = (path) => {
-  if (!path) return null;
-  if (path.startsWith("http")) return path;
-  const clean = path.replace(/\\/g, "/");
-  if (clean.startsWith("/backend")) return `${BASE_URL}${clean}`;
-  return `${BASE_URL}/backend${clean}`;
-};
+// ─── Skeletons ────────────────────────────────────────────────────────────────
+const BookCardSkeleton = () => (
+  <div className="animate-pulse bg-white border border-slate-200 rounded-lg shadow-sm">
+    <div className="w-full aspect-[16/25] bg-slate-200 rounded-t-lg"></div>
+    <div className="p-4">
+      <div className="h-6 bg-slate-200 rounded w-3/4 mb-2"></div>
+      <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+    </div>
+  </div>
+);
 
 // ── Component ─────────────────────────────────────────────────────────────────
 const ProfilePage = () => {
@@ -34,8 +41,8 @@ const ProfilePage = () => {
   const [books, setBooks] = useState([]);
   const [stats, setStats] = useState({ postsCount: 0, followersCount: 0, followingCount: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
-  const [selectedBook, setSelectedBook] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -73,156 +80,129 @@ const ProfilePage = () => {
         setStats((p) => ({ ...p, followersCount: p.followersCount + 1 }));
         toast.success("Following!");
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Something went wrong");
-    }
-  };
-
-  const handleLike = async (bookId, isLiked) => {
-    // Optimistic update
-    setBooks((prev) =>
-      prev.map((b) => b._id === bookId
-        ? { ...b, isLiked: !isLiked, likesCount: isLiked ? b.likesCount - 1 : b.likesCount + 1 }
-        : b
-      )
-    );
-    if (selectedBook?._id === bookId)
-      setSelectedBook((p) => ({
-        ...p,
-        isLiked: !isLiked,
-        likesCount: isLiked ? p.likesCount - 1 : p.likesCount + 1,
-      }));
-
-    try {
-      if (isLiked) {
-        const res = await axiosInstance.delete(`${API_PATHS.SOCIAL.UNLIKE}/${bookId}`);
-        setBooks((prev) => prev.map((b) => b._id === bookId ? { ...b, isLiked: false, likesCount: res.data.likesCount } : b));
-        if (selectedBook?._id === bookId) setSelectedBook((p) => ({ ...p, isLiked: false, likesCount: res.data.likesCount }));
-      } else {
-        const res = await axiosInstance.post(`${API_PATHS.SOCIAL.LIKE}/${bookId}`);
-        setBooks((prev) => prev.map((b) => b._id === bookId ? { ...b, isLiked: true, likesCount: res.data.likesCount } : b));
-        if (selectedBook?._id === bookId) setSelectedBook((p) => ({ ...p, isLiked: true, likesCount: res.data.likesCount }));
-      }
-    } catch (error) {
-      // Revert optimistic update
-      setBooks((prev) =>
-        prev.map((b) => b._id === bookId
-          ? { ...b, isLiked, likesCount: isLiked ? b.likesCount + 1 : b.likesCount - 1 }
-          : b
-        )
-      );
+    } catch {
       toast.error("Something went wrong");
     }
   };
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-10 h-10 border-4 border-purple-400 border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
+  const handleBookCreated = (bookId) => {
+    setIsCreateModalOpen(false);
+    navigate(`/editor/${bookId}`);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <NewDashboardLayout onCreateBook={() => setIsCreateModalOpen(true)} hideTopbar={true}>
 
       {/* ── Profile Header ── */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-6 py-10">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
-
-            {/* Avatar */}
-            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-fuchsia-500 to-orange-400 flex items-center justify-center shadow-lg overflow-hidden flex-shrink-0">
-              {profile?.avatar ? (
-                <img
-                  src={getAvatarUrl(profile.avatar)}
-                  alt={profile.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => { e.target.style.display = "none"; }}
-                />
-              ) : (
-                <span className="text-white text-4xl font-bold">
-                  {profile?.name?.charAt(0).toUpperCase()}
-                </span>
-              )}
-            </div>
-
-            {/* Info */}
-            <div className="flex-1 text-center sm:text-left">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
-                <h1 className="text-2xl font-bold text-gray-900">{profile?.name}</h1>
-                {!isOwnProfile && (
-                  <button
-                    onClick={handleFollow}
-                    className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold text-sm transition-all ${
-                      isFollowing
-                        ? "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
-                        : "bg-gradient-to-r from-fuchsia-500 to-orange-400 text-white shadow hover:opacity-90"
-                    }`}
-                  >
-                    {isFollowing
-                      ? <><UserCheck size={16} /> Following</>
-                      : <><Users size={16} /> Follow</>
-                    }
-                  </button>
-                )}
-              </div>
-
-              <p className="text-gray-500 text-sm mb-2">{profile?.email}</p>
-              {profile?.bio && (
-                <p className="text-gray-700 text-sm mb-5 max-w-md">{profile.bio}</p>
-              )}
-
-              {/* Stats */}
-              <div className="flex justify-center sm:justify-start gap-8 mt-4">
-                <div className="text-center">
-                  <p className="text-xl font-bold text-gray-900">{stats.postsCount}</p>
-                  <p className="text-sm text-gray-500">Books</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xl font-bold text-gray-900">{stats.followersCount}</p>
-                  <p className="text-sm text-gray-500">Followers</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xl font-bold text-gray-900">{stats.followingCount}</p>
-                  <p className="text-sm text-gray-500">Following</p>
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          {loading ? (
+            <div className="flex items-center gap-8 animate-pulse">
+              <div className="w-24 h-24 rounded-full bg-slate-200" />
+              <div className="flex-1 space-y-3">
+                <div className="h-6 bg-slate-200 rounded w-40" />
+                <div className="h-4 bg-slate-200 rounded w-56" />
+                <div className="flex gap-8 mt-2">
+                  {[1, 2, 3].map((i) => <div key={i} className="h-10 w-16 bg-slate-200 rounded" />)}
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
 
-      {/* ── Books Grid ── */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        {books.length === 0 ? (
-          <div className="text-center py-20">
-            <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-400 text-lg font-medium">No books yet</p>
-            <p className="text-gray-400 text-sm">Books will appear here once created</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-3 gap-1 sm:gap-3">
-            {books.map((book) => (
-              <div
-                key={book._id}
-                className="relative aspect-square cursor-pointer group overflow-hidden rounded-md bg-gray-200"
-                onClick={() => setSelectedBook(book)}
-              >
-                {getCoverUrl(book.coverImage) ? (
+              {/* Avatar */}
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg overflow-hidden flex-shrink-0">
+                {profile?.avatar ? (
                   <img
-                    src={getCoverUrl(book.coverImage)}
-                    alt={book.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    src={getAvatarUrl(profile.avatar)}
+                    alt={profile.name}
+                    className="w-full h-full object-cover"
                     onError={(e) => { e.target.style.display = "none"; }}
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-fuchsia-100 to-orange-100 flex items-center justify-center">
-                    <BookOpen className="w-10 h-10 text-fuchsia-400" />
-                  </div>
+                  <span className="text-white text-4xl font-bold">
+                    {profile?.name?.charAt(0).toUpperCase()}
+                  </span>
                 )}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                  <span className="flex items-center gap-1 text-white font-semibold text-sm">
-                    <Heart size={18} fill="white" />
-                    {book.likesCount || 0}
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 text-center sm:text-left">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-2">
+                  <h1 className="text-2xl font-bold text-gray-900">{profile?.name}</h1>
+
+                  {/* Follow button — only on other's profile */}
+                  {!isOwnProfile && (
+                    <button
+                      onClick={handleFollow}
+                      className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold text-sm transition-all ${isFollowing
+                        ? "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
+                        : "bg-gradient-to-r from-primary to-secondary text-white shadow hover:opacity-90"
+                        }`}
+                    >
+                      {isFollowing
+                        ? <><UserCheck size={16} /> Following</>
+                        : <><Users size={16} /> Follow</>
+                      }
+                    </button>
+                  )}
+                </div>
+
+                <p className="text-gray-500 text-sm mb-2">{profile?.email}</p>
+
+                {/* Bio */}
+                {profile?.bio && (
+                  <p className="text-gray-700 text-sm mb-4 max-w-md">{profile.bio}</p>
+                )}
+
+                {/* Stats */}
+                <div className="flex justify-center sm:justify-start gap-8 mt-3">
+                  <div className="text-center">
+                    <p className="text-xl font-bold text-gray-900">{stats.postsCount}</p>
+                    <p className="text-sm text-gray-500">Books</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xl font-bold text-gray-900">{stats.followersCount}</p>
+                    <p className="text-sm text-gray-500">Followers</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xl font-bold text-gray-900">{stats.followingCount}</p>
+                    <p className="text-sm text-gray-500">Following</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Books Section ── */}
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        {loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => <BookCardSkeleton key={i} />)}
+          </div>
+        ) : books.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-slate-200 rounded-xl">
+            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+              <Book className="w-8 h-8 text-slate-400" />
+            </div>
+            <p className="text-lg font-medium text-slate-900 mb-2">No eBooks Yet</p>
+            <p className="text-slate-500 max-w-md">No books have been published on this profile yet.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {books.map((book) => (
+              <div key={book._id}>
+                <BookCard
+                  book={book}
+                  onDelete={isOwnProfile ? () => { } : undefined}
+                />
+                {/* Likes count under card */}
+                <div className="flex items-center gap-1 mt-2 px-1">
+                  <Heart size={14} fill="#e05c5c" stroke="#e05c5c" />
+                  <span className="text-sm text-gray-500 font-medium">
+                    {book.likesCount || 0} likes
                   </span>
                 </div>
               </div>
@@ -230,77 +210,13 @@ const ProfilePage = () => {
           </div>
         )}
       </div>
+      <CreateBookModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onBookCreated={handleBookCreated}
+      />
 
-      {/* ── Book Detail Modal ── */}
-      {selectedBook && (
-        <div
-          className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedBook(null)}
-        >
-          <div
-            className="bg-white rounded-2xl overflow-hidden max-w-2xl w-full flex flex-col sm:flex-row shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Cover */}
-            <div className="sm:w-1/2 bg-gray-100 flex items-center justify-center min-h-[280px]">
-              {getCoverUrl(selectedBook.coverImage) ? (
-                <img
-                  src={getCoverUrl(selectedBook.coverImage)}
-                  alt={selectedBook.title}
-                  className="w-full h-full object-cover"
-                  onError={(e) => { e.target.style.display = "none"; }}
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-fuchsia-100 to-orange-100 flex items-center justify-center min-h-[280px]">
-                  <BookOpen className="w-20 h-20 text-fuchsia-300" />
-                </div>
-              )}
-            </div>
-
-            {/* Details */}
-            <div className="sm:w-1/2 p-6 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-fuchsia-500 to-orange-400 flex items-center justify-center overflow-hidden">
-                    {profile?.avatar ? (
-                      <img src={getAvatarUrl(profile.avatar)} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = "none"; }} />
-                    ) : (
-                      <span className="text-white text-sm font-bold">{profile?.name?.charAt(0)}</span>
-                    )}
-                  </div>
-                  <span className="font-semibold text-gray-900 text-sm">{profile?.name}</span>
-                </div>
-
-                <h2 className="text-xl font-bold text-gray-900 mb-1">{selectedBook.title}</h2>
-                {selectedBook.subtitle && <p className="text-gray-500 text-sm mb-3">{selectedBook.subtitle}</p>}
-                <p className="text-gray-400 text-xs mb-4">by {selectedBook.author}</p>
-                <p className="text-gray-500 text-sm">{selectedBook.chapters?.length || 0} chapters</p>
-              </div>
-
-              {/* Like + Read */}
-              <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
-                <button
-                  onClick={() => handleLike(selectedBook._id, selectedBook.isLiked)}
-                  className="flex items-center gap-2 text-gray-700 hover:text-red-500 transition-colors"
-                >
-                  <Heart
-                    size={24}
-                    className={selectedBook.isLiked ? "text-red-500 fill-red-500" : "text-gray-400"}
-                  />
-                  <span className="font-semibold text-sm">{selectedBook.likesCount || 0} likes</span>
-                </button>
-                <button
-                  onClick={() => navigate(`/view-book/${selectedBook._id}`)}
-                  className="text-sm font-semibold text-fuchsia-600 hover:text-fuchsia-700 transition-colors"
-                >
-                  Read →
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </NewDashboardLayout>
   );
 };
 

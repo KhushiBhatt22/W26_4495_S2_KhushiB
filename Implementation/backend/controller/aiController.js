@@ -165,8 +165,62 @@ const generateStoryImage = async (req, res) => {
   }
 };
 
+// @desc    Complete a chapter that the user has already started writing
+// @route   POST /api/ai/complete-chapter-content
+// @access  Private
+const completeChapterContent = async (req, res) => {
+  try {
+    const { chapterTitle, chapterDescription, style, existingContent } = req.body;
+
+    if (!chapterTitle) {
+      return res.status(400).json({ message: "Please provide a chapter title" });
+    }
+
+    if (!existingContent || existingContent.trim().length < 10) {
+      return res.status(400).json({
+        message: "Please write at least a few lines before using 'Complete with AI'.",
+      });
+    }
+
+    const prompt = `You are an expert writer specializing in ${style} content. A human author has started writing a chapter and needs you to complete it.
+
+Chapter Title: "${chapterTitle}"
+${chapterDescription ? `Chapter Description: ${chapterDescription}` : ""}
+Writing Style: ${style}
+
+The human has written the following so far:
+---
+${existingContent}
+---
+
+Your Task:
+1. Read what the human wrote — understand their voice, tone, and direction
+2. Continue and COMPLETE the chapter seamlessly from where they left off
+3. Do NOT repeat what the human already wrote — only add the continuation
+4. Match their writing style and tone as closely as possible
+5. Aim to bring the total chapter to 1500-2500 words
+6. Write in plain text without markdown formatting
+
+Output ONLY the continuation text:`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: prompt,
+    });
+
+    const aiContinuation = response.text;
+    const fullContent = `${existingContent.trimEnd()}\n\n${aiContinuation.trimStart()}`;
+
+    res.status(200).json({ content: fullContent });
+  } catch (error) {
+    console.error("Error completing chapter:", error);
+    res.status(500).json({ message: "Server error during AI chapter completion" });
+  }
+};
+
 module.exports = {
   generateOutline,
   generateChapterContent,
   generateStoryImage,
+  completeChapterContent,
 };

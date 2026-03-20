@@ -166,7 +166,62 @@ exports.unlikeBook = async (req, res) => {
   }
 };
 
-// ─── Suggested Users ──────────────────────────────────────────────────────────
+// <<<<<<< Aditi_0044
+// ─── Feed ────────────────────────────────────────────────────────────────────
+
+// Get feed: books from users the current user follows, enriched with like status
+exports.getFeed = async (req, res) => {
+  try {
+    const currentUserId = req.user._id;
+
+    // Get all users the current user follows
+    const following = await Follow.find({ follower: currentUserId }).select("following");
+    const followingIds = following.map((f) => f.following);
+    // const user = await User.findById(profileUserId).select("name email avatar bio");
+    // if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (followingIds.length === 0) {
+      return res.json([]);
+    }
+
+    // Get books from followed users, newest first
+    const books = await Book.find({ userId: { $in: followingIds } })
+      .populate("userId", "name avatar")
+      .sort({ createdAt: -1 })
+      .limit(50);
+
+    // Attach like status for the current user
+    const likedDocs = await Like.find({
+      userId: currentUserId,
+      bookId: { $in: books.map((b) => b._id) },
+    }).select("bookId");
+    const likedSet = new Set(likedDocs.map((l) => l.bookId.toString()));
+
+    // Attach like counts
+    const likeCounts = await Like.aggregate([
+      { $match: { bookId: { $in: books.map((b) => b._id) } } },
+      { $group: { _id: "$bookId", count: { $sum: 1 } } },
+    ]);
+    const likeCountMap = {};
+    likeCounts.forEach((l) => { likeCountMap[l._id.toString()] = l.count; });
+
+    const enriched = books.map((b) => ({
+      ...b.toObject(),
+      isLiked: likedSet.has(b._id.toString()),
+      likesCount: likeCountMap[b._id.toString()] || 0,
+    }));
+
+    res.json(enriched);
+  } catch (err) {
+    console.error("getFeed error:", err.message);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// // ─── Suggested Users ─────────────────────────────────────────────────────────
+// =======
+// // ─── Suggested Users ──────────────────────────────────────────────────────────
+// >>>>>>> main
 
 exports.getSuggestedUsers = async (req, res) => {
   try {

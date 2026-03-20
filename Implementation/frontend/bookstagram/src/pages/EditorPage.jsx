@@ -42,6 +42,7 @@ const EditorPage = () => {
   const [aiTopic, setAiTopic] = useState("");
   const [aiStyle, setAiStyle] = useState("Informative");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -103,7 +104,7 @@ const EditorPage = () => {
   };
 
   const handleSaveChanges = async (bookToSave = book, showToast = true) => {
-     setIsSaving(true);
+    setIsSaving(true);
     try {
       await axiosInstance.put(
         `${API_PATHS.BOOKS.UPDATE_BOOK}/${bookId}`,
@@ -174,6 +175,36 @@ const EditorPage = () => {
       toast.error("Failed to generate chapter content.");
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleCompleteChapterContent = async (index, existingContent) => {
+    const chapter = book.chapters[index];
+    if (!chapter || !chapter.title) {
+      toast.error("Chapter title is required.");
+      return;
+    }
+    setIsCompleting(index);
+    try {
+      const response = await axiosInstance.post(
+        API_PATHS.AI.COMPLETE_CHAPTER_CONTENT,
+        {
+          chapterTitle: chapter.title,
+          chapterDescription: chapter.description || "",
+          style: aiStyle,
+          existingContent,
+        }
+      );
+      const updatedChapters = [...book.chapters];
+      updatedChapters[index].content = response.data.content;
+      const updatedBook = { ...book, chapters: updatedChapters };
+      setBook(updatedBook);
+      toast.success("Chapter completed with AI!");
+      await handleSaveChanges(updatedBook, false);
+    } catch (error) {
+      toast.error("Failed to complete chapter.");
+    } finally {
+      setIsCompleting(false);
     }
   };
 
@@ -275,7 +306,7 @@ const EditorPage = () => {
           </div>
         )}
 
-         {/* Desktop Sidebar */}
+        {/* Desktop Sidebar */}
         <div className="hidden md:flex md:flex-shrink-0 sticky top-0 h-screen">
           <ChapterSidebar
             book={book}
@@ -304,22 +335,20 @@ const EditorPage = () => {
               <div className="hidden sm:flex space-x-1 bg-slate-100 p-1 rounded-lg">
                 <button
                   onClick={() => setActiveTab("editor")}
-                  className={`flex items-center justify-center flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors duration-200 ${
-                    activeTab === "editor"
-                      ? "bg-white text-slate-800 shadow-sm"
-                      : "text-slate-500 hover:text-slate-700"
-                  }`}
+                  className={`flex items-center justify-center flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors duration-200 ${activeTab === "editor"
+                    ? "bg-white text-slate-800 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700"
+                    }`}
                 >
                   <Edit className="w-4 h-4 mr-2" />
                   Editor
                 </button>
                 <button
                   onClick={() => setActiveTab("details")}
-                  className={`flex items-center justify-center flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors duration-200 whitespace-nowrap ${
-                    activeTab === "details"
-                      ? "bg-white text-slate-800 shadow-sm"
-                      : "text-slate-500 hover:text-slate-700"
-                  }`}
+                  className={`flex items-center justify-center flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors duration-200 whitespace-nowrap ${activeTab === "details"
+                    ? "bg-white text-slate-800 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700"
+                    }`}
                 >
                   <NotebookText className="w-4 h-4 mr-2" />
                   Book Details
@@ -364,7 +393,11 @@ const EditorPage = () => {
                 onChapterChange={handleChapterChange}
                 onGenerateChapterContent={handleGenerateChapterContent}
                 isGenerating={isGenerating}
+                onCompleteChapterContent={handleCompleteChapterContent}
+                onSaveChapter={(index) => handleSaveChanges()}
+                isCompleting={isCompleting}
               />
+
             ) : (
               <BookDetailsTab
                 book={book}
