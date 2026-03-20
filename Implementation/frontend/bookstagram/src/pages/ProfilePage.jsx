@@ -44,6 +44,11 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  const [showFollowModal, setShowFollowModal] = useState(false);
+const [followModalType, setFollowModalType] = useState("followers"); // "followers" | "following"
+const [followModalList, setFollowModalList] = useState([]);
+const [followModalLoading, setFollowModalLoading] = useState(false);
+
   useEffect(() => {
     fetchProfile();
   }, [profileId]);
@@ -100,6 +105,22 @@ const handleDeleteBook = async (bookId) => {
   }
 };
 
+const fetchFollowList = async (type) => {
+  setFollowModalType(type);
+  setShowFollowModal(true);
+  setFollowModalLoading(true);
+  try {
+    const endpoint = type === "followers"
+      ? `${API_PATHS.SOCIAL.GET_FOLLOWERS}/${profileId}`
+      : `${API_PATHS.SOCIAL.GET_FOLLOWING}/${profileId}`;
+    const res = await axiosInstance.get(endpoint);
+    setFollowModalList(res.data || []);
+  } catch {
+    toast.error("Failed to load list");
+  } finally {
+    setFollowModalLoading(false);
+  }
+};
   return (
     <NewDashboardLayout onCreateBook={() => setIsCreateModalOpen(true)} hideTopbar={true}>
 
@@ -166,20 +187,26 @@ const handleDeleteBook = async (bookId) => {
                 )}
 
                 {/* Stats */}
-                <div className="flex justify-center sm:justify-start gap-8 mt-3">
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-gray-900">{stats.postsCount}</p>
-                    <p className="text-sm text-gray-500">Books</p>
+                  <div className="flex justify-center sm:justify-start gap-8 mt-3">
+                    <div className="text-center">
+                      <p className="text-xl font-bold text-gray-900">{stats.postsCount}</p>
+                      <p className="text-sm text-gray-500">Books</p>
+                    </div>
+                    <div
+                      className="text-center cursor-pointer hover:opacity-70 transition-opacity"
+                      onClick={() => fetchFollowList("followers")}
+                    >
+                      <p className="text-xl font-bold text-gray-900">{stats.followersCount}</p>
+                      <p className="text-sm text-gray-500 underline">Followers</p>
+                    </div>
+                    <div
+                      className="text-center cursor-pointer hover:opacity-70 transition-opacity"
+                      onClick={() => fetchFollowList("following")}
+                    >
+                      <p className="text-xl font-bold text-gray-900">{stats.followingCount}</p>
+                      <p className="text-sm text-gray-500 underline">Following</p>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-gray-900">{stats.followersCount}</p>
-                    <p className="text-sm text-gray-500">Followers</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-gray-900">{stats.followingCount}</p>
-                    <p className="text-sm text-gray-500">Following</p>
-                  </div>
-                </div>
               </div>
             </div>
           )}
@@ -225,7 +252,83 @@ const handleDeleteBook = async (bookId) => {
         onClose={() => setIsCreateModalOpen(false)}
         onBookCreated={handleBookCreated}
       />
+{/* ── Followers / Following Modal ── */}
+{showFollowModal && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+    onClick={() => setShowFollowModal(false)}
+  >
+    <div
+      className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Modal Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <h2 className="text-base font-bold text-gray-900 capitalize">
+          {followModalType}
+        </h2>
+        <button
+          onClick={() => setShowFollowModal(false)}
+          className="text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          ✕
+        </button>
+      </div>
 
+      {/* Modal Body */}
+      <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+        {followModalLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 px-5 py-3 animate-pulse">
+              <div className="w-10 h-10 rounded-full bg-slate-200 flex-shrink-0" />
+              <div className="flex-1">
+                <div className="h-3.5 bg-slate-200 rounded w-32 mb-2" />
+                <div className="h-3 bg-slate-100 rounded w-20" />
+              </div>
+            </div>
+          ))
+        ) : followModalList.length === 0 ? (
+          <div className="py-12 text-center text-gray-400 text-sm">
+            No {followModalType} yet
+          </div>
+        ) : (
+          followModalList.map((u) => (
+            <div
+              key={u._id}
+              className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+              onClick={() => {
+                setShowFollowModal(false);
+                navigate(`/profile/${u._id}`);
+              }}
+            >
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-orange-400 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {u.avatar ? (
+                  <img
+                    src={u.avatar.startsWith("http") ? u.avatar : `http://localhost:8000${u.avatar}`}
+                    alt={u.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.target.style.display = "none"; }}
+                  />
+                ) : (
+                  <span className="text-white font-bold text-sm">
+                    {u.name?.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">{u.name}</p>
+                <p className="text-xs text-gray-400">
+                  @{u.name?.toLowerCase().replace(/\s+/g, "_")}
+                </p>
+              </div>
+              <span className="text-xs text-purple-500 font-medium">View →</span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  </div>
+)}
     </NewDashboardLayout>
   );
 };
