@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Book, Users, UserCheck } from "lucide-react";
+import { Book, Users, UserCheck, Heart} from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../utils/axiosInstance";
@@ -192,12 +192,19 @@ const ProfilePage = () => {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {books.map((book) => (
-              <BookCard
-                key={book._id}
-                book={book}
-                // Only show delete on own profile
-                onDelete={isOwnProfile ? () => { } : undefined}
-              />
+              <div key={book._id}>
+                <BookCard
+                  book={book}
+                  onDelete={isOwnProfile ? () => { } : undefined}
+                />
+                {/* Likes count under card */}
+                <div className="flex items-center gap-1 mt-2 px-1">
+                  <Heart size={14} fill="#e05c5c" stroke="#e05c5c" />
+                  <span className="text-sm text-gray-500 font-medium">
+                    {book.likesCount || 0} likes
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
         )}
