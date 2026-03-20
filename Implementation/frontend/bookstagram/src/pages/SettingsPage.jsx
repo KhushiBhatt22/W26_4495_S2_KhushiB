@@ -20,7 +20,7 @@ const SECTIONS = [
 ];
 
 const SettingsPage = () => {
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout, updateUser, updateAppearance } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -55,7 +55,8 @@ const SettingsPage = () => {
 
   // ── Appearance ───────────────────────────────────────────────────────────────
   const [appearance, setAppearance] = useState({
-    theme: "light", fontSize: "medium"
+    theme: localStorage.getItem("theme") || "light",
+    fontSize: localStorage.getItem("fontSize") || "medium"
   });
 
   // ── Privacy ──────────────────────────────────────────────────────────────────
@@ -398,7 +399,10 @@ const SettingsPage = () => {
 
           <button
             style={formStyles.saveBtn}
-            onClick={() => toast.success("Appearance saved!")}
+            onClick={() => {
+              updateAppearance(appearance.theme, appearance.fontSize);
+              toast.success("Appearance saved! ");
+            }}
           >
             <Save size={14} /> Save Appearance
           </button>

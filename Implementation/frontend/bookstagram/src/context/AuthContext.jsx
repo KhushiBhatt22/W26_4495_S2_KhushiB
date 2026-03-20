@@ -15,14 +15,43 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // ── Appearance ──────────────────────────────────────────────────────────────
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  const [fontSize, setFontSize] = useState(localStorage.getItem("fontSize") || "medium");
+
+  // Apply theme and font size to document whenever they change
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light");
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  useEffect(() => {
+    // Font size
+    const sizes = { small: "13px", medium: "15px", large: "17px" };
+    document.documentElement.style.fontSize = sizes[fontSize] || "15px";
+    localStorage.setItem("fontSize", fontSize);
+  }, [fontSize]);
+
+  const updateAppearance = (newTheme, newFontSize) => {
+    if (newTheme) setTheme(newTheme);
+    if (newFontSize) setFontSize(newFontSize);
+  };
+
+  // ── Auth ────────────────────────────────────────────────────────────────────
   useEffect(() => {
     checkAuthStatus();
   }, []);
 
   const checkAuthStatus = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const userStr = localStorage.getItem('user');
+      const token = localStorage.getItem("token");
+      const userStr = localStorage.getItem("user");
 
       if (token && userStr) {
         const userData = JSON.parse(userStr);
@@ -30,7 +59,7 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error("Auth check failed:", error);
       logout();
     } finally {
       setLoading(false);
@@ -38,26 +67,24 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = (userData, token) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
-
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
     setIsAuthenticated(true);
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
     setUser(null);
     setIsAuthenticated(false);
-    window.location.href = '/'
+    window.location.href = "/";
   };
 
   const updateUser = (updatedUserData) => {
     const newUserData = { ...user, ...updatedUserData };
-    localStorage.setItem('user', JSON.stringify(newUserData));
+    localStorage.setItem("user", JSON.stringify(newUserData));
     setUser(newUserData);
   };
 
@@ -69,6 +96,9 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateUser,
     checkAuthStatus,
+    theme,
+    fontSize,
+    updateAppearance,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
