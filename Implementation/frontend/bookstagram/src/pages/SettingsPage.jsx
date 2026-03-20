@@ -12,11 +12,11 @@ import axiosInstance from "../utils/axiosInstance";
 import { API_PATHS, BASE_URL } from "../utils/apiPaths";
 
 const SECTIONS = [
-  { id: "profile",       label: "Edit Profile",       icon: User },
-  { id: "password",      label: "Change Password",     icon: Lock },
-  { id: "notifications", label: "Notifications",       icon: Bell },
-  { id: "appearance",    label: "Appearance",          icon: Palette },
-  { id: "privacy",       label: "Privacy & Safety",    icon: Shield },
+  { id: "profile", label: "Edit Profile", icon: User },
+  { id: "password", label: "Change Password", icon: Lock },
+  { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "appearance", label: "Appearance", icon: Palette },
+  { id: "privacy", label: "Privacy & Safety", icon: Shield },
 ];
 
 const SettingsPage = () => {
@@ -24,17 +24,17 @@ const SettingsPage = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
-  const [activeSection, setActiveSection]       = useState("profile");
+  const [activeSection, setActiveSection] = useState("profile");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isSaving, setIsSaving]                 = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [avatarPreview, setAvatarPreview]       = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
 
   // ── Profile form ────────────────────────────────────────────────────────────
   const [profileForm, setProfileForm] = useState({
-    name:   user?.name   || "",
-    email:  user?.email  || "",
-    bio:    user?.bio    || "",
+    name: user?.name || "",
+    email: user?.email || "",
+    bio: user?.bio || "",
     avatar: user?.avatar || "",
   });
 
@@ -106,13 +106,13 @@ const SettingsPage = () => {
     setIsSaving(true);
     try {
       const res = await axiosInstance.put(API_PATHS.AUTH.UPDATE_PROFILE, {
-        name:   profileForm.name,
-        bio:    profileForm.bio,
+        name: profileForm.name,
+        bio: profileForm.bio,
         avatar: profileForm.avatar,
       });
       updateUser({
-        name:   res.data.name,
-        bio:    res.data.bio,
+        name: res.data.name,
+        bio: res.data.bio,
         avatar: res.data.avatar,
       });
       toast.success("Profile updated! 🎉");
@@ -139,7 +139,7 @@ const SettingsPage = () => {
     try {
       await axiosInstance.put(API_PATHS.AUTH.CHANGE_PASSWORD, {
         currentPassword: passwordForm.current,
-        newPassword:     passwordForm.newPass,
+        newPassword: passwordForm.newPass,
       });
       toast.success("Password changed! Use new password next login ✅");
       setPasswordForm({ current: "", newPass: "", confirm: "" });
@@ -174,7 +174,12 @@ const SettingsPage = () => {
                   : <span style={{ color: "#fff", fontWeight: 700, fontSize: 28 }}>{user?.name?.charAt(0).toUpperCase()}</span>
                 }
               </div>
-              <div style={formStyles.cameraBadge} onClick={() => fileInputRef.current?.click()}>
+              <div
+                style={formStyles.cameraBadge}
+                onClick={() => fileInputRef.current?.click()}
+                title="JPG, PNG or GIF · Max 2MB"
+              >
+
                 {isUploadingPhoto
                   ? <div style={formStyles.spinner} />
                   : <Camera size={12} color="#fff" />
@@ -185,16 +190,7 @@ const SettingsPage = () => {
             <div>
               <div style={formStyles.avatarName}>{user?.name}</div>
               <div style={formStyles.avatarEmail}>{user?.email}</div>
-              <button
-                style={formStyles.uploadBtn}
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploadingPhoto}
-              >
-                {isUploadingPhoto ? "Uploading…" : "📷 Upload Photo"}
-              </button>
-              <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>
-                JPG, PNG or GIF · Max 2MB
-              </div>
+
             </div>
 
             <input
@@ -260,9 +256,9 @@ const SettingsPage = () => {
           </div>
 
           {[
-            { key: "current", label: "Current Password",  showKey: "current", placeholder: "Enter current password" },
-            { key: "newPass", label: "New Password",      showKey: "new",     placeholder: "Min 6 characters" },
-            { key: "confirm", label: "Confirm Password",  showKey: "confirm", placeholder: "Repeat new password" },
+            { key: "current", label: "Current Password", showKey: "current", placeholder: "Enter current password" },
+            { key: "newPass", label: "New Password", showKey: "new", placeholder: "Min 6 characters" },
+            { key: "confirm", label: "Confirm Password", showKey: "confirm", placeholder: "Repeat new password" },
           ].map(({ key, label, showKey, placeholder }) => (
             <div key={key} style={formStyles.field}>
               <label style={formStyles.label}>{label}</label>
@@ -280,7 +276,7 @@ const SettingsPage = () => {
                 >
                   {showPass[showKey]
                     ? <EyeOff size={14} color="#9ca3af" />
-                    : <Eye    size={14} color="#9ca3af" />
+                    : <Eye size={14} color="#9ca3af" />
                   }
                 </button>
               </div>
@@ -304,11 +300,11 @@ const SettingsPage = () => {
           <div style={formStyles.sectionSubtitle}>Choose what you want to be notified about</div>
 
           {[
-            { key: "newFollower", label: "New Follower",      desc: "When someone follows you" },
-            { key: "bookLike",    label: "Book Liked",        desc: "When someone likes your book" },
-            { key: "comment",     label: "Comments",          desc: "When someone comments on your book" },
-            { key: "threadReply", label: "Thread Replies",    desc: "When someone replies to your thread" },
-            { key: "newsletter",  label: "Weekly Newsletter", desc: "Book recommendations every week" },
+            { key: "newFollower", label: "New Follower", desc: "When someone follows you" },
+            { key: "bookLike", label: "Book Liked", desc: "When someone likes your book" },
+            { key: "comment", label: "Comments", desc: "When someone comments on your book" },
+            { key: "threadReply", label: "Thread Replies", desc: "When someone replies to your thread" },
+            { key: "newsletter", label: "Weekly Newsletter", desc: "Book recommendations every week" },
           ].map(({ key, label, desc }) => (
             <div key={key} style={formStyles.toggleRow}>
               <div>
@@ -387,7 +383,7 @@ const SettingsPage = () => {
                     background: appearance.fontSize === s
                       ? "linear-gradient(135deg, #d946ef, #fb923c)"
                       : "#fdfaff",
-                    color:  appearance.fontSize === s ? "#fff" : "#6b7280",
+                    color: appearance.fontSize === s ? "#fff" : "#6b7280",
                     border: appearance.fontSize === s ? "none" : "1px solid #f3e8ff",
                   }}
                   onClick={() => setAppearance(p => ({ ...p, fontSize: s }))}
@@ -418,9 +414,9 @@ const SettingsPage = () => {
           </div>
 
           {[
-            { key: "privateAccount", label: "Private Account",  desc: "Only approved followers can see your books and threads" },
-            { key: "showActivity",   label: "Show Activity",    desc: "Let others see when you were last active" },
-            { key: "allowMessages",  label: "Allow Messages",   desc: "Let anyone message you, not just followers" },
+            { key: "privateAccount", label: "Private Account", desc: "Only approved followers can see your books and threads" },
+            { key: "showActivity", label: "Show Activity", desc: "Let others see when you were last active" },
+            { key: "allowMessages", label: "Allow Messages", desc: "Let anyone message you, not just followers" },
           ].map(({ key, label, desc }) => (
             <div key={key} style={formStyles.toggleRow}>
               <div>
@@ -476,10 +472,10 @@ const SettingsPage = () => {
               key={id}
               style={{
                 ...pageStyles.navItem,
-                background:  activeSection === id ? "linear-gradient(135deg, #fdf4ff, #fff7ed)" : "transparent",
-                color:       activeSection === id ? "#d946ef" : "#4b5563",
-                fontWeight:  activeSection === id ? 600 : 500,
-                borderLeft:  activeSection === id ? "3px solid #d946ef" : "3px solid transparent",
+                background: activeSection === id ? "linear-gradient(135deg, #fdf4ff, #fff7ed)" : "transparent",
+                color: activeSection === id ? "#d946ef" : "#4b5563",
+                fontWeight: activeSection === id ? 600 : 500,
+                borderLeft: activeSection === id ? "3px solid #d946ef" : "3px solid transparent",
               }}
               onClick={() => setActiveSection(id)}
             >
@@ -507,9 +503,9 @@ const SettingsPage = () => {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const pageStyles = {
-  wrap:    { display: "flex", minHeight: "100%", background: "#fdfaff" },
+  wrap: { display: "flex", minHeight: "100%", background: "#fdfaff" },
   leftNav: { width: 240, padding: "28px 12px", borderRight: "1px solid #f3e8ff", background: "#fff", flexShrink: 0 },
-  navTitle:{ fontSize: 18, fontWeight: 700, color: "#111827", padding: "0 12px", marginBottom: 16 },
+  navTitle: { fontSize: 18, fontWeight: 700, color: "#111827", padding: "0 12px", marginBottom: 16 },
   navItem: {
     display: "flex", alignItems: "center", gap: 10,
     padding: "11px 12px", borderRadius: 10, cursor: "pointer",
@@ -520,7 +516,7 @@ const pageStyles = {
 
 const formStyles = {
   wrap: {},
-  sectionTitle:    { fontSize: 20, fontWeight: 700, color: "#111827", marginBottom: 4 },
+  sectionTitle: { fontSize: 20, fontWeight: 700, color: "#111827", marginBottom: 4 },
   sectionSubtitle: { fontSize: 13, color: "#9ca3af", marginBottom: 28 },
 
   // avatar
@@ -543,6 +539,7 @@ const formStyles = {
     display: "flex", alignItems: "center", justifyContent: "center",
     border: "2px solid #fff", cursor: "pointer",
     boxShadow: "0 2px 6px rgba(217,70,239,0.4)",
+    title: "JPG, PNG or GIF · Max 2MB",
   },
   spinner: {
     width: 12, height: 12, borderRadius: "50%",
@@ -550,7 +547,7 @@ const formStyles = {
     borderTop: "2px solid #fff",
     animation: "spin 0.7s linear infinite",
   },
-  avatarName:  { fontSize: 15, fontWeight: 700, color: "#111827", marginBottom: 2 },
+  avatarName: { fontSize: 15, fontWeight: 700, color: "#111827", marginBottom: 2 },
   avatarEmail: { fontSize: 12, color: "#9ca3af", marginBottom: 10 },
   uploadBtn: {
     display: "inline-flex", alignItems: "center", gap: 6,
@@ -561,8 +558,8 @@ const formStyles = {
     boxShadow: "0 2px 8px rgba(217,70,239,0.3)",
   },
 
-  field:  { marginBottom: 20 },
-  label:  { display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 },
+  field: { marginBottom: 20 },
+  label: { display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 },
   input: {
     width: "100%", padding: "10px 14px",
     border: "1.5px solid #f3e8ff", borderRadius: 10,
@@ -591,7 +588,7 @@ const formStyles = {
     padding: "14px 0", borderBottom: "1px solid #f9fafb",
   },
   toggleLabel: { fontSize: 14, fontWeight: 600, color: "#111827" },
-  toggleDesc:  { fontSize: 12, color: "#9ca3af", marginTop: 2 },
+  toggleDesc: { fontSize: 12, color: "#9ca3af", marginTop: 2 },
   toggle: {
     width: 44, height: 24, borderRadius: 12,
     cursor: "pointer", position: "relative",
