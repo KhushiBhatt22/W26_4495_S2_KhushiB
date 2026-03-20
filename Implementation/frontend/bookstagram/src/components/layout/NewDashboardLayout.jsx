@@ -183,13 +183,7 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
                         <div style={{ fontSize: 11, color: "#9ca3af" }}>{user?.email}</div>
                       </div>
                     </div>
-                    {/* <div style={styles.menuDivider} />
-                    <div style={styles.menuItem} onClick={() => { navigate("/dashboard"); setShowProfileMenu(false); }}>
-                      <User size={14} color="#6b7280" /> My Profile
-                    </div>
-                    <div style={styles.menuItem} onClick={() => { navigate("/settings"); setShowProfileMenu(false); }}>
-                      <Settings size={14} color="#6b7280" /> Settings
-                    </div> */}
+                    
                     <div style={styles.menuDivider} />
                     <div style={{ ...styles.menuItem, color: "#ef4444" }} onClick={logout}>
                       <LogOut size={14} color="#ef4444" /> Log Out
