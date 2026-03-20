@@ -58,8 +58,27 @@ const getBooks = async (req, res) => {
 };
 
 // @desc    Get ALL books from every user — for Explore page
+// @route   GET /api/books/all
+// @access  Private
+const getAllBooks = async (req, res) => {
+  try {
+    const currentUserId = req.user._id;
+    const books = await Book.find({})
+      .populate("userId", "name avatar")
+      .sort({ createdAt: -1 })
+      .limit(100);
+
+    const enriched = await enrichWithLikes(books, currentUserId);
+    res.status(200).json(enriched);
+  } catch (error) {
+    console.error("getAllBooks:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Get ALL books from every user — for Explore page (alias)
 // @route   GET /api/books/explore
-// @access  Private (any logged-in user)
+// @access  Private
 const getAllBooksPublic = async (req, res) => {
   try {
     const currentUserId = req.user._id;
@@ -76,36 +95,23 @@ const getAllBooksPublic = async (req, res) => {
   }
 };
 
-// @desc    Get a single book by ID — owner only (for editor)
+// @desc    Get a single book by ID — any logged-in user can read
 // @route   GET /api/books/:id
 // @access  Private
 const getBookById = async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
-// <<<<<<< Aditi_0044
+    if (!book) return res.status(404).json({ message: "Book not found" });
+    res.status(200).json(book);
+  } catch (error) {
+    console.error("getBookById:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
-    if (!book) {
-      return res.status(404).json({ message: "Book not found" });
-    }
-
-    // if (book.userId.toString() !== req.user._id.toString()) {
-    //   return res.status(401).json({ message: "Not authorized to view this book" });
-    // }
-// =======
-//     if (!book) return res.status(404).json({ message: "Book not found" });
-//     if (book.userId.toString() !== req.user._id.toString())
-//       return res.status(401).json({ message: "Not authorized to view this book" });
-//     res.status(200).json(book);
-//   } catch (error) {
-//     console.error("getBookById:", error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-// >>>>>>> main
-
-// @desc    Get a single book by ID — any logged-in user (for reading)
+// @desc    Get a single book by ID — populated with author info
 // @route   GET /api/books/public/:id
-// @access  Private (any logged-in user)
+// @access  Private
 const getBookByIdPublic = async (req, res) => {
   try {
     const book = await Book.findById(req.params.id).populate("userId", "name avatar");
@@ -173,6 +179,7 @@ const updateBookCover = async (req, res) => {
 module.exports = {
   createBook,
   getBooks,
+  getAllBooks,
   getAllBooksPublic,
   getBookById,
   getBookByIdPublic,
