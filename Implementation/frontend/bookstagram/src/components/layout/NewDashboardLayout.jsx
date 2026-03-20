@@ -16,12 +16,12 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
   const profileRef = useRef(null);
 
   const navItems = [
-    { id: "home",     label: "Home",     icon: Home,          path: "/newdashboard" },
-    { id: "explore",  label: "Explore",  icon: Compass,       path: "/explore" },
-    { id: "threads",  label: "Threads",  icon: MessageSquare, path: "/threads" },
-    { id: "messages", label: "Messages", icon: Mail,          path: "/messages", badge: notifications },
-    { id: "profile",  label: "Profile",  icon: User,          path: "/profile" },
-    { id: "settings", label: "Settings", icon: Settings,      path: "/settings" },
+    { id: "home", label: "Home", icon: Home, path: "/newdashboard" },
+    { id: "explore", label: "Explore", icon: Compass, path: "/explore" },
+    { id: "threads", label: "Threads", icon: MessageSquare, path: "/threads" },
+    { id: "messages", label: "Messages", icon: Mail, path: "/messages", badge: notifications },
+    { id: "profile", label: "Profile", icon: User, path: "/profile" },
+    { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
   ];
 
   const isActive = (path) => {
@@ -39,7 +39,7 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
   }, []);
 
   const avatarLetter = user?.name?.charAt(0).toUpperCase() || "U";
-  
+
   return (
     <div style={styles.shell}>
 
@@ -98,7 +98,7 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
         <div style={{ flex: 1 }} />
 
         {/* Bottom Profile */}
-        <div style={styles.sidebarProfile} onClick={() => navigate("/dashboard")}>
+        <div style={styles.sidebarProfile} onClick={() => navigate("/profile")}>
           <div style={styles.avatarCircle}>
             {user?.avatar
               ? <img src={user.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
@@ -119,69 +119,69 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
 
         {/* TOPBAR */}
         {!hideTopbar && (
-        <header style={styles.topbar}>
-          <div style={styles.searchWrap}>
-            <Search size={14} style={styles.searchIcon} />
-            <input
-              style={styles.searchInput}
-              type="text"
-              placeholder="Search books, people, threads…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <X
-                size={14}
-                style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "#9ca3af" }}
-                onClick={() => setSearchQuery("")}
+          <header style={styles.topbar}>
+            <div style={styles.searchWrap}>
+              <Search size={14} style={styles.searchIcon} />
+              <input
+                style={styles.searchInput}
+                type="text"
+                placeholder="Search books, people, threads…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-            )}
-          </div>
-
-          <div style={styles.topActions}>
-            <div style={styles.iconBtn}>
-              <Bell size={18} color="#6b7280" strokeWidth={1.8} />
-              <span style={styles.notifDot} />
-            </div>
-
-            <div ref={profileRef} style={{ position: "relative" }}>
-              <div style={styles.topAvatar} onClick={() => setShowProfileMenu(v => !v)}>
-                {user?.avatar
-                  ? <img src={user.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
-                  : <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>{avatarLetter}</span>
-                }
-              </div>
-
-              {showProfileMenu && (
-                <div style={styles.profileMenu}>
-                  <div style={styles.menuHeader}>
-                    <div style={styles.avatarCircle}>
-                      {user?.avatar
-                        ? <img src={user.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
-                        : <span style={styles.avatarLetter}>{avatarLetter}</span>
-                      }
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{user?.name}</div>
-                      <div style={{ fontSize: 11, color: "#9ca3af" }}>{user?.email}</div>
-                    </div>
-                  </div>
-                  <div style={styles.menuDivider} />
-                  <div style={styles.menuItem} onClick={() => { navigate("/dashboard"); setShowProfileMenu(false); }}>
-                    <User size={14} color="#6b7280" /> My Profile
-                  </div>
-                  <div style={styles.menuItem} onClick={() => { navigate("/settings"); setShowProfileMenu(false); }}>
-                    <Settings size={14} color="#6b7280" /> Settings
-                  </div>
-                  <div style={styles.menuDivider} />
-                  <div style={{ ...styles.menuItem, color: "#ef4444" }} onClick={logout}>
-                    <LogOut size={14} color="#ef4444" /> Log Out
-                  </div>
-                </div>
+              {searchQuery && (
+                <X
+                  size={14}
+                  style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "#9ca3af" }}
+                  onClick={() => setSearchQuery("")}
+                />
               )}
             </div>
-          </div>
-        </header>
+
+            <div style={styles.topActions}>
+              <div style={styles.iconBtn}>
+                <Bell size={18} color="#6b7280" strokeWidth={1.8} />
+                <span style={styles.notifDot} />
+              </div>
+
+              <div ref={profileRef} style={{ position: "relative" }}>
+                <div style={styles.topAvatar} onClick={() => setShowProfileMenu(v => !v)}>
+                  {user?.avatar
+                    ? <img src={user.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                    : <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>{avatarLetter}</span>
+                  }
+                </div>
+
+                {showProfileMenu && (
+                  <div style={styles.profileMenu}>
+                    <div style={styles.menuHeader}>
+                      <div style={styles.avatarCircle}>
+                        {user?.avatar
+                          ? <img src={user.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                          : <span style={styles.avatarLetter}>{avatarLetter}</span>
+                        }
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{user?.name}</div>
+                        <div style={{ fontSize: 11, color: "#9ca3af" }}>{user?.email}</div>
+                      </div>
+                    </div>
+                    <div style={styles.menuDivider} />
+                    <div style={styles.menuItem} onClick={() => { navigate("/dashboard"); setShowProfileMenu(false); }}>
+                      <User size={14} color="#6b7280" /> My Profile
+                    </div>
+                    <div style={styles.menuItem} onClick={() => { navigate("/settings"); setShowProfileMenu(false); }}>
+                      <Settings size={14} color="#6b7280" /> Settings
+                    </div>
+                    <div style={styles.menuDivider} />
+                    <div style={{ ...styles.menuItem, color: "#ef4444" }} onClick={logout}>
+                      <LogOut size={14} color="#ef4444" /> Log Out
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
         )}
         {/* PAGE CONTENT */}
         <main style={styles.pageContent}>
@@ -197,7 +197,7 @@ const styles = {
     display: "flex",
     height: "100vh",
     background: "#fdfaff",
-    width: "100vw", 
+    width: "100vw",
     fontFamily: "'Inter', sans-serif",
     overflow: "hidden",
   },
