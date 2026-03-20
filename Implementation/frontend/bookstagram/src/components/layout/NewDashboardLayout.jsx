@@ -39,6 +39,11 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
   }, []);
 
   const avatarLetter = user?.name?.charAt(0).toUpperCase() || "U";
+  const avatarUrl = user?.avatar
+    ? user.avatar.startsWith("http")
+      ? user.avatar
+      : `http://localhost:8000${user.avatar}`
+    : null;
 
   return (
     <div style={styles.shell}>
@@ -100,8 +105,12 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
         {/* Bottom Profile */}
         <div style={styles.sidebarProfile} onClick={() => navigate("/profile")}>
           <div style={styles.avatarCircle}>
-            {user?.avatar
+            {/* {user?.avatar
               ? <img src={user.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+              : <span style={styles.avatarLetter}>{avatarLetter}</span>
+            } */}
+            {avatarUrl
+              ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
               : <span style={styles.avatarLetter}>{avatarLetter}</span>
             }
           </div>
@@ -146,9 +155,13 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
 
               <div ref={profileRef} style={{ position: "relative" }}>
                 <div style={styles.topAvatar} onClick={() => setShowProfileMenu(v => !v)}>
-                  {user?.avatar
+                  {/* {user?.avatar
                     ? <img src={user.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
                     : <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>{avatarLetter}</span>
+                  } */}
+                  {avatarUrl
+                    ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                    : <span style={styles.avatarLetter}>{avatarLetter}</span>
                   }
                 </div>
 
@@ -156,8 +169,12 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
                   <div style={styles.profileMenu}>
                     <div style={styles.menuHeader}>
                       <div style={styles.avatarCircle}>
-                        {user?.avatar
+                        {/* {user?.avatar
                           ? <img src={user.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                          : <span style={styles.avatarLetter}>{avatarLetter}</span>
+                        } */}
+                        {avatarUrl
+                          ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
                           : <span style={styles.avatarLetter}>{avatarLetter}</span>
                         }
                       </div>
@@ -166,13 +183,13 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
                         <div style={{ fontSize: 11, color: "#9ca3af" }}>{user?.email}</div>
                       </div>
                     </div>
-                    <div style={styles.menuDivider} />
+                    {/* <div style={styles.menuDivider} />
                     <div style={styles.menuItem} onClick={() => { navigate("/dashboard"); setShowProfileMenu(false); }}>
                       <User size={14} color="#6b7280" /> My Profile
                     </div>
                     <div style={styles.menuItem} onClick={() => { navigate("/settings"); setShowProfileMenu(false); }}>
                       <Settings size={14} color="#6b7280" /> Settings
-                    </div>
+                    </div> */}
                     <div style={styles.menuDivider} />
                     <div style={{ ...styles.menuItem, color: "#ef4444" }} onClick={logout}>
                       <LogOut size={14} color="#ef4444" /> Log Out
