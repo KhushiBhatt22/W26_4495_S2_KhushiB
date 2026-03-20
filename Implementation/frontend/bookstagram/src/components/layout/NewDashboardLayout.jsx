@@ -20,7 +20,7 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
     { id: "explore",  label: "Explore",  icon: Compass,       path: "/explore" },
     { id: "threads",  label: "Threads",  icon: MessageSquare, path: "/threads" },
     { id: "messages", label: "Messages", icon: Mail,          path: "/messages", badge: notifications },
-    { id: "profile",  label: "Profile",  icon: User,          path: "/dashboard" },
+    { id: "profile",  label: "Profile",  icon: User,          path: "/profile" },
     { id: "settings", label: "Settings", icon: Settings,      path: "/settings" },
   ];
 
