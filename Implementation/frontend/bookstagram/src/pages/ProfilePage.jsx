@@ -1,31 +1,31 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Heart, BookOpen, Users, UserCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../utils/axiosInstance";
-import { API_PATHS } from "../utils/apiPaths";
+import { API_PATHS, BASE_URL } from "../utils/apiPaths";
 
-const BASE_URL = "http://localhost:8000";
-
-// Helper to fix avatar URL
+// ── URL helpers ───────────────────────────────────────────────────────────────
 const getAvatarUrl = (avatar) => {
   if (!avatar) return null;
   if (avatar.startsWith("http")) return avatar;
   return `${BASE_URL}${avatar}`;
 };
 
-// Helper to fix book cover URL
-const getCoverUrl = (coverImage) => {
-  if (!coverImage) return null;
-  if (coverImage.startsWith("http")) return coverImage;
-  if (coverImage.startsWith("/backend")) return `${BASE_URL}${coverImage}`;
-  return `${BASE_URL}/backend${coverImage}`;
+const getCoverUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith("http")) return path;
+  const clean = path.replace(/\\/g, "/");
+  if (clean.startsWith("/backend")) return `${BASE_URL}${clean}`;
+  return `${BASE_URL}/backend${clean}`;
 };
 
+// ── Component ─────────────────────────────────────────────────────────────────
 const ProfilePage = () => {
   const { userId } = useParams();
   const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
 
   const profileId = userId || currentUser?._id;
   const isOwnProfile = profileId === currentUser?._id;
@@ -46,7 +46,7 @@ const ProfilePage = () => {
       setLoading(true);
       const res = await axiosInstance.get(`${API_PATHS.SOCIAL.GET_USER_PROFILE}/${profileId}`);
       setProfile(res.data.user);
-      setBooks(res.data.books);
+      setBooks(res.data.books || []);
       setStats({
         postsCount: res.data.postsCount,
         followersCount: res.data.followersCount,
@@ -65,7 +65,7 @@ const ProfilePage = () => {
       if (isFollowing) {
         await axiosInstance.delete(`${API_PATHS.SOCIAL.UNFOLLOW}/${profileId}`);
         setIsFollowing(false);
-        setStats((p) => ({ ...p, followersCount: p.followersCount - 1 }));
+        setStats((p) => ({ ...p, followersCount: Math.max(0, p.followersCount - 1) }));
         toast.success("Unfollowed");
       } else {
         await axiosInstance.post(`${API_PATHS.SOCIAL.FOLLOW}/${profileId}`);
@@ -74,35 +74,50 @@ const ProfilePage = () => {
         toast.success("Following!");
       }
     } catch (error) {
-      toast.error("Something went wrong");
+      toast.error(error.response?.data?.message || "Something went wrong");
     }
   };
 
   const handleLike = async (bookId, isLiked) => {
+    // Optimistic update
+    setBooks((prev) =>
+      prev.map((b) => b._id === bookId
+        ? { ...b, isLiked: !isLiked, likesCount: isLiked ? b.likesCount - 1 : b.likesCount + 1 }
+        : b
+      )
+    );
+    if (selectedBook?._id === bookId)
+      setSelectedBook((p) => ({
+        ...p,
+        isLiked: !isLiked,
+        likesCount: isLiked ? p.likesCount - 1 : p.likesCount + 1,
+      }));
+
     try {
       if (isLiked) {
         const res = await axiosInstance.delete(`${API_PATHS.SOCIAL.UNLIKE}/${bookId}`);
-        setBooks((prev) =>
-          prev.map((b) => b._id === bookId ? { ...b, isLiked: false, likesCount: res.data.likesCount } : b)
-        );
-        if (selectedBook?._id === bookId)
-          setSelectedBook((p) => ({ ...p, isLiked: false, likesCount: res.data.likesCount }));
+        setBooks((prev) => prev.map((b) => b._id === bookId ? { ...b, isLiked: false, likesCount: res.data.likesCount } : b));
+        if (selectedBook?._id === bookId) setSelectedBook((p) => ({ ...p, isLiked: false, likesCount: res.data.likesCount }));
       } else {
         const res = await axiosInstance.post(`${API_PATHS.SOCIAL.LIKE}/${bookId}`);
-        setBooks((prev) =>
-          prev.map((b) => b._id === bookId ? { ...b, isLiked: true, likesCount: res.data.likesCount } : b)
-        );
-        if (selectedBook?._id === bookId)
-          setSelectedBook((p) => ({ ...p, isLiked: true, likesCount: res.data.likesCount }));
+        setBooks((prev) => prev.map((b) => b._id === bookId ? { ...b, isLiked: true, likesCount: res.data.likesCount } : b));
+        if (selectedBook?._id === bookId) setSelectedBook((p) => ({ ...p, isLiked: true, likesCount: res.data.likesCount }));
       }
     } catch (error) {
+      // Revert optimistic update
+      setBooks((prev) =>
+        prev.map((b) => b._id === bookId
+          ? { ...b, isLiked, likesCount: isLiked ? b.likesCount + 1 : b.likesCount - 1 }
+          : b
+        )
+      );
       toast.error("Something went wrong");
     }
   };
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <div className="w-10 h-10 border-4 border-purple-400 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -115,21 +130,19 @@ const ProfilePage = () => {
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
 
             {/* Avatar */}
-            <div className="relative">
-              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg overflow-hidden">
-                {profile?.avatar ? (
-                  <img
-                    src={getAvatarUrl(profile.avatar)}
-                    alt={profile.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => { e.target.style.display = "none"; }}
-                  />
-                ) : (
-                  <span className="text-white text-4xl font-bold">
-                    {profile?.name?.charAt(0).toUpperCase()}
-                  </span>
-                )}
-              </div>
+            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-fuchsia-500 to-orange-400 flex items-center justify-center shadow-lg overflow-hidden flex-shrink-0">
+              {profile?.avatar ? (
+                <img
+                  src={getAvatarUrl(profile.avatar)}
+                  alt={profile.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.target.style.display = "none"; }}
+                />
+              ) : (
+                <span className="text-white text-4xl font-bold">
+                  {profile?.name?.charAt(0).toUpperCase()}
+                </span>
+              )}
             </div>
 
             {/* Info */}
@@ -142,7 +155,7 @@ const ProfilePage = () => {
                     className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold text-sm transition-all ${
                       isFollowing
                         ? "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
-                        : "bg-gradient-to-r from-primary to-secondary text-white shadow hover:opacity-90"
+                        : "bg-gradient-to-r from-fuchsia-500 to-orange-400 text-white shadow hover:opacity-90"
                     }`}
                   >
                     {isFollowing
@@ -153,10 +166,7 @@ const ProfilePage = () => {
                 )}
               </div>
 
-              {/* Email */}
               <p className="text-gray-500 text-sm mb-2">{profile?.email}</p>
-
-              {/* Bio — shows only if bio exists */}
               {profile?.bio && (
                 <p className="text-gray-700 text-sm mb-5 max-w-md">{profile.bio}</p>
               )}
@@ -197,7 +207,7 @@ const ProfilePage = () => {
                 className="relative aspect-square cursor-pointer group overflow-hidden rounded-md bg-gray-200"
                 onClick={() => setSelectedBook(book)}
               >
-                {book.coverImage ? (
+                {getCoverUrl(book.coverImage) ? (
                   <img
                     src={getCoverUrl(book.coverImage)}
                     alt={book.title}
@@ -205,16 +215,14 @@ const ProfilePage = () => {
                     onError={(e) => { e.target.style.display = "none"; }}
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                    <BookOpen className="w-10 h-10 text-primary/50" />
+                  <div className="w-full h-full bg-gradient-to-br from-fuchsia-100 to-orange-100 flex items-center justify-center">
+                    <BookOpen className="w-10 h-10 text-fuchsia-400" />
                   </div>
                 )}
-
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                   <span className="flex items-center gap-1 text-white font-semibold text-sm">
                     <Heart size={18} fill="white" />
-                    {book.likesCount}
+                    {book.likesCount || 0}
                   </span>
                 </div>
               </div>
@@ -233,9 +241,9 @@ const ProfilePage = () => {
             className="bg-white rounded-2xl overflow-hidden max-w-2xl w-full flex flex-col sm:flex-row shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Left: Cover */}
+            {/* Cover */}
             <div className="sm:w-1/2 bg-gray-100 flex items-center justify-center min-h-[280px]">
-              {selectedBook.coverImage ? (
+              {getCoverUrl(selectedBook.coverImage) ? (
                 <img
                   src={getCoverUrl(selectedBook.coverImage)}
                   alt={selectedBook.title}
@@ -243,45 +251,34 @@ const ProfilePage = () => {
                   onError={(e) => { e.target.style.display = "none"; }}
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center min-h-[280px]">
-                  <BookOpen className="w-20 h-20 text-primary/40" />
+                <div className="w-full h-full bg-gradient-to-br from-fuchsia-100 to-orange-100 flex items-center justify-center min-h-[280px]">
+                  <BookOpen className="w-20 h-20 text-fuchsia-300" />
                 </div>
               )}
             </div>
 
-            {/* Right: Details */}
+            {/* Details */}
             <div className="sm:w-1/2 p-6 flex flex-col justify-between">
               <div>
-                {/* Author */}
                 <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center overflow-hidden">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-fuchsia-500 to-orange-400 flex items-center justify-center overflow-hidden">
                     {profile?.avatar ? (
-                      <img
-                        src={getAvatarUrl(profile.avatar)}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        onError={(e) => { e.target.style.display = "none"; }}
-                      />
+                      <img src={getAvatarUrl(profile.avatar)} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = "none"; }} />
                     ) : (
-                      <span className="text-white text-sm font-bold">
-                        {profile?.name?.charAt(0)}
-                      </span>
+                      <span className="text-white text-sm font-bold">{profile?.name?.charAt(0)}</span>
                     )}
                   </div>
                   <span className="font-semibold text-gray-900 text-sm">{profile?.name}</span>
                 </div>
 
-                {/* Book Info */}
                 <h2 className="text-xl font-bold text-gray-900 mb-1">{selectedBook.title}</h2>
-                {selectedBook.subtitle && (
-                  <p className="text-gray-500 text-sm mb-3">{selectedBook.subtitle}</p>
-                )}
+                {selectedBook.subtitle && <p className="text-gray-500 text-sm mb-3">{selectedBook.subtitle}</p>}
                 <p className="text-gray-400 text-xs mb-4">by {selectedBook.author}</p>
                 <p className="text-gray-500 text-sm">{selectedBook.chapters?.length || 0} chapters</p>
               </div>
 
-              {/* Like Button */}
-              <div className="mt-6 pt-4 border-t border-gray-100">
+              {/* Like + Read */}
+              <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
                 <button
                   onClick={() => handleLike(selectedBook._id, selectedBook.isLiked)}
                   className="flex items-center gap-2 text-gray-700 hover:text-red-500 transition-colors"
@@ -290,7 +287,13 @@ const ProfilePage = () => {
                     size={24}
                     className={selectedBook.isLiked ? "text-red-500 fill-red-500" : "text-gray-400"}
                   />
-                  <span className="font-semibold text-sm">{selectedBook.likesCount} likes</span>
+                  <span className="font-semibold text-sm">{selectedBook.likesCount || 0} likes</span>
+                </button>
+                <button
+                  onClick={() => navigate(`/view-book/${selectedBook._id}`)}
+                  className="text-sm font-semibold text-fuchsia-600 hover:text-fuchsia-700 transition-colors"
+                >
+                  Read →
                 </button>
               </div>
             </div>

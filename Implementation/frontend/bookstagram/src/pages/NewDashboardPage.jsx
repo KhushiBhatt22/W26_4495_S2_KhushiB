@@ -14,8 +14,13 @@ import axiosInstance from "../utils/axiosInstance";
 import { API_PATHS, BASE_URL } from "../utils/apiPaths";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-const coverUrl = (path) =>
-  path ? `${BASE_URL}${path.startsWith("/backend") ? "" : ""}${path}` : null;
+const coverUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith("http")) return path;
+  const clean = path.replace(/\\/g, "/");
+  if (clean.startsWith("/backend")) return `${BASE_URL}${clean}`;
+  return `${BASE_URL}/backend${clean}`;
+};
 
 // ── Book Post Card ────────────────────────────────────────────────────────────
 const BookPostCard = ({ book, onLike, onRead, onAuthorClick }) => {
@@ -330,7 +335,7 @@ const NewDashboardPage = () => {
 
   const handleRead = (book) => navigate(`/view-book/${book._id}`);
   const handleAuthorClick = (authorId) => {
-    if (authorId) navigate(`/profile/${authorId}`);
+    if (authorId) navigate(`/dashboard/${authorId}`);
   };
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);
