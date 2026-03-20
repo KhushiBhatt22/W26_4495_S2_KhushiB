@@ -69,12 +69,7 @@ const BookPostCard = ({ book, onLike, onRead, onAuthorClick }) => {
           />
           {menuOpen && (
             <div style={cardStyles.miniMenu}>
-              <div
-                style={cardStyles.miniMenuItem}
-                onClick={() => { onRead(book); setMenuOpen(false); }}
-              >
-                📖 Read Book
-              </div>
+             
               <div
                 style={cardStyles.miniMenuItem}
                 onClick={() => { onAuthorClick(author._id); setMenuOpen(false); }}
@@ -125,10 +120,7 @@ const BookPostCard = ({ book, onLike, onRead, onAuthorClick }) => {
           />
           <span>{book.likesCount || 0}</span>
         </button>
-        <button style={cardStyles.actionBtn} onClick={() => onRead(book)}>
-          <BookOpen size={16} />
-          <span>Read Story</span>
-        </button>
+        
       </div>
     </div>
   );
