@@ -335,7 +335,7 @@ const NewDashboardPage = () => {
 
   const handleRead = (book) => navigate(`/view-book/${book._id}`);
   const handleAuthorClick = (authorId) => {
-    if (authorId) navigate(`/dashboard/${authorId}`);
+    if (authorId) navigate(`/profile/${authorId}`);
   };
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);

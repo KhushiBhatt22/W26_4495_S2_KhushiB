@@ -25,7 +25,7 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
   ];
 
   const isActive = (path) => {
-    if (path === "/dashboard") return location.pathname === "/dashboard";
+    if (path === "/profile") return location.pathname === "/profile";
     return location.pathname.startsWith(path);
   };
 
@@ -169,10 +169,10 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
                   <div style={styles.profileMenu}>
                     <div style={styles.menuHeader}>
                       <div style={styles.avatarCircle}>
-                        {/* {user?.avatar
+                        {user?.avatar
                           ? <img src={user.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
                           : <span style={styles.avatarLetter}>{avatarLetter}</span>
-                        } */}
+                        }
                         {avatarUrl
                           ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
                           : <span style={styles.avatarLetter}>{avatarLetter}</span>

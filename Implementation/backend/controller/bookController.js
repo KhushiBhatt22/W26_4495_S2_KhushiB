@@ -99,8 +99,11 @@ const getBookById = async (req, res) => {
 //   } catch (error) {
 //     console.error("getBookById:", error);
 //     res.status(500).json({ message: "Server error" });
-//   }
-// };
+  }catch (error) {
+    console.error("getBookById:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 // >>>>>>> main
 
 // @desc    Get a single book by ID — any logged-in user (for reading)
@@ -179,4 +182,4 @@ module.exports = {
   updateBook,
   deleteBook,
   updateBookCover,
-};
+}
