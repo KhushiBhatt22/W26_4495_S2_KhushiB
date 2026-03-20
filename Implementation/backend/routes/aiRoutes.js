@@ -5,6 +5,7 @@ const {
   generateChapterContent,
   generateStoryImage,
   completeChapterContent,
+  generateAvatar,
 } = require("../controller/aiController");
 const { protect } = require("../middlewares/authMiddleware");
 
@@ -15,5 +16,6 @@ router.post("/generate-outline", generateOutline);
 router.post("/generate-chapter-content", generateChapterContent);
 router.post("/generate-story-image", generateStoryImage);
 router.post("/complete-chapter-content", protect, completeChapterContent);
+router.post("/generate-avatar",  generateAvatar);
 
 module.exports = router;

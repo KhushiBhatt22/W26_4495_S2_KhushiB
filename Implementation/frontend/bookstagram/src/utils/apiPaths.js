@@ -24,6 +24,7 @@ export const API_PATHS = {
     GENERATE_CHAPTER_CONTENT: "/api/ai/generate-chapter-content",
     COMPLETE_CHAPTER_CONTENT: "/api/ai/complete-chapter-content",
     GENERATE_STORY_IMAGE: "/api/ai/generate-story-image",
+    GENERATE_AVATAR: "/api/ai/generate-avatar",
   },
   EXPORT: {
     PDF: "/api/export",
