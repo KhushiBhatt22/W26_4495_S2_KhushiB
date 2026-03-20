@@ -7,7 +7,7 @@ const BookCard = ({book, onDelete}) => {
 
   const coverImageUrl = book.coverImage
     ? `${BASE_URL}/backend${book.coverImage}`.replace(/\\/g, "/")
-    : "";
+    : null;
 
   return (
     <div 
@@ -15,12 +15,18 @@ const BookCard = ({book, onDelete}) => {
       onClick={() => navigate(`/view-book/${book._id}`)}
     >
       <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-        <img 
-          src={coverImageUrl}
-          alt={book.title} 
-          className="w-full aspect-[16/25] object-cover transition-transform duration-500 group-hover:scale-105"
-          onError={(e) => { e.target.src = '' }}
-        />
+       {coverImageUrl ? (
+  <img 
+    src={coverImageUrl}
+    alt={book.title} 
+    className="w-full aspect-[16/25] object-cover transition-transform duration-500 group-hover:scale-105"
+    onError={(e) => { e.target.style.display = 'none' }}
+  />
+) : (
+  <div className="w-full aspect-[16/25] bg-gradient-to-br from-purple-50 to-orange-50 flex items-center justify-center">
+    <span className="text-4xl">📖</span>
+  </div>
+)}
         
         <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
           <button

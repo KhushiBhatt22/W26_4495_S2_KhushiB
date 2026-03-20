@@ -556,7 +556,7 @@ const cardStyles = {
   authorName: { fontSize: 13, fontWeight: 600, color: "#111827" },
   authorHandle: { fontSize: 11, color: "#9ca3af" },
   coverWrap: {
-    position: "relative", width: "100%", aspectRatio: "4/3",
+    position: "relative", width: "100%", aspectRatio: "3/4",
     cursor: "pointer", overflow: "hidden", background: "#fdf4ff",
   },
   coverImg: { width: "100%", height: "100%", objectFit: "cover", display: "block" },

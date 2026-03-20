@@ -89,6 +89,16 @@ const ProfilePage = () => {
     setIsCreateModalOpen(false);
     navigate(`/editor/${bookId}`);
   };
+const handleDeleteBook = async (bookId) => {
+  try {
+    await axiosInstance.delete(`${API_PATHS.BOOKS.DELETE_BOOK}/${bookId}`);
+    setBooks((prev) => prev.filter((b) => b._id !== bookId));
+    setStats((p) => ({ ...p, postsCount: Math.max(0, p.postsCount - 1) }));
+    toast.success("Book deleted");
+  } catch {
+    toast.error("Failed to delete book");
+  }
+};
 
   return (
     <NewDashboardLayout onCreateBook={() => setIsCreateModalOpen(true)} hideTopbar={true}>
@@ -196,7 +206,7 @@ const ProfilePage = () => {
               <div key={book._id}>
                 <BookCard
                   book={book}
-                  onDelete={isOwnProfile ? () => { } : undefined}
+                  onDelete={isOwnProfile ? handleDeleteBook : undefined}
                 />
                 {/* Likes count under card */}
                 <div className="flex items-center gap-1 mt-2 px-1">
