@@ -485,7 +485,7 @@ const ThreadsPage = () => {
   };
 
   return (
-    <NewDashboardLayout onCreateBook={() => setIsCreateModalOpen(true)}>
+    <NewDashboardLayout onCreateBook={() => setIsCreateModalOpen(true)} hideTopbar={true}>
       <div style={pageStyles.wrap}>
 
         {/* ── LEFT: FEED ── */}
