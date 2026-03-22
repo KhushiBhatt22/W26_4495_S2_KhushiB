@@ -6,6 +6,7 @@ const {
   likeThread,
   addComment,
   deleteThread,
+  deleteComment
 } = require("../controller/threadController");
 const { protect } = require("../middlewares/authMiddleware");
 const multer = require("multer");
@@ -45,5 +46,6 @@ router.post("/", protect, (req, res, next) => {
 router.put("/:id/like", protect, likeThread);
 router.post("/:id/comment", protect, addComment);
 router.delete("/:id", protect, deleteThread);
+router.delete("/:threadId/comment/:commentId", protect, deleteComment);
 
 module.exports = router;

@@ -102,3 +102,29 @@ exports.deleteThread = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+// @desc    Delete a comment
+// @route   DELETE /api/threads/:threadId/comment/:commentId
+// @access  Private
+exports.deleteComment = async (req, res) => {
+  try {
+    const thread = await Thread.findById(req.params.threadId);
+    if (!thread) return res.status(404).json({ message: "Thread not found" });
+
+    const comment = thread.comments.id(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: "Comment not found" });
+
+    if (comment.user.toString() !== req.user._id.toString())
+      return res.status(401).json({ message: "Not authorized" });
+
+    comment.deleteOne();
+    await thread.save();
+
+    const updated = await Thread.findById(req.params.threadId)
+      .populate("user", "name avatar")
+      .populate("comments.user", "name avatar");
+
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
