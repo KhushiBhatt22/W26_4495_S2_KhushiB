@@ -128,7 +128,7 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment, onDelete
           {menuOpen && (
             <div style={cardStyles.menu}>
               <div style={cardStyles.menuItem}
-                onClick={() => { navigate(`/dashboard/${thread.user?._id}`); setMenuOpen(false); }}>
+                onClick={() => { navigate(`/profile/${thread.user?._id}`); setMenuOpen(false); }}>
                 View Profile
               </div>
               {isOwn && (
