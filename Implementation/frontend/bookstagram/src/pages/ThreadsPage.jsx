@@ -266,7 +266,7 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment, onDelete
                     }}
                     title="Delete comment"
                   >
-                     <Trash2 size={13} />
+                    <Trash2 size={13} />
                   </button>
                 )}
               </div>
@@ -395,6 +395,9 @@ const ThreadsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isPosting, setIsPosting] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [aiInput, setAiInput] = useState("");
+  const [aiResult, setAiResult] = useState(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   useEffect(() => { fetchThreads(); }, []);
 
@@ -466,6 +469,22 @@ const ThreadsPage = () => {
       toast.error("Failed to add comment");
     }
   };
+  const handleAiImprove = async () => {
+    if (!aiInput.trim()) return;
+    setIsAiLoading(true);
+    setAiResult(null);
+    try {
+      const res = await axiosInstance.post(API_PATHS.THREADS.IMPROVE_THREAD, {
+        text: aiInput,
+      });
+      setAiResult(res.data);
+    } catch {
+      toast.error("AI failed to improve text");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
 
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);
@@ -537,26 +556,129 @@ const ThreadsPage = () => {
         <div style={pageStyles.rightPanel}>
 
           {/* Thread Tips */}
-          <div style={rightStyles.section}>
-            <div style={rightStyles.title}>✍️ Thread Tips</div>
-            {[
-              { icon: "📖", tip: "Share book reviews under 500 characters" },
-              { icon: "🖼️", tip: "Upload up to 5 images per thread" },
-              { icon: "#️⃣", tip: "Use hashtags like #BookReview #Fantasy" },
-              { icon: "💬", tip: "Ask questions to spark discussions" },
-            ].map((t, i) => (
-              <div key={i} style={rightStyles.tipRow}>
-                <span style={rightStyles.tipIcon}>{t.icon}</span>
-                <span style={rightStyles.tipText}>{t.tip}</span>
+          {/* ── RIGHT: AI WRITING ASSISTANT ── */}
+          <div style={pageStyles.rightPanel}>
+
+            <div style={rightStyles.title}>AI WRITING ASSISTANT</div>
+            <p style={{ fontSize: 12, color: "#9ca3af", marginBottom: 14, lineHeight: 1.5 }}>
+              Type your raw thought — AI will improve it with better grammar and suggest hashtags!
+            </p>
+
+            <textarea
+              style={{
+                width: "100%", height: 110, padding: "10px 12px",
+                border: "1.5px solid #f3e8ff", borderRadius: 12,
+                fontSize: 13, fontFamily: "inherit", color: "#111827",
+                background: "#fdfaff", outline: "none", resize: "none",
+                boxSizing: "border-box", lineHeight: 1.6,
+              }}
+              placeholder="e.g. just read harry potter it was amazing i loved it so much"
+              value={aiInput}
+              onChange={e => setAiInput(e.target.value)}
+            />
+
+            <button
+              style={{
+                width: "100%", marginTop: 10, padding: "10px",
+                background: aiInput.trim() && !isAiLoading
+                  ? "linear-gradient(135deg, #d946ef, #fb923c)"
+                  : "#e5e7eb",
+                color: aiInput.trim() && !isAiLoading ? "#fff" : "#9ca3af",
+                border: "none", borderRadius: 12,
+                fontSize: 13, fontWeight: 600,
+                cursor: aiInput.trim() ? "pointer" : "not-allowed",
+                fontFamily: "inherit",
+                boxShadow: aiInput.trim() ? "0 3px 10px rgba(217,70,239,0.3)" : "none",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              }}
+              onClick={handleAiImprove}
+              disabled={!aiInput.trim() || isAiLoading}
+            >
+              {isAiLoading ? "Improving…" : "Improve with AI"}
+            </button>
+
+            {/* AI Result */}
+            {aiResult && (
+              <div style={{ marginTop: 16 }}>
+                <div style={rightStyles.divider} />
+
+                {/* Improved text */}
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 8 }}>
+                    Improved Text
+                  </div>
+                  <div style={{
+                    background: "linear-gradient(135deg, #fdf4ff, #fff7ed)",
+                    border: "1px solid #f3e8ff", borderRadius: 10,
+                    padding: "10px 12px", fontSize: 13, color: "#374151", lineHeight: 1.6,
+                  }}>
+                    {aiResult.improved}
+                  </div>
+                  <button
+                    style={{
+                      marginTop: 8, padding: "6px 14px",
+                      background: "#fff", border: "1px solid #f3e8ff",
+                      borderRadius: 20, fontSize: 11, fontWeight: 600,
+                      color: "#d946ef", cursor: "pointer", fontFamily: "inherit",
+                    }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(aiResult.improved);
+                      toast.success("Copied! Paste it in your thread 📋");
+                    }}
+                  >
+                    Copy Text
+                  </button>
+                </div>
+
+                {/* Hashtags */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 8 }}>
+                    🏷️ Suggested Hashtags
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {aiResult.hashtags?.map((tag, i) => (
+                      <span key={i} style={{
+                        padding: "4px 10px", borderRadius: 20,
+                        background: "linear-gradient(135deg, #fdf4ff, #f3e8ff)",
+                        border: "1px solid #f3e8ff",
+                        fontSize: 12, fontWeight: 600, color: "#d946ef", cursor: "pointer",
+                      }}
+                        onClick={() => {
+                          navigator.clipboard.writeText(tag);
+                          toast.success(`${tag} copied!`);
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <button
+                    style={{
+                      marginTop: 8, padding: "6px 14px",
+                      background: "#fff", border: "1px solid #f3e8ff",
+                      borderRadius: 20, fontSize: 11, fontWeight: 600,
+                      color: "#d946ef", cursor: "pointer", fontFamily: "inherit",
+                    }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(aiResult.hashtags?.join(" "));
+                      toast.success("All hashtags copied! 📋");
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}>
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  </button>
+                </div>
               </div>
-            ))}
+            )}
           </div>
 
           <div style={rightStyles.divider} />
 
           {/* Trending Tags */}
           <div style={rightStyles.section}>
-            <div style={rightStyles.title}>🔥 Trending Tags</div>
+            <div style={rightStyles.title}>Trending Tags</div>
             {[
               { tag: "#BookReview", count: "2.4k" },
               { tag: "#Fantasy", count: "1.8k" },
@@ -587,15 +709,26 @@ const ThreadsPage = () => {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const pageStyles = {
-  wrap: { display: "flex", minHeight: "100%", background: "#fdfaff" },
-  feed: { flex: 1, padding: "28px 32px", minWidth: 0 },
+  wrap: {
+    display: "flex",
+    minHeight: "100%",
+    background: "#fdfaff",
+    overflow: "hidden",
+    maxWidth: "100%",
+  },
+  feed: { flex: 1, padding: "24px 20px", minWidth: 0, overflow: "hidden" },
   feedHeader: { marginBottom: 20 },
   pageTitle: { fontSize: 22, fontWeight: 700, color: "#111827", margin: 0 },
   pageSubtitle: { fontSize: 13, color: "#9ca3af", marginTop: 4 },
   rightPanel: {
-    width: 340, minWidth: 340, padding: "28px 24px",
+    width: 350,
+    minWidth: 0,
+    padding: "20px 16px",
     borderLeft: "1px solid #f3e8ff",
-    background: "#ffffff", flexShrink: 0, overflowY: "auto",
+    background: "#ffffff",
+    flexShrink: 0,
+    overflowY: "auto",
+    overflowX: "hidden",
   },
 };
 
