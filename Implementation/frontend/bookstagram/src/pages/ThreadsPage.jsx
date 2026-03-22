@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Heart, MessageCircle, MoreHorizontal,
-  X, Send, Image,
+  X, Send, Image, Trash2
 } from "lucide-react";
 import toast from "react-hot-toast";
 import NewDashboardLayout from "../components/layout/NewDashboardLayout";
@@ -39,7 +39,7 @@ const timeAgo = (date) => {
 };
 
 // ── Thread Card ───────────────────────────────────────────────────────────────
-const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
+const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment, onDeleteComment }) => {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const [showComments, setShowComments] = useState(false);
@@ -134,7 +134,7 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
               {isOwn && (
                 <div style={{ ...cardStyles.menuItem, color: "#ef4444" }}
                   onClick={() => { onDelete(thread._id); setMenuOpen(false); }}>
-                Delete
+                  Delete
                 </div>
               )}
               <div style={cardStyles.menuItem} onClick={() => setMenuOpen(false)}>
@@ -237,7 +237,8 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
       {showComments && thread.comments?.length > 0 && (
         <div style={cardStyles.commentsWrap}>
           {thread.comments.map((c, i) => (
-            <div key={i} style={cardStyles.commentRow}>
+            <div key={i} style={{ ...cardStyles.commentRow, position: "relative" }}
+              className="comment-row-hover">
               <div style={cardStyles.commentAvatar}>
                 {c.user?.avatar ? (
                   <img src={getAvatarUrl(c.user.avatar)} alt=""
@@ -248,9 +249,26 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
                   </span>
                 )}
               </div>
-              <div style={cardStyles.commentBubble}>
-                <span style={cardStyles.commentAuthor}>{c.user?.name || "User"}</span>
-                <span style={cardStyles.commentText}>{c.text}</span>
+              <div style={{ ...cardStyles.commentBubble, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                <div>
+                  <span style={cardStyles.commentAuthor}>{c.user?.name || "User"}</span>
+                  <span style={cardStyles.commentText}>{c.text}</span>
+                </div>
+                {/* Delete button — only own comments */}
+                {c.user?._id === currentUser?._id && (
+                  <button
+                    onClick={() => onDeleteComment(thread._id, c._id)}
+                    style={{
+                      background: "none", border: "none", cursor: "pointer",
+                      color: "#ef4444", fontSize: 14, padding: "2px 4px",
+                      borderRadius: 6, flexShrink: 0,
+                      opacity: 0.6,
+                    }}
+                    title="Delete comment"
+                  >
+                     <Trash2 size={13} />
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -454,6 +472,18 @@ const ThreadsPage = () => {
     navigate(`/editor/${bookId}`);
   };
 
+  const handleDeleteComment = async (threadId, commentId) => {
+    try {
+      const res = await axiosInstance.delete(
+        `${API_PATHS.THREADS.GET_THREADS}/${threadId}/comment/${commentId}`
+      );
+      setThreads(prev => prev.map(t => t._id === threadId ? res.data : t));
+      toast.success("Comment deleted!");
+    } catch {
+      toast.error("Failed to delete comment");
+    }
+  };
+
   return (
     <NewDashboardLayout onCreateBook={() => setIsCreateModalOpen(true)}>
       <div style={pageStyles.wrap}>
@@ -496,6 +526,7 @@ const ThreadsPage = () => {
                   onLike={handleLike}
                   onDelete={handleDelete}
                   onComment={handleComment}
+                  onDeleteComment={handleDeleteComment}
                 />
               ))
             )}
