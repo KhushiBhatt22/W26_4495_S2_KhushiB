@@ -40,6 +40,7 @@ const timeAgo = (date) => {
 
 // ── Thread Card ───────────────────────────────────────────────────────────────
 const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
+   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -85,14 +86,19 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
             onClick={() => setMenuOpen(v => !v)} />
           {menuOpen && (
             <div style={cardStyles.menu}>
+              {/* View Profile — always visible */}
+              <div style={cardStyles.menuItem}
+                onClick={() => { navigate(`/profile/${thread.user?._id}`); setMenuOpen(false); }}>
+                View Profile
+              </div>
               {isOwn && (
                 <div style={{ ...cardStyles.menuItem, color: "#ef4444" }}
                   onClick={() => { onDelete(thread._id); setMenuOpen(false); }}>
-                  🗑️ Delete
+                Delete
                 </div>
               )}
               <div style={cardStyles.menuItem} onClick={() => setMenuOpen(false)}>
-                ⚑ Report
+                Report
               </div>
             </div>
           )}
