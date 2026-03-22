@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Heart, MessageCircle, MoreHorizontal,
-  X, Send, Image, Sparkles,
+  X, Send, Image,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import NewDashboardLayout from "../components/layout/NewDashboardLayout";
@@ -40,13 +40,14 @@ const timeAgo = (date) => {
 
 // ── Thread Card ───────────────────────────────────────────────────────────────
 const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
-   const navigate = useNavigate();
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [fullImage, setFullImage] = useState(null); // ← full image modal
 
   const authorName = thread.user?.name || "Unknown";
   const authorAvatar = thread.user?.avatar;
@@ -64,6 +65,46 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
 
   return (
     <div style={cardStyles.card}>
+
+      {/* Full Image Modal */}
+      {fullImage && (
+        <div
+          style={{
+            position: "fixed", inset: 0, zIndex: 999,
+            background: "rgba(0,0,0,0.92)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+          onClick={() => setFullImage(null)}
+        >
+          <div style={{ position: "relative" }} onClick={e => e.stopPropagation()}>
+            <img
+              src={fullImage}
+              alt="full"
+              style={{
+                width: "90vw", height: "90vw",
+                maxWidth: 600, maxHeight: 600,
+                objectFit: "cover", borderRadius: 16,
+                boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+              }}
+            />
+            <button
+              style={{
+                position: "absolute", top: -14, right: -14,
+                width: 36, height: 36, borderRadius: "50%",
+                background: "#fff", border: "none",
+                fontSize: 16, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                fontWeight: 700, color: "#374151",
+              }}
+              onClick={() => setFullImage(null)}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div style={cardStyles.header}>
         <div style={cardStyles.avatarWrap}>
@@ -86,9 +127,8 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
             onClick={() => setMenuOpen(v => !v)} />
           {menuOpen && (
             <div style={cardStyles.menu}>
-              {/* View Profile — always visible */}
               <div style={cardStyles.menuItem}
-                onClick={() => { navigate(`/profile/${thread.user?._id}`); setMenuOpen(false); }}>
+                onClick={() => { navigate(`/dashboard/${thread.user?._id}`); setMenuOpen(false); }}>
                 View Profile
               </div>
               {isOwn && (
@@ -117,22 +157,21 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
         )}
       </div>
 
-      {/* Images — Instagram style carousel */}
+      {/* Images — Instagram carousel */}
       {images.length > 0 && (
         <div style={cardStyles.imageWrap}>
           <img
             src={getImageUrl(images[currentImageIndex])}
             alt="thread"
-            style={cardStyles.image}
+            style={{ ...cardStyles.image, cursor: "zoom-in" }}
+            onClick={() => setFullImage(getImageUrl(images[currentImageIndex]))}
             onError={e => e.target.style.display = "none"}
           />
-          {/* Image counter */}
           {images.length > 1 && (
             <div style={cardStyles.imageCounter}>
               {currentImageIndex + 1}/{images.length}
             </div>
           )}
-          {/* Prev / Next arrows */}
           {images.length > 1 && currentImageIndex > 0 && (
             <button style={{ ...cardStyles.imageArrow, left: 10 }}
               onClick={() => setCurrentImageIndex(i => i - 1)}>‹</button>
@@ -141,7 +180,6 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
             <button style={{ ...cardStyles.imageArrow, right: 10 }}
               onClick={() => setCurrentImageIndex(i => i + 1)}>›</button>
           )}
-          {/* Dots */}
           {images.length > 1 && (
             <div style={cardStyles.imageDots}>
               {images.map((_, i) => (
@@ -254,7 +292,6 @@ const CreateThreadPanel = ({ user, onPost, isPosting }) => {
   return (
     <div style={createStyles.panel}>
       <div style={createStyles.header}>
-        {/* Avatar */}
         <div style={createStyles.avatar}>
           {user?.avatar ? (
             <img src={getAvatarUrl(user.avatar)} alt=""
@@ -274,7 +311,6 @@ const CreateThreadPanel = ({ user, onPost, isPosting }) => {
         />
       </div>
 
-      {/* Image previews */}
       {previews.length > 0 && (
         <div style={createStyles.previewGrid}>
           {previews.map((url, i) => (
@@ -302,7 +338,7 @@ const CreateThreadPanel = ({ user, onPost, isPosting }) => {
             <Image size={16} color="#d946ef" />
           </button>
           <span style={{ fontSize: 11, color: "#9ca3af" }}>
-            {previews.length > 0 && `${previews.length}/${MAX_IMAGES} images · `}
+            {previews.length > 0 && `${previews.length}/${MAX_IMAGES} · `}
             <span style={{ color: text.length > MAX_CHARS * 0.8 ? "#fb923c" : "#9ca3af" }}>
               {text.length}
             </span>/{MAX_CHARS}
@@ -361,7 +397,6 @@ const ThreadsPage = () => {
       const formData = new FormData();
       formData.append("text", text);
       files.forEach(f => formData.append("images", f));
-
       const res = await axiosInstance.post(API_PATHS.THREADS.CREATE_THREAD, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -376,7 +411,7 @@ const ThreadsPage = () => {
 
   const handleLike = async (threadId) => {
     try {
-      const res = await axiosInstance.put(`${API_PATHS.THREADS.LIKE_THREAD}/${threadId}/like`);
+      await axiosInstance.put(`${API_PATHS.THREADS.LIKE_THREAD}/${threadId}/like`);
       setThreads(prev => prev.map(t => {
         if (t._id !== threadId) return t;
         const liked = t.likes?.includes(user._id);
@@ -409,7 +444,6 @@ const ThreadsPage = () => {
         { text }
       );
       setThreads(prev => prev.map(t => t._id === threadId ? res.data : t));
-      toast.success("Comment added!");
     } catch {
       toast.error("Failed to add comment");
     }
@@ -470,6 +504,8 @@ const ThreadsPage = () => {
 
         {/* ── RIGHT: SIDEBAR ── */}
         <div style={pageStyles.rightPanel}>
+
+          {/* Thread Tips */}
           <div style={rightStyles.section}>
             <div style={rightStyles.title}>✍️ Thread Tips</div>
             {[
@@ -487,12 +523,22 @@ const ThreadsPage = () => {
 
           <div style={rightStyles.divider} />
 
+          {/* Trending Tags */}
           <div style={rightStyles.section}>
             <div style={rightStyles.title}>🔥 Trending Tags</div>
-            {["#BookReview", "#Fantasy", "#ReadingNook", "#AuthorLife", "#Bookstagram"].map((tag, i) => (
+            {[
+              { tag: "#BookReview", count: "2.4k" },
+              { tag: "#Fantasy", count: "1.8k" },
+              { tag: "#ReadingNook", count: "987" },
+              { tag: "#AuthorLife", count: "743" },
+              { tag: "#Bookstagram", count: "3.1k" },
+            ].map((t, i) => (
               <div key={i} style={rightStyles.tagRow}>
-                <div style={rightStyles.tagName}>{tag}</div>
-                <div style={{ fontSize: 11, color: "#9ca3af" }}>#{i + 1}</div>
+                <div>
+                  <div style={rightStyles.tagName}>{t.tag}</div>
+                  <div style={{ fontSize: 11, color: "#9ca3af" }}>{t.count} threads</div>
+                </div>
+                <div style={rightStyles.tagRank}>#{i + 1}</div>
               </div>
             ))}
           </div>
@@ -511,12 +557,12 @@ const ThreadsPage = () => {
 // ── Styles ────────────────────────────────────────────────────────────────────
 const pageStyles = {
   wrap: { display: "flex", minHeight: "100%", background: "#fdfaff" },
-  feed: { flex: 1, padding: "28px 28px", maxWidth: 640, minWidth: 0 },
+  feed: { flex: 1, padding: "28px 32px", minWidth: 0 },
   feedHeader: { marginBottom: 20 },
   pageTitle: { fontSize: 22, fontWeight: 700, color: "#111827", margin: 0 },
   pageSubtitle: { fontSize: 13, color: "#9ca3af", marginTop: 4 },
   rightPanel: {
-    width: 300, padding: "28px 20px",
+    width: 340, minWidth: 340, padding: "28px 24px",
     borderLeft: "1px solid #f3e8ff",
     background: "#ffffff", flexShrink: 0, overflowY: "auto",
   },
@@ -533,38 +579,30 @@ const createStyles = {
     width: 38, height: 38, borderRadius: "50%",
     background: "linear-gradient(135deg, #d946ef, #fb923c)",
     display: "flex", alignItems: "center", justifyContent: "center",
-    color: "#fff", fontWeight: 700, fontSize: 14, flexShrink: 0,
-    overflow: "hidden",
+    color: "#fff", fontWeight: 700, fontSize: 14, flexShrink: 0, overflow: "hidden",
   },
   textarea: {
     flex: 1, border: "none", outline: "none", resize: "none",
     fontSize: 14, fontFamily: "inherit", color: "#111827",
     background: "transparent", lineHeight: 1.6,
   },
-  previewGrid: {
-    display: "flex", flexWrap: "wrap", gap: 8,
-    marginTop: 12, padding: "8px 0",
-  },
+  previewGrid: { display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12, padding: "8px 0" },
   previewItem: {
     position: "relative", width: 80, height: 80,
-    borderRadius: 10, overflow: "hidden",
-    border: "2px solid #f3e8ff",
+    borderRadius: 10, overflow: "hidden", border: "2px solid #f3e8ff",
   },
   previewImg: { width: "100%", height: "100%", objectFit: "cover" },
   removeBtn: {
     position: "absolute", top: 4, right: 4,
     width: 20, height: 20, borderRadius: "50%",
     background: "rgba(0,0,0,0.6)", border: "none",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    cursor: "pointer",
+    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
   },
   addMoreBtn: {
     width: 80, height: 80, borderRadius: 10,
     border: "2px dashed #f3e8ff",
-    display: "flex", flexDirection: "column",
-    alignItems: "center", justifyContent: "center",
-    cursor: "pointer", background: "#fdfaff",
-    gap: 2,
+    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+    cursor: "pointer", background: "#fdfaff", gap: 2,
   },
   footer: {
     display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -574,16 +612,13 @@ const createStyles = {
   iconBtn: {
     width: 32, height: 32, borderRadius: "50%",
     background: "#fdf4ff", border: "1px solid #f3e8ff",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    cursor: "pointer",
+    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
   },
   postBtn: {
-    display: "flex", alignItems: "center", gap: 6,
-    padding: "8px 18px",
+    display: "flex", alignItems: "center", gap: 6, padding: "8px 18px",
     background: "linear-gradient(135deg, #d946ef, #fb923c)",
     color: "#fff", border: "none", borderRadius: 20,
-    fontSize: 13, fontWeight: 600, cursor: "pointer",
-    fontFamily: "inherit",
+    fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
     boxShadow: "0 3px 10px rgba(217,70,239,0.3)",
   },
 };
@@ -599,8 +634,7 @@ const cardStyles = {
     width: 38, height: 38, borderRadius: "50%",
     background: "linear-gradient(135deg, #d946ef, #fb923c)",
     display: "flex", alignItems: "center", justifyContent: "center",
-    fontWeight: 700, fontSize: 14, flexShrink: 0, overflow: "hidden",
-    color: "#fff",
+    fontWeight: 700, fontSize: 14, flexShrink: 0, overflow: "hidden", color: "#fff",
   },
   authorName: { fontSize: 13, fontWeight: 600, color: "#111827" },
   authorMeta: { fontSize: 11, color: "#9ca3af" },
@@ -614,8 +648,8 @@ const cardStyles = {
   textWrap: { padding: "0 16px 10px" },
   text: { fontSize: 14, color: "#374151", lineHeight: 1.65, margin: 0 },
   readMore: { fontSize: 12, color: "#d946ef", fontWeight: 600, cursor: "pointer", display: "block", marginTop: 4 },
-  imageWrap: { position: "relative", width: "100%", maxHeight: 360, overflow: "hidden" },
-  image: { width: "100%", maxHeight: 360, objectFit: "cover", display: "block" },
+  imageWrap: { position: "relative", width: "100%", maxHeight: 400, overflow: "hidden" },
+  image: { width: "100%", maxHeight: 400, objectFit: "cover", display: "block" },
   imageCounter: {
     position: "absolute", top: 10, right: 10,
     background: "rgba(0,0,0,0.5)", color: "#fff",
@@ -626,8 +660,7 @@ const cardStyles = {
     background: "rgba(0,0,0,0.4)", color: "#fff",
     border: "none", borderRadius: "50%",
     width: 30, height: 30, fontSize: 20,
-    display: "flex", alignItems: "center", justifyContent: "center",
-    cursor: "pointer",
+    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
   },
   imageDots: {
     position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
@@ -645,10 +678,7 @@ const cardStyles = {
     display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#9ca3af",
     background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
   },
-  commentInputWrap: {
-    display: "flex", gap: 8, padding: "8px 16px",
-    borderTop: "1px solid #fdf4ff",
-  },
+  commentInputWrap: { display: "flex", gap: 8, padding: "8px 16px", borderTop: "1px solid #fdf4ff" },
   commentInput: {
     flex: 1, border: "1px solid #f3e8ff", borderRadius: 20,
     padding: "7px 14px", fontSize: 12, fontFamily: "inherit",
@@ -669,8 +699,7 @@ const cardStyles = {
     width: 26, height: 26, borderRadius: "50%",
     background: "linear-gradient(135deg, #fdf4ff, #f3e8ff)",
     display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: 11, fontWeight: 700, color: "#d946ef", flexShrink: 0,
-    overflow: "hidden",
+    fontSize: 11, fontWeight: 700, color: "#d946ef", flexShrink: 0, overflow: "hidden",
   },
   commentBubble: {
     background: "#fff", border: "1px solid #f3e8ff",
@@ -681,22 +710,26 @@ const cardStyles = {
 };
 
 const rightStyles = {
-  section: { marginBottom: 20 },
-  title: { fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 14 },
-  divider: { height: 1, background: "#f3e8ff", margin: "4px 0 20px" },
+  section: { marginBottom: 24 },
+  title: {
+    fontSize: 11, fontWeight: 700, color: "#6b7280",
+    marginBottom: 14, paddingBottom: 8,
+    borderBottom: "2px solid #f3e8ff",
+    textTransform: "uppercase", letterSpacing: "1px",
+  },
+  divider: { height: 1, background: "#f3e8ff", margin: "4px 0 24px" },
   tipRow: {
-    display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 10,
-    padding: "8px 10px",
-    background: "linear-gradient(135deg, #fdf4ff, #fff7ed)",
-    borderRadius: 10, border: "1px solid #f3e8ff",
+    display: "flex", gap: 10, alignItems: "flex-start",
+    padding: "10px 0", borderBottom: "1px solid #f9fafb",
   },
   tipIcon: { fontSize: 14, flexShrink: 0 },
   tipText: { fontSize: 12, color: "#4b5563", lineHeight: 1.5 },
   tagRow: {
     display: "flex", justifyContent: "space-between", alignItems: "center",
-    padding: "9px 0", borderBottom: "1px solid #fdf4ff", cursor: "pointer",
+    padding: "10px 0", borderBottom: "1px solid #f9fafb", cursor: "pointer",
   },
   tagName: { fontSize: 13, fontWeight: 600, color: "#d946ef" },
+  tagRank: { fontSize: 12, fontWeight: 700, color: "#e5e7eb" },
 };
 
 export default ThreadsPage;
