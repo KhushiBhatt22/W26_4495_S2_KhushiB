@@ -1,95 +1,105 @@
 import { useState, useEffect, useRef } from "react";
 import {
-  Heart, MessageCircle, MoreHorizontal, Image,
-  X, Send, BookOpen, Sparkles, Plus
+  Heart, MessageCircle, MoreHorizontal,
+  X, Send, Image, Sparkles,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import NewDashboardLayout from "../components/layout/NewDashboardLayout";
 import CreateBookModal from "../components/modals/CreateBookModal";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../utils/axiosInstance";
+import { API_PATHS, BASE_URL } from "../utils/apiPaths";
 import { useNavigate } from "react-router-dom";
 
-// ── Mock threads data (replace with real API when thread backend is ready) ──
-const INITIAL_THREADS = [
-  {
-    id: 1,
-    author: { name: "Aditi", handle: "@aditi_reads", avatar: null, color: "#d946ef" },
-    text: "Just finished 'The Midnight Library' and I'm not okay 😭📚 Some books don't just change your mood — they change your perspective on every choice you've ever made. Matt Haig is a genius. #BookReview #MidnightLibrary",
-    image: "https://picsum.photos/seed/library1/600/350",
-    likes: 234, liked: false,
-    comments: [
-      { author: "Sara", text: "Read it three times already! 💙" },
-      { author: "Roshan", text: "The multiverse concept hit different" },
-    ],
-    postedAt: "2h ago",
-  },
-  {
-    id: 2,
-    author: { name: "Roshan", handle: "@roshan_lit", avatar: null, color: "#818cf8" },
-    text: "Hot take: Brandon Sanderson writes better magic systems than any other fantasy author alive today. The Stormlight Archive's mechanics are genuinely mind-bending. Change my mind 👇 #Fantasy #Sanderson",
-    image: null,
-    likes: 456, liked: false,
-    comments: [
-      { author: "Aditi", text: "Hard agree!! 🔥" },
-    ],
-    postedAt: "5h ago",
-  },
-  {
-    id: 3,
-    author: { name: "Sara", handle: "@sara_books", avatar: null, color: "#fb923c" },
-    text: "My reading nook setup this season 🍂✨ A good book, warm tea, and the rain outside — nothing better in the world. Currently reading 'Rebecca' by Daphne du Maurier for the fifth time. #ReadingNook #BookLovers",
-    image: "https://picsum.photos/seed/nook22/600/350",
-    likes: 789, liked: false,
-    comments: [
-      { author: "Priya", text: "So cozy!! 😍" },
-      { author: "Khushi", text: "Rebecca is timeless 🖤" },
-    ],
-    postedAt: "1d ago",
-  },
-  {
-    id: 4,
-    author: { name: "Priya", handle: "@priya_pages", avatar: null, color: "#10b981" },
-    text: "Writing my second book and honestly the second book is SO much harder than the first. The 'sophomore slump' is real. Any authors here have tips for pushing through the middle section? #WritingCommunity #AuthorLife",
-    image: null,
-    likes: 312, liked: false,
-    comments: [
-      { author: "Roshan", text: "Outline everything first!" },
-      { author: "Sara", text: "Write the ending first, then fill in 🙌" },
-    ],
-    postedAt: "1d ago",
-  },
-];
+const MAX_IMAGES = 5;
+const MAX_CHARS = 500;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const getAvatarUrl = (avatar) => {
+  if (!avatar) return null;
+  if (avatar.startsWith("http")) return avatar;
+  return `${BASE_URL}${avatar}`;
+};
+
+const getImageUrl = (img) => {
+  if (!img) return null;
+  if (img.startsWith("http") || img.startsWith("data:")) return img;
+  if (img.startsWith("/backend")) return `${BASE_URL}${img}`;
+  return `${BASE_URL}/backend${img}`;
+};
+
+const timeAgo = (date) => {
+  const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+};
 
 // ── Thread Card ───────────────────────────────────────────────────────────────
-const ThreadCard = ({ thread, onLike, onDelete, isOwn }) => {
+const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
+   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const isLong = thread.text.length > 200;
+  const [commentText, setCommentText] = useState("");
+  const [showCommentInput, setShowCommentInput] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const authorName = thread.user?.name || "Unknown";
+  const authorAvatar = thread.user?.avatar;
+  const isOwn = thread.user?._id === currentUser?._id;
+  const isLiked = thread.likes?.includes(currentUser?._id);
+  const isLong = thread.text?.length > 200;
+  const images = thread.images || [];
+
+  const handleComment = () => {
+    if (!commentText.trim()) return;
+    onComment(thread._id, commentText);
+    setCommentText("");
+    setShowComments(true);
+  };
 
   return (
     <div style={cardStyles.card}>
       {/* Header */}
       <div style={cardStyles.header}>
-        <div style={{ ...cardStyles.avatar, background: `linear-gradient(135deg, ${thread.author.color}44, ${thread.author.color}88)`, color: thread.author.color }}>
-          {thread.author.name.charAt(0)}
+        <div style={cardStyles.avatarWrap}>
+          {authorAvatar ? (
+            <img src={getAvatarUrl(authorAvatar)} alt={authorName}
+              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+              onError={e => e.target.style.display = "none"} />
+          ) : (
+            <span style={{ color: "#fff", fontWeight: 700 }}>{authorName.charAt(0)}</span>
+          )}
         </div>
         <div style={{ flex: 1 }}>
-          <div style={cardStyles.authorName}>{thread.author.name}</div>
-          <div style={cardStyles.authorMeta}>{thread.author.handle} · {thread.postedAt}</div>
+          <div style={cardStyles.authorName}>{authorName}</div>
+          <div style={cardStyles.authorMeta}>
+            @{authorName.toLowerCase().replace(/\s+/g, "_")} · {timeAgo(thread.createdAt)}
+          </div>
         </div>
         <div style={{ position: "relative" }}>
-          <MoreHorizontal size={18} color="#9ca3af" style={{ cursor: "pointer" }} onClick={() => setMenuOpen(v => !v)} />
+          <MoreHorizontal size={18} color="#9ca3af" style={{ cursor: "pointer" }}
+            onClick={() => setMenuOpen(v => !v)} />
           {menuOpen && (
             <div style={cardStyles.menu}>
-              <div style={cardStyles.menuItem}>🔖 Save Thread</div>
+              {/* View Profile — always visible */}
+              <div style={cardStyles.menuItem}
+                onClick={() => { navigate(`/profile/${thread.user?._id}`); setMenuOpen(false); }}>
+                View Profile
+              </div>
               {isOwn && (
-                <div style={{ ...cardStyles.menuItem, color: "#ef4444" }} onClick={() => { onDelete(thread.id); setMenuOpen(false); }}>
-                  🗑️ Delete
+                <div style={{ ...cardStyles.menuItem, color: "#ef4444" }}
+                  onClick={() => { onDelete(thread._id); setMenuOpen(false); }}>
+                Delete
                 </div>
               )}
-              <div style={cardStyles.menuItem}>⚑ Report</div>
+              <div style={cardStyles.menuItem} onClick={() => setMenuOpen(false)}>
+                Report
+              </div>
             </div>
           )}
         </div>
@@ -107,17 +117,47 @@ const ThreadCard = ({ thread, onLike, onDelete, isOwn }) => {
         )}
       </div>
 
-      {/* Image */}
-      {thread.image && (
+      {/* Images — Instagram style carousel */}
+      {images.length > 0 && (
         <div style={cardStyles.imageWrap}>
-          <img src={thread.image} alt="thread" style={cardStyles.image}
-            onError={e => { e.target.style.display = "none"; }} />
+          <img
+            src={getImageUrl(images[currentImageIndex])}
+            alt="thread"
+            style={cardStyles.image}
+            onError={e => e.target.style.display = "none"}
+          />
+          {/* Image counter */}
+          {images.length > 1 && (
+            <div style={cardStyles.imageCounter}>
+              {currentImageIndex + 1}/{images.length}
+            </div>
+          )}
+          {/* Prev / Next arrows */}
+          {images.length > 1 && currentImageIndex > 0 && (
+            <button style={{ ...cardStyles.imageArrow, left: 10 }}
+              onClick={() => setCurrentImageIndex(i => i - 1)}>‹</button>
+          )}
+          {images.length > 1 && currentImageIndex < images.length - 1 && (
+            <button style={{ ...cardStyles.imageArrow, right: 10 }}
+              onClick={() => setCurrentImageIndex(i => i + 1)}>›</button>
+          )}
+          {/* Dots */}
+          {images.length > 1 && (
+            <div style={cardStyles.imageDots}>
+              {images.map((_, i) => (
+                <div key={i} style={{
+                  ...cardStyles.dot,
+                  background: i === currentImageIndex ? "#d946ef" : "rgba(255,255,255,0.5)",
+                }} onClick={() => setCurrentImageIndex(i)} />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       {/* Hashtags */}
       <div style={cardStyles.hashtags}>
-        {thread.text.match(/#\w+/g)?.map((tag, i) => (
+        {thread.text?.match(/#\w+/g)?.map((tag, i) => (
           <span key={i} style={cardStyles.tag}>{tag}</span>
         ))}
       </div>
@@ -125,26 +165,53 @@ const ThreadCard = ({ thread, onLike, onDelete, isOwn }) => {
       {/* Actions */}
       <div style={cardStyles.actions}>
         <button
-          style={{ ...cardStyles.actionBtn, color: thread.liked ? "#e05c5c" : "#9ca3af" }}
-          onClick={() => onLike(thread.id)}
+          style={{ ...cardStyles.actionBtn, color: isLiked ? "#e05c5c" : "#9ca3af" }}
+          onClick={() => onLike(thread._id)}
         >
-          <Heart size={16} fill={thread.liked ? "#e05c5c" : "none"} stroke={thread.liked ? "#e05c5c" : "#9ca3af"} />
-          <span>{thread.likes}</span>
+          <Heart size={16} fill={isLiked ? "#e05c5c" : "none"}
+            stroke={isLiked ? "#e05c5c" : "#9ca3af"} />
+          <span>{thread.likes?.length || 0}</span>
         </button>
-        <button style={cardStyles.actionBtn} onClick={() => setShowComments(v => !v)}>
+        <button style={cardStyles.actionBtn}
+          onClick={() => { setShowCommentInput(v => !v); setShowComments(true); }}>
           <MessageCircle size={16} />
-          <span>{thread.comments.length} Comments</span>
+          <span>{thread.comments?.length || 0} Comments</span>
         </button>
       </div>
 
-      {/* Comments */}
-      {showComments && thread.comments.length > 0 && (
+      {/* Comment input */}
+      {showCommentInput && (
+        <div style={cardStyles.commentInputWrap}>
+          <input
+            style={cardStyles.commentInput}
+            placeholder="Write a comment…"
+            value={commentText}
+            onChange={e => setCommentText(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleComment()}
+          />
+          <button style={cardStyles.commentSendBtn} onClick={handleComment}>
+            <Send size={13} color="#fff" />
+          </button>
+        </div>
+      )}
+
+      {/* Comments list */}
+      {showComments && thread.comments?.length > 0 && (
         <div style={cardStyles.commentsWrap}>
           {thread.comments.map((c, i) => (
             <div key={i} style={cardStyles.commentRow}>
-              <div style={{ ...cardStyles.commentAvatar }}>{c.author.charAt(0)}</div>
+              <div style={cardStyles.commentAvatar}>
+                {c.user?.avatar ? (
+                  <img src={getAvatarUrl(c.user.avatar)} alt=""
+                    style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                ) : (
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#d946ef" }}>
+                    {c.user?.name?.charAt(0) || "?"}
+                  </span>
+                )}
+              </div>
               <div style={cardStyles.commentBubble}>
-                <span style={cardStyles.commentAuthor}>{c.author}</span>
+                <span style={cardStyles.commentAuthor}>{c.user?.name || "User"}</span>
                 <span style={cardStyles.commentText}>{c.text}</span>
               </div>
             </div>
@@ -156,77 +223,112 @@ const ThreadCard = ({ thread, onLike, onDelete, isOwn }) => {
 };
 
 // ── Create Thread Panel ───────────────────────────────────────────────────────
-const CreateThreadPanel = ({ user, onPost }) => {
+const CreateThreadPanel = ({ user, onPost, isPosting }) => {
   const [text, setText] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [showImageInput, setShowImageInput] = useState(false);
-  const maxChars = 500;
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [previews, setPreviews] = useState([]);
+  const fileInputRef = useRef(null);
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files).slice(0, MAX_IMAGES);
+    setSelectedFiles(files);
+    const urls = files.map(f => URL.createObjectURL(f));
+    setPreviews(urls);
+  };
+
+  const removeImage = (index) => {
+    const newFiles = selectedFiles.filter((_, i) => i !== index);
+    const newPreviews = previews.filter((_, i) => i !== index);
+    setSelectedFiles(newFiles);
+    setPreviews(newPreviews);
+  };
 
   const handlePost = () => {
     if (!text.trim()) { toast.error("Write something first!"); return; }
-    onPost({ text, image: imageUrl });
+    onPost({ text, files: selectedFiles });
     setText("");
-    setImageUrl("");
-    setShowImageInput(false);
+    setSelectedFiles([]);
+    setPreviews([]);
   };
 
   return (
     <div style={createStyles.panel}>
       <div style={createStyles.header}>
+        {/* Avatar */}
         <div style={createStyles.avatar}>
-          {user?.name?.charAt(0).toUpperCase() || "U"}
+          {user?.avatar ? (
+            <img src={getAvatarUrl(user.avatar)} alt=""
+              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+          ) : (
+            <span style={{ color: "#fff", fontWeight: 700, fontSize: 14 }}>
+              {user?.name?.charAt(0).toUpperCase() || "U"}
+            </span>
+          )}
         </div>
         <textarea
           style={createStyles.textarea}
           placeholder="Share your reading thoughts, book reviews, or short stories…"
           value={text}
-          onChange={e => setText(e.target.value.slice(0, maxChars))}
+          onChange={e => setText(e.target.value.slice(0, MAX_CHARS))}
           rows={3}
         />
       </div>
 
-      {/* Image preview */}
-      {showImageInput && (
-        <div style={createStyles.imageRow}>
-          <Image size={14} color="#d946ef" />
-          <input
-            style={createStyles.imageInput}
-            placeholder="Paste image URL…"
-            value={imageUrl}
-            onChange={e => setImageUrl(e.target.value)}
-          />
-          <X size={14} color="#9ca3af" style={{ cursor: "pointer" }} onClick={() => { setShowImageInput(false); setImageUrl(""); }} />
+      {/* Image previews */}
+      {previews.length > 0 && (
+        <div style={createStyles.previewGrid}>
+          {previews.map((url, i) => (
+            <div key={i} style={createStyles.previewItem}>
+              <img src={url} alt="" style={createStyles.previewImg} />
+              <button style={createStyles.removeBtn} onClick={() => removeImage(i)}>
+                <X size={12} color="#fff" />
+              </button>
+            </div>
+          ))}
+          {previews.length < MAX_IMAGES && (
+            <div style={createStyles.addMoreBtn} onClick={() => fileInputRef.current?.click()}>
+              <span style={{ fontSize: 24, color: "#d946ef" }}>+</span>
+              <span style={{ fontSize: 11, color: "#9ca3af" }}>Add more</span>
+            </div>
+          )}
         </div>
-      )}
-
-      {imageUrl && (
-        <img src={imageUrl} alt="preview" style={createStyles.imagePreview}
-          onError={e => e.target.style.display = "none"} />
       )}
 
       <div style={createStyles.footer}>
         <div style={createStyles.footerLeft}>
-          <button style={createStyles.iconBtn} onClick={() => setShowImageInput(v => !v)} title="Add image">
+          <button style={createStyles.iconBtn}
+            onClick={() => fileInputRef.current?.click()}
+            title={`Add up to ${MAX_IMAGES} images`}>
             <Image size={16} color="#d946ef" />
           </button>
-          <span style={createStyles.charCount}>
-            <span style={{ color: text.length > maxChars * 0.8 ? "#fb923c" : "#9ca3af" }}>
+          <span style={{ fontSize: 11, color: "#9ca3af" }}>
+            {previews.length > 0 && `${previews.length}/${MAX_IMAGES} images · `}
+            <span style={{ color: text.length > MAX_CHARS * 0.8 ? "#fb923c" : "#9ca3af" }}>
               {text.length}
-            </span>/{maxChars}
+            </span>/{MAX_CHARS}
           </span>
         </div>
         <button
           style={{
             ...createStyles.postBtn,
-            opacity: text.trim() ? 1 : 0.5,
-            cursor: text.trim() ? "pointer" : "not-allowed",
+            opacity: text.trim() && !isPosting ? 1 : 0.5,
+            cursor: text.trim() && !isPosting ? "pointer" : "not-allowed",
           }}
           onClick={handlePost}
-          disabled={!text.trim()}
+          disabled={!text.trim() || isPosting}
         >
-          <Send size={14} /> Post Thread
+          <Send size={14} /> {isPosting ? "Posting…" : "Post Thread"}
         </button>
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+        multiple
+        style={{ display: "none" }}
+        onChange={handleFileSelect}
+      />
     </div>
   );
 };
@@ -235,40 +337,82 @@ const CreateThreadPanel = ({ user, onPost }) => {
 const ThreadsPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [threads, setThreads] = useState(INITIAL_THREADS);
+  const [threads, setThreads] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPosting, setIsPosting] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const handleLike = (id) => {
-    setThreads(prev => prev.map(t =>
-      t.id === id
-        ? { ...t, liked: !t.liked, likes: t.liked ? t.likes - 1 : t.likes + 1 }
-        : t
-    ));
+  useEffect(() => { fetchThreads(); }, []);
+
+  const fetchThreads = async () => {
+    try {
+      const res = await axiosInstance.get(API_PATHS.THREADS.GET_THREADS);
+      setThreads(res.data || []);
+    } catch {
+      toast.error("Failed to load threads");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleDelete = (id) => {
-    setThreads(prev => prev.filter(t => t.id !== id));
-    toast.success("Thread deleted");
+  const handlePost = async ({ text, files }) => {
+    setIsPosting(true);
+    try {
+      const formData = new FormData();
+      formData.append("text", text);
+      files.forEach(f => formData.append("images", f));
+
+      const res = await axiosInstance.post(API_PATHS.THREADS.CREATE_THREAD, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setThreads(prev => [res.data, ...prev]);
+      toast.success("Thread posted! 🎉");
+    } catch {
+      toast.error("Failed to post thread");
+    } finally {
+      setIsPosting(false);
+    }
   };
 
-  const handlePost = ({ text, image }) => {
-    const newThread = {
-      id: Date.now(),
-      author: {
-        name: user?.name || "You",
-        handle: `@${user?.name?.toLowerCase().replace(/\s+/g, "_") || "you"}`,
-        avatar: null,
-        color: "#d946ef",
-      },
-      text,
-      image: image || null,
-      likes: 0,
-      liked: false,
-      comments: [],
-      postedAt: "Just now",
-    };
-    setThreads(prev => [newThread, ...prev]);
-    toast.success("Thread posted! 🎉");
+  const handleLike = async (threadId) => {
+    try {
+      const res = await axiosInstance.put(`${API_PATHS.THREADS.LIKE_THREAD}/${threadId}/like`);
+      setThreads(prev => prev.map(t => {
+        if (t._id !== threadId) return t;
+        const liked = t.likes?.includes(user._id);
+        return {
+          ...t,
+          likes: liked
+            ? t.likes.filter(id => id !== user._id)
+            : [...(t.likes || []), user._id],
+        };
+      }));
+    } catch {
+      toast.error("Something went wrong");
+    }
+  };
+
+  const handleDelete = async (threadId) => {
+    try {
+      await axiosInstance.delete(`${API_PATHS.THREADS.DELETE_THREAD}/${threadId}`);
+      setThreads(prev => prev.filter(t => t._id !== threadId));
+      toast.success("Thread deleted");
+    } catch {
+      toast.error("Failed to delete thread");
+    }
+  };
+
+  const handleComment = async (threadId, text) => {
+    try {
+      const res = await axiosInstance.post(
+        `${API_PATHS.THREADS.ADD_COMMENT}/${threadId}/comment`,
+        { text }
+      );
+      setThreads(prev => prev.map(t => t._id === threadId ? res.data : t));
+      toast.success("Comment added!");
+    } catch {
+      toast.error("Failed to add comment");
+    }
   };
 
   const handleBookCreated = (bookId) => {
@@ -287,32 +431,50 @@ const ThreadsPage = () => {
             <p style={pageStyles.pageSubtitle}>Short stories, reviews & reading moments</p>
           </div>
 
-          {/* Create box */}
-          <CreateThreadPanel user={user} onPost={handlePost} />
+          <CreateThreadPanel user={user} onPost={handlePost} isPosting={isPosting} />
 
-          {/* Thread list */}
           <div style={{ marginTop: 20 }}>
-            {threads.map(thread => (
-              <ThreadCard
-                key={thread.id}
-                thread={thread}
-                onLike={handleLike}
-                onDelete={handleDelete}
-                isOwn={thread.author.name === user?.name}
-              />
-            ))}
+            {isLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} style={{ background: "#fff", borderRadius: 16, padding: 16, marginBottom: 16, border: "1px solid #f3e8ff" }}>
+                  <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+                    <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#f3e8ff" }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ height: 12, background: "#f3e8ff", borderRadius: 6, width: "40%", marginBottom: 6 }} />
+                      <div style={{ height: 10, background: "#fdf4ff", borderRadius: 6, width: "25%" }} />
+                    </div>
+                  </div>
+                  <div style={{ height: 60, background: "#fdf4ff", borderRadius: 8 }} />
+                </div>
+              ))
+            ) : threads.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 20px" }}>
+                <div style={{ fontSize: 48 }}>📝</div>
+                <p style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginTop: 12 }}>No threads yet</p>
+                <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 4 }}>Be the first to post a thread!</p>
+              </div>
+            ) : (
+              threads.map(thread => (
+                <ThreadCard
+                  key={thread._id}
+                  thread={thread}
+                  currentUser={user}
+                  onLike={handleLike}
+                  onDelete={handleDelete}
+                  onComment={handleComment}
+                />
+              ))
+            )}
           </div>
         </div>
 
         {/* ── RIGHT: SIDEBAR ── */}
         <div style={pageStyles.rightPanel}>
-
-          {/* Tips */}
           <div style={rightStyles.section}>
             <div style={rightStyles.title}>✍️ Thread Tips</div>
             {[
               { icon: "📖", tip: "Share book reviews under 500 characters" },
-              { icon: "🖼️", tip: "Add images to make your thread stand out" },
+              { icon: "🖼️", tip: "Upload up to 5 images per thread" },
               { icon: "#️⃣", tip: "Use hashtags like #BookReview #Fantasy" },
               { icon: "💬", tip: "Ask questions to spark discussions" },
             ].map((t, i) => (
@@ -325,45 +487,12 @@ const ThreadsPage = () => {
 
           <div style={rightStyles.divider} />
 
-          {/* Trending tags */}
           <div style={rightStyles.section}>
             <div style={rightStyles.title}>🔥 Trending Tags</div>
-            {[
-              { tag: "#BookReview", count: "2.4k threads" },
-              { tag: "#Fantasy", count: "1.8k threads" },
-              { tag: "#ReadingNook", count: "987 threads" },
-              { tag: "#AuthorLife", count: "743 threads" },
-              { tag: "#Bookstagram", count: "3.1k threads" },
-            ].map((t, i) => (
+            {["#BookReview", "#Fantasy", "#ReadingNook", "#AuthorLife", "#Bookstagram"].map((tag, i) => (
               <div key={i} style={rightStyles.tagRow}>
-                <div>
-                  <div style={rightStyles.tagName}>{t.tag}</div>
-                  <div style={rightStyles.tagCount}>{t.count}</div>
-                </div>
-                <div style={rightStyles.tagRank}>#{i + 1}</div>
-              </div>
-            ))}
-          </div>
-
-          <div style={rightStyles.divider} />
-
-          {/* Active readers */}
-          <div style={rightStyles.section}>
-            <div style={rightStyles.title}>🌟 Active Readers</div>
-            {[
-              { name: "Aditi", handle: "@aditi_reads", threads: 12, color: "#d946ef" },
-              { name: "Roshan", handle: "@roshan_lit", threads: 8, color: "#818cf8" },
-              { name: "Sara", handle: "@sara_books", threads: 15, color: "#fb923c" },
-            ].map((r, i) => (
-              <div key={i} style={rightStyles.readerRow}>
-                <div style={{ ...rightStyles.readerAvatar, background: `${r.color}22`, color: r.color }}>
-                  {r.name.charAt(0)}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={rightStyles.readerName}>{r.name}</div>
-                  <div style={rightStyles.readerHandle}>{r.handle}</div>
-                </div>
-                <div style={rightStyles.readerThreads}>{r.threads} threads</div>
+                <div style={rightStyles.tagName}>{tag}</div>
+                <div style={{ fontSize: 11, color: "#9ca3af" }}>#{i + 1}</div>
               </div>
             ))}
           </div>
@@ -381,93 +510,65 @@ const ThreadsPage = () => {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const pageStyles = {
-  wrap: {
-    display: "flex",
-    minHeight: "100%",
-    background: "#fdfaff",
-  },
-  feed: {
-    flex: 1,
-    padding: "28px 28px",
-    maxWidth: 640,
-    minWidth: 0,
-  },
+  wrap: { display: "flex", minHeight: "100%", background: "#fdfaff" },
+  feed: { flex: 1, padding: "28px 28px", maxWidth: 640, minWidth: 0 },
   feedHeader: { marginBottom: 20 },
   pageTitle: { fontSize: 22, fontWeight: 700, color: "#111827", margin: 0 },
   pageSubtitle: { fontSize: 13, color: "#9ca3af", marginTop: 4 },
   rightPanel: {
-    width: 300,
-    padding: "28px 20px",
+    width: 300, padding: "28px 20px",
     borderLeft: "1px solid #f3e8ff",
-    background: "#ffffff",
-    flexShrink: 0,
-    overflowY: "auto",
+    background: "#ffffff", flexShrink: 0, overflowY: "auto",
   },
 };
 
 const createStyles = {
   panel: {
-    background: "#fff",
-    border: "1px solid #f3e8ff",
-    borderRadius: 16,
-    padding: "16px",
+    background: "#fff", border: "1px solid #f3e8ff",
+    borderRadius: 16, padding: 16,
     boxShadow: "0 2px 12px rgba(217,70,239,0.07)",
   },
-  header: {
-    display: "flex",
-    gap: 12,
-    alignItems: "flex-start",
-  },
+  header: { display: "flex", gap: 12, alignItems: "flex-start" },
   avatar: {
     width: 38, height: 38, borderRadius: "50%",
     background: "linear-gradient(135deg, #d946ef, #fb923c)",
     display: "flex", alignItems: "center", justifyContent: "center",
     color: "#fff", fontWeight: 700, fontSize: 14, flexShrink: 0,
+    overflow: "hidden",
   },
   textarea: {
-    flex: 1,
-    border: "none",
-    outline: "none",
-    resize: "none",
-    fontSize: 14,
-    fontFamily: "inherit",
-    color: "#111827",
-    background: "transparent",
-    lineHeight: 1.6,
+    flex: 1, border: "none", outline: "none", resize: "none",
+    fontSize: 14, fontFamily: "inherit", color: "#111827",
+    background: "transparent", lineHeight: 1.6,
   },
-  imageRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 10,
-    padding: "8px 12px",
-    background: "#fdf4ff",
-    borderRadius: 10,
-    border: "1px solid #f3e8ff",
+  previewGrid: {
+    display: "flex", flexWrap: "wrap", gap: 8,
+    marginTop: 12, padding: "8px 0",
   },
-  imageInput: {
-    flex: 1,
-    border: "none",
-    outline: "none",
-    fontSize: 12,
-    fontFamily: "inherit",
-    background: "transparent",
-    color: "#374151",
+  previewItem: {
+    position: "relative", width: 80, height: 80,
+    borderRadius: 10, overflow: "hidden",
+    border: "2px solid #f3e8ff",
   },
-  imagePreview: {
-    width: "100%",
-    borderRadius: 10,
-    marginTop: 10,
-    maxHeight: 200,
-    objectFit: "cover",
+  previewImg: { width: "100%", height: "100%", objectFit: "cover" },
+  removeBtn: {
+    position: "absolute", top: 4, right: 4,
+    width: 20, height: 20, borderRadius: "50%",
+    background: "rgba(0,0,0,0.6)", border: "none",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    cursor: "pointer",
+  },
+  addMoreBtn: {
+    width: 80, height: 80, borderRadius: 10,
+    border: "2px dashed #f3e8ff",
+    display: "flex", flexDirection: "column",
+    alignItems: "center", justifyContent: "center",
+    cursor: "pointer", background: "#fdfaff",
+    gap: 2,
   },
   footer: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 12,
-    paddingTop: 12,
-    borderTop: "1px solid #f3e8ff",
+    display: "flex", alignItems: "center", justifyContent: "space-between",
+    marginTop: 12, paddingTop: 12, borderTop: "1px solid #f3e8ff",
   },
   footerLeft: { display: "flex", alignItems: "center", gap: 10 },
   iconBtn: {
@@ -476,7 +577,6 @@ const createStyles = {
     display: "flex", alignItems: "center", justifyContent: "center",
     cursor: "pointer",
   },
-  charCount: { fontSize: 11, color: "#9ca3af" },
   postBtn: {
     display: "flex", alignItems: "center", gap: 6,
     padding: "8px 18px",
@@ -490,21 +590,17 @@ const createStyles = {
 
 const cardStyles = {
   card: {
-    background: "#fff",
-    border: "1px solid #f3e8ff",
-    borderRadius: 16,
-    marginBottom: 16,
-    overflow: "hidden",
+    background: "#fff", border: "1px solid #f3e8ff",
+    borderRadius: 16, marginBottom: 16, overflow: "hidden",
     boxShadow: "0 1px 6px rgba(217,70,239,0.05)",
   },
-  header: {
-    display: "flex", alignItems: "center", gap: 10,
-    padding: "14px 16px 10px",
-  },
-  avatar: {
+  header: { display: "flex", alignItems: "center", gap: 10, padding: "14px 16px 10px" },
+  avatarWrap: {
     width: 38, height: 38, borderRadius: "50%",
+    background: "linear-gradient(135deg, #d946ef, #fb923c)",
     display: "flex", alignItems: "center", justifyContent: "center",
-    fontWeight: 700, fontSize: 14, flexShrink: 0,
+    fontWeight: 700, fontSize: 14, flexShrink: 0, overflow: "hidden",
+    color: "#fff",
   },
   authorName: { fontSize: 13, fontWeight: 600, color: "#111827" },
   authorMeta: { fontSize: 11, color: "#9ca3af" },
@@ -514,48 +610,59 @@ const cardStyles = {
     borderRadius: 10, boxShadow: "0 4px 16px rgba(217,70,239,0.1)",
     minWidth: 150, zIndex: 50, overflow: "hidden",
   },
-  menuItem: {
-    padding: "9px 14px", fontSize: 12, cursor: "pointer", color: "#374151",
-  },
+  menuItem: { padding: "9px 14px", fontSize: 12, cursor: "pointer", color: "#374151" },
   textWrap: { padding: "0 16px 10px" },
   text: { fontSize: 14, color: "#374151", lineHeight: 1.65, margin: 0 },
-  readMore: {
-    fontSize: 12, color: "#d946ef", fontWeight: 600,
-    cursor: "pointer", display: "block", marginTop: 4,
+  readMore: { fontSize: 12, color: "#d946ef", fontWeight: 600, cursor: "pointer", display: "block", marginTop: 4 },
+  imageWrap: { position: "relative", width: "100%", maxHeight: 360, overflow: "hidden" },
+  image: { width: "100%", maxHeight: 360, objectFit: "cover", display: "block" },
+  imageCounter: {
+    position: "absolute", top: 10, right: 10,
+    background: "rgba(0,0,0,0.5)", color: "#fff",
+    fontSize: 11, fontWeight: 600, padding: "3px 8px", borderRadius: 20,
   },
-  imageWrap: {
-    width: "100%", overflow: "hidden",
-    maxHeight: 320,
+  imageArrow: {
+    position: "absolute", top: "50%", transform: "translateY(-50%)",
+    background: "rgba(0,0,0,0.4)", color: "#fff",
+    border: "none", borderRadius: "50%",
+    width: 30, height: 30, fontSize: 20,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    cursor: "pointer",
   },
-  image: {
-    width: "100%", objectFit: "cover", display: "block",
+  imageDots: {
+    position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
+    display: "flex", gap: 6,
   },
-  hashtags: {
-    padding: "8px 16px 4px",
-    display: "flex", gap: 6, flexWrap: "wrap",
-  },
+  dot: { width: 8, height: 8, borderRadius: "50%", cursor: "pointer" },
+  hashtags: { padding: "8px 16px 4px", display: "flex", gap: 6, flexWrap: "wrap" },
   tag: {
     fontSize: 12, fontWeight: 500,
     background: "linear-gradient(135deg, #d946ef, #fb923c)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
+    WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
   },
-  actions: {
-    padding: "10px 16px 12px",
-    display: "flex", gap: 20,
-    borderTop: "1px solid #fdf4ff",
-  },
+  actions: { padding: "10px 16px 12px", display: "flex", gap: 20, borderTop: "1px solid #fdf4ff" },
   actionBtn: {
-    display: "flex", alignItems: "center", gap: 6,
-    fontSize: 12, color: "#9ca3af",
+    display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#9ca3af",
     background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
   },
-  commentsWrap: {
-    padding: "10px 16px 14px",
+  commentInputWrap: {
+    display: "flex", gap: 8, padding: "8px 16px",
     borderTop: "1px solid #fdf4ff",
-    display: "flex", flexDirection: "column", gap: 10,
-    background: "#fdfaff",
+  },
+  commentInput: {
+    flex: 1, border: "1px solid #f3e8ff", borderRadius: 20,
+    padding: "7px 14px", fontSize: 12, fontFamily: "inherit",
+    color: "#111827", background: "#fdfaff", outline: "none",
+  },
+  commentSendBtn: {
+    width: 32, height: 32, borderRadius: "50%",
+    background: "linear-gradient(135deg, #d946ef, #fb923c)",
+    border: "none", display: "flex", alignItems: "center", justifyContent: "center",
+    cursor: "pointer", flexShrink: 0,
+  },
+  commentsWrap: {
+    padding: "10px 16px 14px", borderTop: "1px solid #fdf4ff",
+    display: "flex", flexDirection: "column", gap: 10, background: "#fdfaff",
   },
   commentRow: { display: "flex", gap: 8, alignItems: "flex-start" },
   commentAvatar: {
@@ -563,13 +670,11 @@ const cardStyles = {
     background: "linear-gradient(135deg, #fdf4ff, #f3e8ff)",
     display: "flex", alignItems: "center", justifyContent: "center",
     fontSize: 11, fontWeight: 700, color: "#d946ef", flexShrink: 0,
+    overflow: "hidden",
   },
   commentBubble: {
-    background: "#fff",
-    border: "1px solid #f3e8ff",
-    borderRadius: 10,
-    padding: "6px 10px",
-    flex: 1,
+    background: "#fff", border: "1px solid #f3e8ff",
+    borderRadius: 10, padding: "6px 10px", flex: 1,
   },
   commentAuthor: { fontSize: 11, fontWeight: 700, color: "#111827", marginRight: 6 },
   commentText: { fontSize: 12, color: "#4b5563" },
@@ -580,36 +685,18 @@ const rightStyles = {
   title: { fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 14 },
   divider: { height: 1, background: "#f3e8ff", margin: "4px 0 20px" },
   tipRow: {
-    display: "flex", gap: 10, alignItems: "flex-start",
-    marginBottom: 10,
+    display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 10,
     padding: "8px 10px",
     background: "linear-gradient(135deg, #fdf4ff, #fff7ed)",
-    borderRadius: 10,
-    border: "1px solid #f3e8ff",
+    borderRadius: 10, border: "1px solid #f3e8ff",
   },
   tipIcon: { fontSize: 14, flexShrink: 0 },
   tipText: { fontSize: 12, color: "#4b5563", lineHeight: 1.5 },
   tagRow: {
     display: "flex", justifyContent: "space-between", alignItems: "center",
-    padding: "9px 0",
-    borderBottom: "1px solid #fdf4ff",
-    cursor: "pointer",
+    padding: "9px 0", borderBottom: "1px solid #fdf4ff", cursor: "pointer",
   },
   tagName: { fontSize: 13, fontWeight: 600, color: "#d946ef" },
-  tagCount: { fontSize: 11, color: "#9ca3af", marginTop: 2 },
-  tagRank: { fontSize: 13, fontWeight: 700, color: "#f3e8ff" },
-  readerRow: {
-    display: "flex", alignItems: "center", gap: 10,
-    marginBottom: 12,
-  },
-  readerAvatar: {
-    width: 36, height: 36, borderRadius: "50%",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: 14, fontWeight: 700, flexShrink: 0,
-  },
-  readerName: { fontSize: 13, fontWeight: 600, color: "#111827" },
-  readerHandle: { fontSize: 11, color: "#9ca3af" },
-  readerThreads: { fontSize: 11, color: "#d946ef", fontWeight: 600, whiteSpace: "nowrap" },
 };
 
 export default ThreadsPage;
