@@ -165,6 +165,7 @@ const generateStoryImage = async (req, res) => {
   }
 };
 
+
 // @desc    Complete a chapter that the user has already started writing
 // @route   POST /api/ai/complete-chapter-content
 // @access  Private
@@ -218,9 +219,72 @@ Output ONLY the continuation text:`;
   }
 };
 
+//Adding a photo avatar
+// @desc    Generate an AI avatar from uploaded photo
+// @route   POST /api/ai/generate-avatar
+// @access  Private
+const generateAvatar = async (req, res) => {
+  try {
+    const { imageBase64, style } = req.body;
+
+    if (!imageBase64) {
+      return res.status(400).json({ message: "Please provide an image" });
+    }
+
+    const stylePrompts = {
+      cartoon: "cartoon character avatar, vibrant colors, animated style, Disney-like",
+      sketch: "detailed pencil sketch portrait, artistic, black and white, fine lines",
+      storyboard: "comic book character, storyboard panel style, dramatic lighting, bold outlines",
+      colorful: "pop-art style avatar, bold vivid colors, artistic, Andy Warhol inspired",
+    };
+
+    // Use Gemini to describe the uploaded photo first
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+    
+    const descriptionResponse = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: [
+        {
+          parts: [
+            {
+              inlineData: {
+                mimeType: "image/jpeg",
+                data: base64Data,
+              },
+            },
+            {
+              text: "Describe this person's key physical features in 1-2 sentences: hair color, eye color, face shape, skin tone. Be concise and factual.",
+            },
+          ],
+        },
+      ],
+    });
+
+    const personDescription = descriptionResponse.text;
+
+    // Now generate avatar using textToImage with the description
+    const finalPrompt = `${stylePrompts[style] || stylePrompts.cartoon} of a person with these features: ${personDescription}. High quality, detailed, professional illustration.`;
+
+    const blob = await hf.textToImage({
+      model: "black-forest-labs/FLUX.1-schnell",
+      inputs: finalPrompt,
+    });
+
+    const buffer = Buffer.from(await blob.arrayBuffer());
+    const base64 = buffer.toString("base64");
+
+    res.status(200).json({ avatarUrl: `data:image/png;base64,${base64}` });
+
+  } catch (error) {
+    console.error("Error generating avatar:", error.message);
+    res.status(500).json({ message: "Server error during avatar generation" });
+  }
+};
+
 module.exports = {
   generateOutline,
   generateChapterContent,
   generateStoryImage,
   completeChapterContent,
+  generateAvatar,
 };

@@ -33,7 +33,7 @@ const SignupPage = () => {
       });
       login(profileResponse.data, token);
       toast.success("Welcome to Bookstagram!");
-      navigate("/dashboard");
+      navigate("/newdashboard");
     } catch (error) {
       toast.error(error.response?.data?.message || "Signup failed. Please try again.");
     } finally {

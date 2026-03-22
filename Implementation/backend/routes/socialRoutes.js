@@ -10,6 +10,8 @@ const {
   getUserProfile,
   getFeed,
   getSuggestedUsers,
+  getFollowers,
+  getFollowing,
 } = require("../controller/socialController");
 
 router.get("/feed", protect, getFeed);
@@ -20,5 +22,7 @@ router.delete("/follow/:userId", protect, unfollowUser);
 router.get("/follow-status/:userId", protect, getFollowStatus);
 router.post("/like/:bookId", protect, likeBook);
 router.delete("/like/:bookId", protect, unlikeBook);
+router.get("/followers/:userId", protect, getFollowers);
+router.get("/following/:userId", protect, getFollowing);
 
 module.exports = router;

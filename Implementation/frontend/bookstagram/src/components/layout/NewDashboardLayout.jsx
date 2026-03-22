@@ -25,7 +25,7 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
   ];
 
   const isActive = (path) => {
-    if (path === "/dashboard") return location.pathname === "/dashboard";
+    if (path === "/profile") return location.pathname === "/profile";
     return location.pathname.startsWith(path);
   };
 
@@ -169,10 +169,10 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
                   <div style={styles.profileMenu}>
                     <div style={styles.menuHeader}>
                       <div style={styles.avatarCircle}>
-                        {/* {user?.avatar
+                        {user?.avatar
                           ? <img src={user.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
                           : <span style={styles.avatarLetter}>{avatarLetter}</span>
-                        } */}
+                        }
                         {avatarUrl
                           ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
                           : <span style={styles.avatarLetter}>{avatarLetter}</span>
@@ -183,13 +183,7 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
                         <div style={{ fontSize: 11, color: "#9ca3af" }}>{user?.email}</div>
                       </div>
                     </div>
-                    {/* <div style={styles.menuDivider} />
-                    <div style={styles.menuItem} onClick={() => { navigate("/dashboard"); setShowProfileMenu(false); }}>
-                      <User size={14} color="#6b7280" /> My Profile
-                    </div>
-                    <div style={styles.menuItem} onClick={() => { navigate("/settings"); setShowProfileMenu(false); }}>
-                      <Settings size={14} color="#6b7280" /> Settings
-                    </div> */}
+                    
                     <div style={styles.menuDivider} />
                     <div style={{ ...styles.menuItem, color: "#ef4444" }} onClick={logout}>
                       <LogOut size={14} color="#ef4444" /> Log Out

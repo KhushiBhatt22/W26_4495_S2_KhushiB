@@ -53,7 +53,7 @@ const EditorPage = () => {
         setBook(response.data);
       } catch (error) {
         toast.error("Failed to load book details.");
-        navigate("/dashboard");
+        navigate("/newdashboard");
       } finally {
         setIsLoading(false);
       }

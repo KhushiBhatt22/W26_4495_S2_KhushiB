@@ -7,7 +7,7 @@ function HomePage(){
         <div>
             <h1>Welcome to home page</h1>
             <button 
-            onClick={() => navigate("/dashboard")}>
+            onClick={() => navigate("/newdashboard")}>
                 Dashboard
             </button>
         </div>

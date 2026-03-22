@@ -34,7 +34,7 @@ const DashboardLayout = ({ children }) => {
               </span>
             </Link>  */}
             {/* Center — logo */}
-                      <Link to="/dashboard" className="flex items-center space-x-2 absolute left-1/2 -translate-x-1/2">
+                      <Link to="/newdashboard" className="flex items-center space-x-2 absolute left-1/2 -translate-x-1/2">
                         <div className="h-8 w-8 bg-gradient-to-tr from-purple-500 via-pink-500 to-orange-400 rounded-xl flex items-center justify-center shadow-md">
                           <BookOpen className="h-4 w-4 text-white" />
                         </div>

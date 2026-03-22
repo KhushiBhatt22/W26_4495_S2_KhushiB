@@ -69,12 +69,7 @@ const BookPostCard = ({ book, onLike, onRead, onAuthorClick }) => {
           />
           {menuOpen && (
             <div style={cardStyles.miniMenu}>
-              <div
-                style={cardStyles.miniMenuItem}
-                onClick={() => { onRead(book); setMenuOpen(false); }}
-              >
-                📖 Read Book
-              </div>
+             
               <div
                 style={cardStyles.miniMenuItem}
                 onClick={() => { onAuthorClick(author._id); setMenuOpen(false); }}
@@ -125,10 +120,7 @@ const BookPostCard = ({ book, onLike, onRead, onAuthorClick }) => {
           />
           <span>{book.likesCount || 0}</span>
         </button>
-        <button style={cardStyles.actionBtn} onClick={() => onRead(book)}>
-          <BookOpen size={16} />
-          <span>Read Story</span>
-        </button>
+        
       </div>
     </div>
   );
@@ -335,7 +327,7 @@ const NewDashboardPage = () => {
 
   const handleRead = (book) => navigate(`/view-book/${book._id}`);
   const handleAuthorClick = (authorId) => {
-    if (authorId) navigate(`/dashboard/${authorId}`);
+    if (authorId) navigate(`/profile/${authorId}`);
   };
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);
@@ -564,7 +556,7 @@ const cardStyles = {
   authorName: { fontSize: 13, fontWeight: 600, color: "#111827" },
   authorHandle: { fontSize: 11, color: "#9ca3af" },
   coverWrap: {
-    position: "relative", width: "100%", aspectRatio: "4/3",
+    position: "relative", width: "100%", aspectRatio: "3/4",
     cursor: "pointer", overflow: "hidden", background: "#fdf4ff",
   },
   coverImg: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
