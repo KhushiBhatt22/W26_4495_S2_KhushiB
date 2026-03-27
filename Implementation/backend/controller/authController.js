@@ -148,11 +148,11 @@ exports.uploadProfilePhoto = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-    const avatarPath = `/backend/uploads/${req.file.filename}`;
-    user.avatar = avatarPath;
+    // Cloudinary gives us the full URL directly in req.file.path
+    user.avatar = req.file.path;
     await user.save();
 
-    res.json({ message: "Photo updated", avatar: avatarPath });
+    res.json({ message: "Photo updated", avatar: req.file.path });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
