@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Heart, Search, X, Eye } from "lucide-react";
+import { BookOpen, Heart, Eye } from "lucide-react";
 import toast from "react-hot-toast";
 import NewDashboardLayout from "../components/layout/NewDashboardLayout";
 import CreateBookModal from "../components/modals/CreateBookModal";
 import axiosInstance from "../utils/axiosInstance";
 import { API_PATHS, BASE_URL } from "../utils/apiPaths";
-
-const GENRES = ["All", "Fantasy", "Romance", "Mystery", "Sci-Fi", "Historical", "Thriller", "Self-Help", "Other"];
 
 const buildCoverUrl = (path) => {
   if (!path) return null;
@@ -74,18 +72,13 @@ const ExploreCard = ({ book, onLike, onRead, onAuthorClick }) => {
 const ExplorePage = () => {
   const navigate = useNavigate();
   const [books, setBooks] = useState([]);
-  const [filtered, setFiltered] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeGenre, setActiveGenre] = useState("All");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => { fetchAllBooks(); }, []);
-  useEffect(() => { applyFilters(); }, [books, searchQuery, activeGenre]);
 
   const fetchAllBooks = async () => {
     try {
-      // GET /api/books/explore — all books from all users with real like status
       const res = await axiosInstance.get(API_PATHS.BOOKS.GET_ALL_PUBLIC);
       setBooks(res.data || []);
     } catch {
@@ -93,21 +86,6 @@ const ExplorePage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const applyFilters = () => {
-    let result = [...books];
-    if (activeGenre !== "All")
-      result = result.filter(b => b.genre?.toLowerCase() === activeGenre.toLowerCase());
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(b =>
-        b.title?.toLowerCase().includes(q) ||
-        b.author?.toLowerCase().includes(q) ||
-        b.userId?.name?.toLowerCase().includes(q)
-      );
-    }
-    setFiltered(result);
   };
 
   const handleLike = async (bookId, isLiked) => {
@@ -127,7 +105,6 @@ const ExplorePage = () => {
     }
   };
 
-  // ✅ Read goes to /view-book — public endpoint, not /editor
   const handleRead = (book) => navigate(`/view-book/${book._id}`);
   const handleAuthorClick = (authorId) => { if (authorId) navigate(`/profile/${authorId}`); };
   const handleBookCreated = (bookId) => { setIsCreateModalOpen(false); navigate(`/editor/${bookId}`); };
@@ -141,29 +118,7 @@ const ExplorePage = () => {
             <h1 style={pageStyles.pageTitle}>Explore Books</h1>
             <p style={pageStyles.pageSubtitle}>Discover stories from all readers on Bookstagram</p>
           </div>
-          <div style={pageStyles.bookCount}>{filtered.length} {filtered.length === 1 ? "book" : "books"}</div>
-        </div>
-
-        <div style={pageStyles.filterBar}>
-          <div style={pageStyles.searchWrap}>
-            <Search size={14} style={pageStyles.searchIcon} />
-            <input
-              style={pageStyles.searchInput}
-              placeholder="Search by title, author, or reader…"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && <X size={14} style={pageStyles.clearX} onClick={() => setSearchQuery("")} />}
-          </div>
-          <div style={pageStyles.genrePills}>
-            {GENRES.map(genre => (
-              <button
-                key={genre}
-                style={{ ...pageStyles.pill, ...(activeGenre === genre ? pageStyles.pillActive : {}) }}
-                onClick={() => setActiveGenre(genre)}
-              >{genre}</button>
-            ))}
-          </div>
+          <div style={pageStyles.bookCount}>{books.length} {books.length === 1 ? "book" : "books"}</div>
         </div>
 
         {isLoading ? (
@@ -178,24 +133,15 @@ const ExplorePage = () => {
               </div>
             ))}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : books.length === 0 ? (
           <div style={pageStyles.emptyState}>
-            <div style={pageStyles.emptyIcon}>🔍</div>
-            <p style={{ fontSize: 16, fontWeight: 600, color: "#374151", marginTop: 14 }}>
-              {searchQuery || activeGenre !== "All" ? "No books match your search" : "No books yet"}
-            </p>
-            <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 4 }}>
-              {searchQuery ? "Try a different search term" : "Be the first to create a book!"}
-            </p>
-            {(searchQuery || activeGenre !== "All") && (
-              <button style={pageStyles.clearBtn} onClick={() => { setSearchQuery(""); setActiveGenre("All"); }}>
-                Clear filters
-              </button>
-            )}
+            <div style={pageStyles.emptyIcon}>📚</div>
+            <p style={{ fontSize: 16, fontWeight: 600, color: "#374151", marginTop: 14 }}>No books yet</p>
+            <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 4 }}>Be the first to create a book!</p>
           </div>
         ) : (
           <div style={pageStyles.grid}>
-            {filtered.map(book => (
+            {books.map(book => (
               <ExploreCard key={book._id} book={book} onLike={handleLike} onRead={handleRead} onAuthorClick={handleAuthorClick} />
             ))}
           </div>
@@ -214,21 +160,12 @@ const pageStyles = {
   pageTitle: { fontSize: 22, fontWeight: 700, color: "#111827", margin: 0 },
   pageSubtitle: { fontSize: 13, color: "#9ca3af", marginTop: 4 },
   bookCount: { fontSize: 13, fontWeight: 600, color: "#d946ef", background: "linear-gradient(135deg, #fdf4ff, #fff7ed)", border: "1px solid #f3e8ff", padding: "6px 14px", borderRadius: 20 },
-  filterBar: { display: "flex", flexDirection: "column", gap: 14, marginBottom: 28, background: "#fff", border: "1px solid #f3e8ff", borderRadius: 16, padding: "16px 18px" },
-  searchWrap: { position: "relative", maxWidth: 420 },
-  searchIcon: { position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none" },
-  clearX: { position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "#9ca3af" },
-  searchInput: { width: "100%", background: "#fdfaff", border: "1px solid #f3e8ff", borderRadius: 24, padding: "9px 36px", fontSize: 13, fontFamily: "inherit", color: "#111827", outline: "none" },
-  genrePills: { display: "flex", gap: 8, flexWrap: "wrap" },
-  pill: { padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 500, border: "1.5px solid #f3e8ff", background: "#fdfaff", color: "#6b7280", cursor: "pointer", fontFamily: "inherit" },
-  pillActive: { background: "linear-gradient(135deg, #d946ef, #fb923c)", color: "#fff", border: "1.5px solid transparent", boxShadow: "0 2px 8px rgba(217,70,239,0.3)" },
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 20 },
   skeletonCard: { background: "#fff", borderRadius: 14, border: "1px solid #f3e8ff", overflow: "hidden" },
   skeletonCover: { width: "100%", aspectRatio: "3/4", background: "linear-gradient(90deg, #fdf4ff 25%, #f3e8ff 50%, #fdf4ff 75%)" },
   skeletonLine: { borderRadius: 6, background: "linear-gradient(90deg, #fdf4ff 25%, #f3e8ff 50%, #fdf4ff 75%)", marginBottom: 4 },
   emptyState: { display: "flex", flexDirection: "column", alignItems: "center", padding: "80px 20px", textAlign: "center" },
   emptyIcon: { fontSize: 44, width: 80, height: 80, background: "linear-gradient(135deg, #fdf4ff, #fff7ed)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #f3e8ff" },
-  clearBtn: { marginTop: 16, padding: "9px 22px", background: "linear-gradient(135deg, #d946ef, #fb923c)", color: "#fff", border: "none", borderRadius: 24, fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: "inherit" },
 };
 
 const cardStyles = {
