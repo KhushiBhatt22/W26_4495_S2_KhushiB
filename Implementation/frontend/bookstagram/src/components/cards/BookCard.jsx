@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-'react-router-dom';
 import { BASE_URL } from '../../utils/apiPaths';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Heart } from 'lucide-react'; // ← Heart added
 
 const BookCard = ({book, onDelete}) => {
   const navigate = useNavigate();
@@ -17,18 +18,24 @@ const coverImageUrl = book.coverImage
       onClick={() => navigate(`/view-book/${book._id}`)}
     >
       <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-       {coverImageUrl ? (
-  <img 
-    src={coverImageUrl}
-    alt={book.title} 
-    className="w-full aspect-[16/25] object-cover transition-transform duration-500 group-hover:scale-105"
-    onError={(e) => { e.target.style.display = 'none' }}
-  />
-) : (
-  <div className="w-full aspect-[16/25] bg-gradient-to-br from-purple-50 to-orange-50 flex items-center justify-center">
-    <span className="text-4xl">📖</span>
-  </div>
-)}
+        {coverImageUrl ? (
+          <img 
+            src={coverImageUrl}
+            alt={book.title} 
+            className="w-full aspect-[16/25] object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={(e) => { e.target.style.display = 'none' }}
+          />
+        ) : (
+          <div className="w-full aspect-[16/25] bg-gradient-to-br from-purple-50 to-orange-50 flex items-center justify-center">
+            <span className="text-4xl">📖</span>
+          </div>
+        )}
+
+        {/* ← Like count pill added here */}
+        <div className="absolute top-3 left-3 flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2 py-1">
+          <Heart size={11} fill="#e05c5c" stroke="#e05c5c" />
+          <span className="text-white text-xs font-semibold">{book.likesCount || 0}</span>
+        </div>
         
         <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
           <button
@@ -43,7 +50,7 @@ const coverImageUrl = book.coverImage
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onDelete(book._id);
+              onDelete && onDelete(book._id); // ← fixed
             }}
             className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-red-50 transition-colors group/delete cursor-pointer"
           >
