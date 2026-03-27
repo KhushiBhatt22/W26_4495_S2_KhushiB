@@ -12,14 +12,14 @@ const storage = new CloudinaryStorage({
   cloudinary,
   params: {
     folder: "bookstagram",
-    allowed_formats: ["jpg", "jpeg", "png", "gif"],
+    allowed_formats: ["jpg", "jpeg", "png", "gif", "webp"],
     transformation: [{ width: 800, crop: "limit" }],
   },
 });
 
 const upload = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 },
+  limits: { fileSize: 2 * 1024 * 1024 }, //5mb limit
 });
 
 module.exports = { cloudinary, upload };

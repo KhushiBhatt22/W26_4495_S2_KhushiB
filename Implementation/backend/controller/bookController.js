@@ -162,6 +162,7 @@ const deleteBook = async (req, res) => {
 // @access  Private
 const updateBookCover = async (req, res) => {
   try {
+    console.log("FILE:", req.file);
     const book = await Book.findById(req.params.id);
     if (!book) return res.status(404).json({ message: "Book not found" });
     if (book.userId.toString() !== req.user._id.toString())
@@ -173,8 +174,12 @@ const updateBookCover = async (req, res) => {
     const updatedBook = await book.save();
     res.status(200).json(updatedBook);
   } catch (error) {
-    console.error("updateBookCover:", error);
-    res.status(500).json({ message: "Server error" });
+    // console.error("updateBookCover:", error);
+    // res.status(500).json({ message: "Server error" });
+    console.error("Upload Error:", error.message);
+  console.error(error.stack); 
+  
+  res.status(500).json({ message: "Server error", details: error.message });
   }
 };
 module.exports = {

@@ -123,29 +123,35 @@ const EditorPage = () => {
   };
 
   const handleCoverImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
 
-    const formData = new FormData();
-    formData.append("coverImage", file);
+  const formData = new FormData();
+  formData.append("coverImage", file);
+
+  try {
     setIsUploading(true);
 
-    try {
-      const response = await axiosInstance.put(
-        `${API_PATHS.BOOKS.UPDATE_COVER}/${bookId}`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-      setBook(response.data);
-      toast.success("Cover image updated!");
-    } catch (error) {
-      toast.error("Failed to upload cover image.");
-    } finally {
-      setIsUploading(false);
-    }
-  };
+    const res = await axiosInstance.post(
+      `/api/books/cover/${book._id}`,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+
+    setBook((prev) => ({
+      ...prev,
+      coverImage: res.data.coverImage,
+    }));
+
+    toast.success("Cover image updated!");
+    console.log("Upload successful:", response.data);
+  } catch (error) {
+   console.error("Upload failed:", error);
+    toast.error("Failed to upload cover image.");
+  } finally {
+    setIsUploading(false);
+  }
+};
 
   const handleGenerateChapterContent = async (index) => {
     const chapter = book.chapters[index];

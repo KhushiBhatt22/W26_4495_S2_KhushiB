@@ -4,13 +4,18 @@ const BASE_URL = process.env.BASE_URL || "http://localhost:8000";
 // @desc    Create a thread
 // @route   POST /api/threads
 // @access  Private
+// controller/threadController.js mein isey replace karo:
+
 exports.createThread = async (req, res) => {
   try {
     const { text } = req.body;
     if (!text) return res.status(400).json({ message: "Text is required" });
 
-    // Handle uploaded images
-    const images = req.files ? req.files.map(f => `/backend/uploads/${f.filename}`) : [];
+    // Yeh line batayegi ki files successfully aayi ya nahi
+    console.log("✅ Files reached controller:", req.files);
+
+    // Dhyan do: f.path use karna hai
+    const images = req.files ? req.files.map(f => f.path) : [];
 
     const thread = await Thread.create({
       user: req.user._id,
@@ -18,11 +23,12 @@ exports.createThread = async (req, res) => {
       images,
     });
 
-    const populated = await Thread.findById(thread._id)
-      .populate("user", "name avatar");
-
+    const populated = await Thread.findById(thread._id).populate("user", "name avatar");
     res.status(201).json(populated);
+    
   } catch (err) {
+    // Agar DB save karne mein fail hua toh ye print hoga
+    console.error(" DATABASE ERROR DETAILS:", err);
     res.status(500).json({ message: err.message });
   }
 };

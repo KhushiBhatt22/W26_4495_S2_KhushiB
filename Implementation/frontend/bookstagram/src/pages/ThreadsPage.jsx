@@ -17,17 +17,26 @@ const MAX_CHARS = 500;
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const getAvatarUrl = (avatar) => {
   if (!avatar) return null;
-  if (avatar.startsWith("http")) return avatar;
-  return `${BASE_URL}${avatar}`;
+  // Agar Cloudinary URL hai, toh direct return karo (Perfect for your new setup)
+  if (avatar.startsWith("http") || avatar.startsWith("https")) return avatar;
+  
+  // Agar local file hai, toh proper slashes ke sath backend URL banao
+  if (avatar.startsWith("/")) return `${BASE_URL}${avatar}`;
+  return `${BASE_URL}/uploads/${avatar}`; 
 };
 
 const getImageUrl = (img) => {
   if (!img) return null;
-  if (img.startsWith("http") || img.startsWith("data:")) return img;
+  // Agar Cloudinary URL hai, toh direct return karo
+  if (img.startsWith("http") || img.startsWith("https") || img.startsWith("data:")) return img;
+  
+  // Purani local images ke path fix
   if (img.startsWith("/backend")) return `${BASE_URL}${img}`;
-  return `${BASE_URL}/backend${img}`;
+  if (img.startsWith("/")) return `${BASE_URL}${img}`;
+  
+  // Default fallback for old filenames
+  return `${BASE_URL}/backend/uploads/${img}`; 
 };
-
 const timeAgo = (date) => {
   const seconds = Math.floor((new Date() - new Date(date)) / 1000);
   if (seconds < 60) return "just now";
@@ -62,6 +71,10 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment, onDelete
     setCommentText("");
     setShowComments(true);
   };
+
+  //error check for upload
+  console.log("Thread Images Array:", images);
+console.log("Avatar URL:", getAvatarUrl(authorAvatar));
 
   return (
     <div style={cardStyles.card}>
@@ -109,10 +122,13 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment, onDelete
       <div style={cardStyles.header}>
         <div style={cardStyles.avatarWrap}>
           {authorAvatar ? (
-            <img src={getAvatarUrl(authorAvatar)} alt={authorName}
-              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
-              onError={e => e.target.style.display = "none"} />
-          ) : (
+  <img 
+    src={getAvatarUrl(authorAvatar)} 
+    alt={authorName}
+    style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+    
+  />
+) : (
             <span style={{ color: "#fff", fontWeight: 700 }}>{authorName.charAt(0)}</span>
           )}
         </div>
@@ -165,7 +181,7 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment, onDelete
             alt="thread"
             style={{ ...cardStyles.image, cursor: "zoom-in" }}
             onClick={() => setFullImage(getImageUrl(images[currentImageIndex]))}
-            onError={e => e.target.style.display = "none"}
+            //onError={e => e.target.style.display = "none"}
           />
           {images.length > 1 && (
             <div style={cardStyles.imageCounter}>
