@@ -15,6 +15,7 @@ router.get("/explore", getAllBooksPublic);
 router.get("/public/:id", getBookByIdPublic);
 router.post("/", createBook);
 router.get("/", getBooks);
+router.post("/cover/:id", upload, updateBookCover);
 router.put("/cover/:id", upload, updateBookCover);
 router.get("/:id", getBookById);
 router.put("/:id", updateBook);
