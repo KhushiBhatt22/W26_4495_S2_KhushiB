@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { protect } = require("../middlewares/authMiddleware");
+const trackActivity = require("../middlewares/trackActivity");
 const {
   followUser,
   unfollowUser,
@@ -24,5 +25,8 @@ router.post("/like/:bookId", protect, likeBook);
 router.delete("/like/:bookId", protect, unlikeBook);
 router.get("/followers/:userId", protect, getFollowers);
 router.get("/following/:userId", protect, getFollowing);
+router.post("/follow/:userId", protect, trackActivity("follow"), followUser);
+router.post("/like/:bookId", protect, trackActivity("like"), likeBook);
+router.delete("/unlike/:bookId", protect, trackActivity("unlike"), unlikeBook);
 
 module.exports = router;

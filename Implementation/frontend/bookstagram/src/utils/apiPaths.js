@@ -32,15 +32,15 @@ export const API_PATHS = {
   },
   SOCIAL: {
     GET_USER_PROFILE: "/api/social/profile",
-    FOLLOW:           "/api/social/follow",
-    UNFOLLOW:         "/api/social/follow",
-    FOLLOW_STATUS:    "/api/social/follow-status",
-    LIKE:             "/api/social/like",
-    UNLIKE:           "/api/social/like",
-    SUGGESTED:        "/api/social/suggested",
-    FEED:             "/api/social/feed",    // books from followed users only
+    FOLLOW: "/api/social/follow",
+    UNFOLLOW: "/api/social/follow",
+    FOLLOW_STATUS: "/api/social/follow-status",
+    LIKE: "/api/social/like",
+    UNLIKE: "/api/social/like",
+    SUGGESTED: "/api/social/suggested",
+    FEED: "/api/social/feed",    // books from followed users only
     GET_FOLLOWERS: "/api/social/followers",  // Followers lists
-  GET_FOLLOWING: "/api/social/following",  // Followning lists
+    GET_FOLLOWING: "/api/social/following",  // Followning lists
   },
   STORIES: {
     GET_STORIES: "/api/story",
@@ -53,6 +53,9 @@ export const API_PATHS = {
     LIKE_THREAD: "/api/threads", // + /:id/like
     ADD_COMMENT: "/api/threads", // + /:id/comment
     DELETE_THREAD: "/api/threads", // + /:id (DELETE)
-    IMPROVE_THREAD: "/api/ai/improve-thread", 
+    IMPROVE_THREAD: "/api/ai/improve-thread",
+  },
+  ANALYTICS: {
+    DASHBOARD: "/api/analytics/dashboard",
   },
 };

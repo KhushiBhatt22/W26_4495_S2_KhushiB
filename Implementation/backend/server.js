@@ -11,6 +11,7 @@ const exportRoutes = require('./routes/exportRoutes');
 const socialRoutes = require('./routes/socialRoutes');
 const storyRoutes = require('./routes/storyRoutes');
 const threadRoutes = require('./routes/threadRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use("/api/story", storyRoutes);
 app.use("/api/export", exportRoutes);
 app.use("/api/social", socialRoutes);
 app.use("/api/threads", threadRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 
 // Start Server
