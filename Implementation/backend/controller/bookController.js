@@ -167,7 +167,9 @@ const updateBookCover = async (req, res) => {
     if (book.userId.toString() !== req.user._id.toString())
       return res.status(401).json({ message: "Not authorized to update this book" });
     if (!req.file) return res.status(400).json({ message: "No image file provided" });
-    book.coverImage = `/${req.file.path}`;
+
+    // Cloudinary gives us req.file.path as the full URL
+    book.coverImage = req.file.path;
     const updatedBook = await book.save();
     res.status(200).json(updatedBook);
   } catch (error) {
@@ -175,7 +177,6 @@ const updateBookCover = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 module.exports = {
   createBook,
   getBooks,
