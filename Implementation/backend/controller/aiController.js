@@ -100,7 +100,7 @@ const generateChapterContent = async (req, res) => {
         .json({ message: "Please provide a chapter title" });
     }
 
-   const prompt = `You are an expert writer specializing in ${style} content. Write a complete chapter for a book with the following specifications:
+    const prompt = `You are an expert writer specializing in ${style} content. Write a complete chapter for a book with the following specifications:
 
 Chapter Title: "${chapterTitle}"
 ${chapterDescription ? `Chapter Description: ${chapterDescription}` : ''}
@@ -240,7 +240,7 @@ const generateAvatar = async (req, res) => {
 
     // Use Gemini to describe the uploaded photo first
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-    
+
     const descriptionResponse = await ai.models.generateContent({
       model: "gemini-2.5-flash-lite",
       contents: [
@@ -280,11 +280,48 @@ const generateAvatar = async (req, res) => {
     res.status(500).json({ message: "Server error during avatar generation" });
   }
 };
+const improveThread = async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ message: "Text is required" });
 
+    const prompt = `You are a social media writing assistant for a book platform called Bookstagram.
+
+A user wrote this post:
+"${text}"
+
+Your job:
+1. Rewrite it in a more attractive, engaging, and grammatically correct way
+2. Keep the same meaning and emotion  
+3. Make it sound natural and friendly
+4. Suggest 3-5 relevant hashtags
+
+Return ONLY a valid JSON object like this (no extra text):
+{
+  "improved": "the improved text here",
+  "hashtags": ["#BookReview", "#Reading", "#Bookstagram"]
+}`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: prompt,
+    });
+
+    const raw = response.text;
+    const start = raw.indexOf("{");
+    const end = raw.lastIndexOf("}");
+    const json = JSON.parse(raw.substring(start, end + 1));
+    res.status(200).json(json);
+  } catch (error) {
+    console.error("improveThread error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 module.exports = {
   generateOutline,
   generateChapterContent,
   generateStoryImage,
   completeChapterContent,
   generateAvatar,
+  improveThread,
 };

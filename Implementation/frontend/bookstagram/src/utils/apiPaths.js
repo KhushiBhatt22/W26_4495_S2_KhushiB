@@ -53,5 +53,6 @@ export const API_PATHS = {
     LIKE_THREAD: "/api/threads", // + /:id/like
     ADD_COMMENT: "/api/threads", // + /:id/comment
     DELETE_THREAD: "/api/threads", // + /:id (DELETE)
+    IMPROVE_THREAD: "/api/ai/improve-thread", 
   },
 };

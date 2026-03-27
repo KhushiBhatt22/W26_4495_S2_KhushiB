@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Heart, MessageCircle, MoreHorizontal,
-  X, Send, Image, Sparkles,
+  X, Send, Image, Trash2
 } from "lucide-react";
 import toast from "react-hot-toast";
 import NewDashboardLayout from "../components/layout/NewDashboardLayout";
@@ -39,14 +39,15 @@ const timeAgo = (date) => {
 };
 
 // ── Thread Card ───────────────────────────────────────────────────────────────
-const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
-   const navigate = useNavigate();
+const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment, onDeleteComment }) => {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [fullImage, setFullImage] = useState(null); // ← full image modal
 
   const authorName = thread.user?.name || "Unknown";
   const authorAvatar = thread.user?.avatar;
@@ -64,6 +65,46 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
 
   return (
     <div style={cardStyles.card}>
+
+      {/* Full Image Modal */}
+      {fullImage && (
+        <div
+          style={{
+            position: "fixed", inset: 0, zIndex: 999,
+            background: "rgba(0,0,0,0.92)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+          onClick={() => setFullImage(null)}
+        >
+          <div style={{ position: "relative" }} onClick={e => e.stopPropagation()}>
+            <img
+              src={fullImage}
+              alt="full"
+              style={{
+                width: "90vw", height: "90vw",
+                maxWidth: 600, maxHeight: 600,
+                objectFit: "cover", borderRadius: 16,
+                boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+              }}
+            />
+            <button
+              style={{
+                position: "absolute", top: -14, right: -14,
+                width: 36, height: 36, borderRadius: "50%",
+                background: "#fff", border: "none",
+                fontSize: 16, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                fontWeight: 700, color: "#374151",
+              }}
+              onClick={() => setFullImage(null)}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div style={cardStyles.header}>
         <div style={cardStyles.avatarWrap}>
@@ -86,7 +127,6 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
             onClick={() => setMenuOpen(v => !v)} />
           {menuOpen && (
             <div style={cardStyles.menu}>
-              {/* View Profile — always visible */}
               <div style={cardStyles.menuItem}
                 onClick={() => { navigate(`/profile/${thread.user?._id}`); setMenuOpen(false); }}>
                 View Profile
@@ -94,7 +134,7 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
               {isOwn && (
                 <div style={{ ...cardStyles.menuItem, color: "#ef4444" }}
                   onClick={() => { onDelete(thread._id); setMenuOpen(false); }}>
-                Delete
+                  Delete
                 </div>
               )}
               <div style={cardStyles.menuItem} onClick={() => setMenuOpen(false)}>
@@ -117,22 +157,21 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
         )}
       </div>
 
-      {/* Images — Instagram style carousel */}
+      {/* Images — Instagram carousel */}
       {images.length > 0 && (
         <div style={cardStyles.imageWrap}>
           <img
             src={getImageUrl(images[currentImageIndex])}
             alt="thread"
-            style={cardStyles.image}
+            style={{ ...cardStyles.image, cursor: "zoom-in" }}
+            onClick={() => setFullImage(getImageUrl(images[currentImageIndex]))}
             onError={e => e.target.style.display = "none"}
           />
-          {/* Image counter */}
           {images.length > 1 && (
             <div style={cardStyles.imageCounter}>
               {currentImageIndex + 1}/{images.length}
             </div>
           )}
-          {/* Prev / Next arrows */}
           {images.length > 1 && currentImageIndex > 0 && (
             <button style={{ ...cardStyles.imageArrow, left: 10 }}
               onClick={() => setCurrentImageIndex(i => i - 1)}>‹</button>
@@ -141,7 +180,6 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
             <button style={{ ...cardStyles.imageArrow, right: 10 }}
               onClick={() => setCurrentImageIndex(i => i + 1)}>›</button>
           )}
-          {/* Dots */}
           {images.length > 1 && (
             <div style={cardStyles.imageDots}>
               {images.map((_, i) => (
@@ -199,7 +237,8 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
       {showComments && thread.comments?.length > 0 && (
         <div style={cardStyles.commentsWrap}>
           {thread.comments.map((c, i) => (
-            <div key={i} style={cardStyles.commentRow}>
+            <div key={i} style={{ ...cardStyles.commentRow, position: "relative" }}
+              className="comment-row-hover">
               <div style={cardStyles.commentAvatar}>
                 {c.user?.avatar ? (
                   <img src={getAvatarUrl(c.user.avatar)} alt=""
@@ -210,9 +249,26 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment }) => {
                   </span>
                 )}
               </div>
-              <div style={cardStyles.commentBubble}>
-                <span style={cardStyles.commentAuthor}>{c.user?.name || "User"}</span>
-                <span style={cardStyles.commentText}>{c.text}</span>
+              <div style={{ ...cardStyles.commentBubble, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                <div>
+                  <span style={cardStyles.commentAuthor}>{c.user?.name || "User"}</span>
+                  <span style={cardStyles.commentText}>{c.text}</span>
+                </div>
+                {/* Delete button — only own comments */}
+                {c.user?._id === currentUser?._id && (
+                  <button
+                    onClick={() => onDeleteComment(thread._id, c._id)}
+                    style={{
+                      background: "none", border: "none", cursor: "pointer",
+                      color: "#ef4444", fontSize: 14, padding: "2px 4px",
+                      borderRadius: 6, flexShrink: 0,
+                      opacity: 0.6,
+                    }}
+                    title="Delete comment"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -254,7 +310,6 @@ const CreateThreadPanel = ({ user, onPost, isPosting }) => {
   return (
     <div style={createStyles.panel}>
       <div style={createStyles.header}>
-        {/* Avatar */}
         <div style={createStyles.avatar}>
           {user?.avatar ? (
             <img src={getAvatarUrl(user.avatar)} alt=""
@@ -274,7 +329,6 @@ const CreateThreadPanel = ({ user, onPost, isPosting }) => {
         />
       </div>
 
-      {/* Image previews */}
       {previews.length > 0 && (
         <div style={createStyles.previewGrid}>
           {previews.map((url, i) => (
@@ -302,7 +356,7 @@ const CreateThreadPanel = ({ user, onPost, isPosting }) => {
             <Image size={16} color="#d946ef" />
           </button>
           <span style={{ fontSize: 11, color: "#9ca3af" }}>
-            {previews.length > 0 && `${previews.length}/${MAX_IMAGES} images · `}
+            {previews.length > 0 && `${previews.length}/${MAX_IMAGES} · `}
             <span style={{ color: text.length > MAX_CHARS * 0.8 ? "#fb923c" : "#9ca3af" }}>
               {text.length}
             </span>/{MAX_CHARS}
@@ -341,6 +395,9 @@ const ThreadsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isPosting, setIsPosting] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [aiInput, setAiInput] = useState("");
+  const [aiResult, setAiResult] = useState(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   useEffect(() => { fetchThreads(); }, []);
 
@@ -361,7 +418,6 @@ const ThreadsPage = () => {
       const formData = new FormData();
       formData.append("text", text);
       files.forEach(f => formData.append("images", f));
-
       const res = await axiosInstance.post(API_PATHS.THREADS.CREATE_THREAD, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -376,7 +432,7 @@ const ThreadsPage = () => {
 
   const handleLike = async (threadId) => {
     try {
-      const res = await axiosInstance.put(`${API_PATHS.THREADS.LIKE_THREAD}/${threadId}/like`);
+      await axiosInstance.put(`${API_PATHS.THREADS.LIKE_THREAD}/${threadId}/like`);
       setThreads(prev => prev.map(t => {
         if (t._id !== threadId) return t;
         const liked = t.likes?.includes(user._id);
@@ -409,19 +465,46 @@ const ThreadsPage = () => {
         { text }
       );
       setThreads(prev => prev.map(t => t._id === threadId ? res.data : t));
-      toast.success("Comment added!");
     } catch {
       toast.error("Failed to add comment");
     }
   };
+  const handleAiImprove = async () => {
+    if (!aiInput.trim()) return;
+    setIsAiLoading(true);
+    setAiResult(null);
+    try {
+      const res = await axiosInstance.post(API_PATHS.THREADS.IMPROVE_THREAD, {
+        text: aiInput,
+      });
+      setAiResult(res.data);
+    } catch {
+      toast.error("AI failed to improve text");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
 
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);
     navigate(`/editor/${bookId}`);
   };
 
+  const handleDeleteComment = async (threadId, commentId) => {
+    try {
+      const res = await axiosInstance.delete(
+        `${API_PATHS.THREADS.GET_THREADS}/${threadId}/comment/${commentId}`
+      );
+      setThreads(prev => prev.map(t => t._id === threadId ? res.data : t));
+      toast.success("Comment deleted!");
+    } catch {
+      toast.error("Failed to delete comment");
+    }
+  };
+
   return (
-    <NewDashboardLayout onCreateBook={() => setIsCreateModalOpen(true)}>
+    <NewDashboardLayout onCreateBook={() => setIsCreateModalOpen(true)} hideTopbar={true}>
       <div style={pageStyles.wrap}>
 
         {/* ── LEFT: FEED ── */}
@@ -462,6 +545,7 @@ const ThreadsPage = () => {
                   onLike={handleLike}
                   onDelete={handleDelete}
                   onComment={handleComment}
+                  onDeleteComment={handleDeleteComment}
                 />
               ))
             )}
@@ -470,29 +554,144 @@ const ThreadsPage = () => {
 
         {/* ── RIGHT: SIDEBAR ── */}
         <div style={pageStyles.rightPanel}>
-          <div style={rightStyles.section}>
-            <div style={rightStyles.title}>✍️ Thread Tips</div>
-            {[
-              { icon: "📖", tip: "Share book reviews under 500 characters" },
-              { icon: "🖼️", tip: "Upload up to 5 images per thread" },
-              { icon: "#️⃣", tip: "Use hashtags like #BookReview #Fantasy" },
-              { icon: "💬", tip: "Ask questions to spark discussions" },
-            ].map((t, i) => (
-              <div key={i} style={rightStyles.tipRow}>
-                <span style={rightStyles.tipIcon}>{t.icon}</span>
-                <span style={rightStyles.tipText}>{t.tip}</span>
+
+          {/* Thread Tips */}
+          {/* ── RIGHT: AI WRITING ASSISTANT ── */}
+          <div style={pageStyles.rightPanel}>
+
+            <div style={rightStyles.title}>AI WRITING ASSISTANT</div>
+            <p style={{ fontSize: 12, color: "#9ca3af", marginBottom: 14, lineHeight: 1.5 }}>
+              Type your raw thought — AI will improve it with better grammar and suggest hashtags!
+            </p>
+
+            <textarea
+              style={{
+                width: "100%", height: 110, padding: "10px 12px",
+                border: "1.5px solid #f3e8ff", borderRadius: 12,
+                fontSize: 13, fontFamily: "inherit", color: "#111827",
+                background: "#fdfaff", outline: "none", resize: "none",
+                boxSizing: "border-box", lineHeight: 1.6,
+              }}
+              placeholder="e.g. just read harry potter it was amazing i loved it so much"
+              value={aiInput}
+              onChange={e => setAiInput(e.target.value)}
+            />
+
+            <button
+              style={{
+                width: "100%", marginTop: 10, padding: "10px",
+                background: aiInput.trim() && !isAiLoading
+                  ? "linear-gradient(135deg, #d946ef, #fb923c)"
+                  : "#e5e7eb",
+                color: aiInput.trim() && !isAiLoading ? "#fff" : "#9ca3af",
+                border: "none", borderRadius: 12,
+                fontSize: 13, fontWeight: 600,
+                cursor: aiInput.trim() ? "pointer" : "not-allowed",
+                fontFamily: "inherit",
+                boxShadow: aiInput.trim() ? "0 3px 10px rgba(217,70,239,0.3)" : "none",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              }}
+              onClick={handleAiImprove}
+              disabled={!aiInput.trim() || isAiLoading}
+            >
+              {isAiLoading ? "Improving…" : "Improve with AI"}
+            </button>
+
+            {/* AI Result */}
+            {aiResult && (
+              <div style={{ marginTop: 16 }}>
+                <div style={rightStyles.divider} />
+
+                {/* Improved text */}
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 8 }}>
+                    Improved Text
+                  </div>
+                  <div style={{
+                    background: "linear-gradient(135deg, #fdf4ff, #fff7ed)",
+                    border: "1px solid #f3e8ff", borderRadius: 10,
+                    padding: "10px 12px", fontSize: 13, color: "#374151", lineHeight: 1.6,
+                  }}>
+                    {aiResult.improved}
+                  </div>
+                  <button
+                    style={{
+                      marginTop: 8, padding: "6px 14px",
+                      background: "#fff", border: "1px solid #f3e8ff",
+                      borderRadius: 20, fontSize: 11, fontWeight: 600,
+                      color: "#d946ef", cursor: "pointer", fontFamily: "inherit",
+                    }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(aiResult.improved);
+                      toast.success("Copied! Paste it in your thread 📋");
+                    }}
+                  >
+                    Copy Text
+                  </button>
+                </div>
+
+                {/* Hashtags */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 8 }}>
+                    🏷️ Suggested Hashtags
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {aiResult.hashtags?.map((tag, i) => (
+                      <span key={i} style={{
+                        padding: "4px 10px", borderRadius: 20,
+                        background: "linear-gradient(135deg, #fdf4ff, #f3e8ff)",
+                        border: "1px solid #f3e8ff",
+                        fontSize: 12, fontWeight: 600, color: "#d946ef", cursor: "pointer",
+                      }}
+                        onClick={() => {
+                          navigator.clipboard.writeText(tag);
+                          toast.success(`${tag} copied!`);
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <button
+                    style={{
+                      marginTop: 8, padding: "6px 14px",
+                      background: "#fff", border: "1px solid #f3e8ff",
+                      borderRadius: 20, fontSize: 11, fontWeight: 600,
+                      color: "#d946ef", cursor: "pointer", fontFamily: "inherit",
+                    }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(aiResult.hashtags?.join(" "));
+                      toast.success("All hashtags copied! 📋");
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}>
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  </button>
+                </div>
               </div>
-            ))}
+            )}
           </div>
 
           <div style={rightStyles.divider} />
 
+          {/* Trending Tags */}
           <div style={rightStyles.section}>
-            <div style={rightStyles.title}>🔥 Trending Tags</div>
-            {["#BookReview", "#Fantasy", "#ReadingNook", "#AuthorLife", "#Bookstagram"].map((tag, i) => (
+            <div style={rightStyles.title}>Trending Tags</div>
+            {[
+              { tag: "#BookReview", count: "2.4k" },
+              { tag: "#Fantasy", count: "1.8k" },
+              { tag: "#ReadingNook", count: "987" },
+              { tag: "#AuthorLife", count: "743" },
+              { tag: "#Bookstagram", count: "3.1k" },
+            ].map((t, i) => (
               <div key={i} style={rightStyles.tagRow}>
-                <div style={rightStyles.tagName}>{tag}</div>
-                <div style={{ fontSize: 11, color: "#9ca3af" }}>#{i + 1}</div>
+                <div>
+                  <div style={rightStyles.tagName}>{t.tag}</div>
+                  <div style={{ fontSize: 11, color: "#9ca3af" }}>{t.count} threads</div>
+                </div>
+                <div style={rightStyles.tagRank}>#{i + 1}</div>
               </div>
             ))}
           </div>
@@ -510,15 +709,26 @@ const ThreadsPage = () => {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const pageStyles = {
-  wrap: { display: "flex", minHeight: "100%", background: "#fdfaff" },
-  feed: { flex: 1, padding: "28px 28px", maxWidth: 640, minWidth: 0 },
+  wrap: {
+    display: "flex",
+    minHeight: "100%",
+    background: "#fdfaff",
+    overflow: "hidden",
+    maxWidth: "100%",
+  },
+  feed: { flex: 1, padding: "24px 20px", minWidth: 0, overflow: "hidden" },
   feedHeader: { marginBottom: 20 },
   pageTitle: { fontSize: 22, fontWeight: 700, color: "#111827", margin: 0 },
   pageSubtitle: { fontSize: 13, color: "#9ca3af", marginTop: 4 },
   rightPanel: {
-    width: 300, padding: "28px 20px",
+    width: 350,
+    minWidth: 0,
+    padding: "20px 16px",
     borderLeft: "1px solid #f3e8ff",
-    background: "#ffffff", flexShrink: 0, overflowY: "auto",
+    background: "#ffffff",
+    flexShrink: 0,
+    overflowY: "auto",
+    overflowX: "hidden",
   },
 };
 
@@ -533,38 +743,30 @@ const createStyles = {
     width: 38, height: 38, borderRadius: "50%",
     background: "linear-gradient(135deg, #d946ef, #fb923c)",
     display: "flex", alignItems: "center", justifyContent: "center",
-    color: "#fff", fontWeight: 700, fontSize: 14, flexShrink: 0,
-    overflow: "hidden",
+    color: "#fff", fontWeight: 700, fontSize: 14, flexShrink: 0, overflow: "hidden",
   },
   textarea: {
     flex: 1, border: "none", outline: "none", resize: "none",
     fontSize: 14, fontFamily: "inherit", color: "#111827",
     background: "transparent", lineHeight: 1.6,
   },
-  previewGrid: {
-    display: "flex", flexWrap: "wrap", gap: 8,
-    marginTop: 12, padding: "8px 0",
-  },
+  previewGrid: { display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12, padding: "8px 0" },
   previewItem: {
     position: "relative", width: 80, height: 80,
-    borderRadius: 10, overflow: "hidden",
-    border: "2px solid #f3e8ff",
+    borderRadius: 10, overflow: "hidden", border: "2px solid #f3e8ff",
   },
   previewImg: { width: "100%", height: "100%", objectFit: "cover" },
   removeBtn: {
     position: "absolute", top: 4, right: 4,
     width: 20, height: 20, borderRadius: "50%",
     background: "rgba(0,0,0,0.6)", border: "none",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    cursor: "pointer",
+    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
   },
   addMoreBtn: {
     width: 80, height: 80, borderRadius: 10,
     border: "2px dashed #f3e8ff",
-    display: "flex", flexDirection: "column",
-    alignItems: "center", justifyContent: "center",
-    cursor: "pointer", background: "#fdfaff",
-    gap: 2,
+    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+    cursor: "pointer", background: "#fdfaff", gap: 2,
   },
   footer: {
     display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -574,16 +776,13 @@ const createStyles = {
   iconBtn: {
     width: 32, height: 32, borderRadius: "50%",
     background: "#fdf4ff", border: "1px solid #f3e8ff",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    cursor: "pointer",
+    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
   },
   postBtn: {
-    display: "flex", alignItems: "center", gap: 6,
-    padding: "8px 18px",
+    display: "flex", alignItems: "center", gap: 6, padding: "8px 18px",
     background: "linear-gradient(135deg, #d946ef, #fb923c)",
     color: "#fff", border: "none", borderRadius: 20,
-    fontSize: 13, fontWeight: 600, cursor: "pointer",
-    fontFamily: "inherit",
+    fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
     boxShadow: "0 3px 10px rgba(217,70,239,0.3)",
   },
 };
@@ -599,8 +798,7 @@ const cardStyles = {
     width: 38, height: 38, borderRadius: "50%",
     background: "linear-gradient(135deg, #d946ef, #fb923c)",
     display: "flex", alignItems: "center", justifyContent: "center",
-    fontWeight: 700, fontSize: 14, flexShrink: 0, overflow: "hidden",
-    color: "#fff",
+    fontWeight: 700, fontSize: 14, flexShrink: 0, overflow: "hidden", color: "#fff",
   },
   authorName: { fontSize: 13, fontWeight: 600, color: "#111827" },
   authorMeta: { fontSize: 11, color: "#9ca3af" },
@@ -614,8 +812,8 @@ const cardStyles = {
   textWrap: { padding: "0 16px 10px" },
   text: { fontSize: 14, color: "#374151", lineHeight: 1.65, margin: 0 },
   readMore: { fontSize: 12, color: "#d946ef", fontWeight: 600, cursor: "pointer", display: "block", marginTop: 4 },
-  imageWrap: { position: "relative", width: "100%", maxHeight: 360, overflow: "hidden" },
-  image: { width: "100%", maxHeight: 360, objectFit: "cover", display: "block" },
+  imageWrap: { position: "relative", width: "100%", maxHeight: 400, overflow: "hidden" },
+  image: { width: "100%", maxHeight: 400, objectFit: "cover", display: "block" },
   imageCounter: {
     position: "absolute", top: 10, right: 10,
     background: "rgba(0,0,0,0.5)", color: "#fff",
@@ -626,8 +824,7 @@ const cardStyles = {
     background: "rgba(0,0,0,0.4)", color: "#fff",
     border: "none", borderRadius: "50%",
     width: 30, height: 30, fontSize: 20,
-    display: "flex", alignItems: "center", justifyContent: "center",
-    cursor: "pointer",
+    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
   },
   imageDots: {
     position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
@@ -645,10 +842,7 @@ const cardStyles = {
     display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#9ca3af",
     background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
   },
-  commentInputWrap: {
-    display: "flex", gap: 8, padding: "8px 16px",
-    borderTop: "1px solid #fdf4ff",
-  },
+  commentInputWrap: { display: "flex", gap: 8, padding: "8px 16px", borderTop: "1px solid #fdf4ff" },
   commentInput: {
     flex: 1, border: "1px solid #f3e8ff", borderRadius: 20,
     padding: "7px 14px", fontSize: 12, fontFamily: "inherit",
@@ -669,8 +863,7 @@ const cardStyles = {
     width: 26, height: 26, borderRadius: "50%",
     background: "linear-gradient(135deg, #fdf4ff, #f3e8ff)",
     display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: 11, fontWeight: 700, color: "#d946ef", flexShrink: 0,
-    overflow: "hidden",
+    fontSize: 11, fontWeight: 700, color: "#d946ef", flexShrink: 0, overflow: "hidden",
   },
   commentBubble: {
     background: "#fff", border: "1px solid #f3e8ff",
@@ -681,22 +874,26 @@ const cardStyles = {
 };
 
 const rightStyles = {
-  section: { marginBottom: 20 },
-  title: { fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 14 },
-  divider: { height: 1, background: "#f3e8ff", margin: "4px 0 20px" },
+  section: { marginBottom: 24 },
+  title: {
+    fontSize: 11, fontWeight: 700, color: "#6b7280",
+    marginBottom: 14, paddingBottom: 8,
+    borderBottom: "2px solid #f3e8ff",
+    textTransform: "uppercase", letterSpacing: "1px",
+  },
+  divider: { height: 1, background: "#f3e8ff", margin: "4px 0 24px" },
   tipRow: {
-    display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 10,
-    padding: "8px 10px",
-    background: "linear-gradient(135deg, #fdf4ff, #fff7ed)",
-    borderRadius: 10, border: "1px solid #f3e8ff",
+    display: "flex", gap: 10, alignItems: "flex-start",
+    padding: "10px 0", borderBottom: "1px solid #f9fafb",
   },
   tipIcon: { fontSize: 14, flexShrink: 0 },
   tipText: { fontSize: 12, color: "#4b5563", lineHeight: 1.5 },
   tagRow: {
     display: "flex", justifyContent: "space-between", alignItems: "center",
-    padding: "9px 0", borderBottom: "1px solid #fdf4ff", cursor: "pointer",
+    padding: "10px 0", borderBottom: "1px solid #f9fafb", cursor: "pointer",
   },
   tagName: { fontSize: 13, fontWeight: 600, color: "#d946ef" },
+  tagRank: { fontSize: 12, fontWeight: 700, color: "#e5e7eb" },
 };
 
 export default ThreadsPage;
