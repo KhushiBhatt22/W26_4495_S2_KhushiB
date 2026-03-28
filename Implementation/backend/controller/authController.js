@@ -51,6 +51,7 @@ exports.loginUser = async (req, res) => {
         avatar: user.avatar,   // ← ADD
         bio: user.bio,         // ← ADD
         isPro: user.isPro,     // ← ADD 
+        isAdmin: user.isAdmin,
         token: generateToken(user._id),
       });
     } else {
@@ -106,6 +107,7 @@ exports.getProfile = async (req, res) => {
       email: user.email,
       avatar: user.avatar,
       bio: user.bio,  
+      isAdmin: user.isAdmin,
       isPro: user.isPro,
     });
   } catch (error) {

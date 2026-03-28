@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Home, Compass, MessageSquare, Mail, User, Settings,
-  Plus, Bell, Search, BookOpen, LogOut, X
+  Plus, Bell, Search, BookOpen, LogOut, X,BarChart2
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -22,6 +22,7 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
     { id: "messages", label: "Messages", icon: Mail, path: "/messages", badge: notifications },
     { id: "profile", label: "Profile", icon: User, path: "/profile" },
     { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
+     ...(user?.isAdmin ? [{ id: "analytics", label: "Analytics", icon: BarChart2, path: "/analytics" }] : []),
   ];
 
   const isActive = (path) => {
