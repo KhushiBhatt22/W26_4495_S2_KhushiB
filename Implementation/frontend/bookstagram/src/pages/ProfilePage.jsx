@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Book, Users, UserCheck, Heart } from "lucide-react";
+import { Book, Users, UserCheck} from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../utils/axiosInstance";
@@ -8,6 +8,7 @@ import { API_PATHS } from "../utils/apiPaths";
 import NewDashboardLayout from "../components/layout/NewDashboardLayout";
 import BookCard from "../components/cards/BookCard";
 import CreateBookModal from "../components/modals/CreateBookModal";
+import SurveyModal from "../components/modals/SurveyModal";
 
 const BASE_URL = "http://localhost:8000";
 
@@ -48,6 +49,8 @@ const ProfilePage = () => {
   const [followModalType, setFollowModalType] = useState("followers"); // "followers" | "following"
   const [followModalList, setFollowModalList] = useState([]);
   const [followModalLoading, setFollowModalLoading] = useState(false);
+  const [surveyBookId, setSurveyBookId] = useState(null);
+
 
   useEffect(() => {
     fetchProfile();
@@ -92,6 +95,7 @@ const ProfilePage = () => {
 
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);
+    setSurveyBookId(bookId);
     navigate(`/editor/${bookId}`);
   };
   const handleDeleteBook = async (bookId) => {
@@ -123,6 +127,16 @@ const ProfilePage = () => {
   };
   return (
     <NewDashboardLayout onCreateBook={() => setIsCreateModalOpen(true)} hideTopbar={true}>
+      {surveyBookId && (
+        <SurveyModal
+          bookId={surveyBookId}
+          onClose={() => {
+            const id = surveyBookId;
+            setSurveyBookId(null);
+            navigate(`/editor/${id}`);
+          }}
+        />
+      )}
 
       {/* ── Profile Header ── */}
       <div className="bg-white border-b border-gray-200">

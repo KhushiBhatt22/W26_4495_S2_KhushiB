@@ -6,6 +6,7 @@ import NewDashboardLayout from "../components/layout/NewDashboardLayout";
 import CreateBookModal from "../components/modals/CreateBookModal";
 import axiosInstance from "../utils/axiosInstance";
 import { API_PATHS, BASE_URL } from "../utils/apiPaths";
+import SurveyModal from "../components/modals/SurveyModal";
 
 const buildCoverUrl = (path) => {
   if (!path) return null;
@@ -107,7 +108,11 @@ const ExplorePage = () => {
 
   const handleRead = (book) => navigate(`/view-book/${book._id}`);
   const handleAuthorClick = (authorId) => { if (authorId) navigate(`/profile/${authorId}`); };
-  const handleBookCreated = (bookId) => { setIsCreateModalOpen(false); navigate(`/editor/${bookId}`); };
+  const handleBookCreated = (bookId) => {
+    setIsCreateModalOpen(false);
+    setSurveyBookId(bookId);
+    navigate(`/editor/${bookId}`);
+  };
 
   return (
     <NewDashboardLayout onCreateBook={() => setIsCreateModalOpen(true)} hideTopbar={true}>
@@ -149,6 +154,16 @@ const ExplorePage = () => {
       </div>
 
       <CreateBookModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onBookCreated={handleBookCreated} />
+      {surveyBookId && (
+        <SurveyModal
+          bookId={surveyBookId}
+          onClose={() => {
+            const id = surveyBookId;
+            setSurveyBookId(null);
+            navigate(`/editor/${id}`);
+          }}
+        />
+      )}
     </NewDashboardLayout>
   );
 };
