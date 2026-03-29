@@ -112,7 +112,7 @@ const ExplorePage = () => {
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);
     setSurveyBookId(bookId);
-    navigate(`/editor/${bookId}`);
+    // navigate(`/editor/${bookId}`);
   };
 
   return (
@@ -159,9 +159,9 @@ const ExplorePage = () => {
         <SurveyModal
           bookId={surveyBookId}
           onClose={() => {
-            const id = surveyBookId;
+            const id = surveyBookId; // ← save id first
             setSurveyBookId(null);
-            navigate(`/editor/${id}`);
+            navigate(`/editor/${id}`); // ← use saved id
           }}
         />
       )}
