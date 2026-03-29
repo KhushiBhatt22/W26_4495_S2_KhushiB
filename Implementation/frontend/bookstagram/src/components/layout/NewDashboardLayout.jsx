@@ -12,14 +12,13 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [notifications] = useState(3);
   const profileRef = useRef(null);
 
   const navItems = [
     { id: "home", label: "Home", icon: Home, path: "/newdashboard" },
     { id: "explore", label: "Explore", icon: Compass, path: "/explore" },
     { id: "threads", label: "Threads", icon: MessageSquare, path: "/threads" },
-    { id: "messages", label: "Messages", icon: Mail, path: "/messages", badge: notifications },
+    { id: "messages", label: "Messages", icon: Mail, path: "/messages"},
     { id: "profile", label: "Profile", icon: User, path: "/profile" },
     { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
      ...(user?.isAdmin ? [{ id: "analytics", label: "Analytics", icon: BarChart2, path: "/analytics" }] : []),
