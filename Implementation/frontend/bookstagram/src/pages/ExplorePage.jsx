@@ -75,6 +75,7 @@ const ExplorePage = () => {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [surveyBookId, setSurveyBookId] = useState(null);
 
   useEffect(() => { fetchAllBooks(); }, []);
 
