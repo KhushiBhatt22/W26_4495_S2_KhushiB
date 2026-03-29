@@ -1,5 +1,7 @@
 require("dotenv").config();
 const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 const cors = require("cors");
 const path = require("path");
 const connectDB = require("./config/db");
@@ -12,30 +14,62 @@ const socialRoutes = require('./routes/socialRoutes');
 const storyRoutes = require('./routes/storyRoutes');
 const threadRoutes = require('./routes/threadRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const messageRoutes = require('./routes/messageRoutes'); // ← new
 
 const app = express();
+const server = http.createServer(app); // ← wrap express
 
-// Middleware to handle CORS
-app.use(
-  cors({
+// ── Socket.io ──
+const io = new Server(server, {
+  cors: {
     origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+    methods: ["GET", "POST"],
+  },
+});
 
-// Connect Database
+const onlineUsers = new Map();
+
+io.on("connection", (socket) => {
+  console.log("Socket connected:", socket.id);
+
+  socket.on("join", (userId) => {
+    onlineUsers.set(userId, socket.id);
+    console.log(`User ${userId} is online`);
+  });
+
+  socket.on("sendMessage", ({ senderId, receiverId, text, messageId, createdAt }) => {
+    const receiverSocket = onlineUsers.get(receiverId);
+    if (receiverSocket) {
+      io.to(receiverSocket).emit("receiveMessage", {
+        senderId, receiverId, text, _id: messageId, createdAt,
+      });
+    }
+  });
+
+  socket.on("disconnect", () => {
+    for (const [userId, socketId] of onlineUsers.entries()) {
+      if (socketId === socket.id) {
+        onlineUsers.delete(userId);
+        break;
+      }
+    }
+  });
+});
+
+// ── Middleware ──
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
 connectDB();
 
-// Middleware
-//app.use(express.json());
- app.use(express.json({ limit: "10mb" }));
- app.use(express.urlencoded({ limit: "10mb", extended: true }));
-
-// Static folder for uploads
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use("/backend/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Routes Here
+// ── Routes ──
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/ai", aiRoutes);
@@ -44,8 +78,8 @@ app.use("/api/export", exportRoutes);
 app.use("/api/social", socialRoutes);
 app.use("/api/threads", threadRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/messages", messageRoutes); // ← new
 
-
-// Start Server
+// ── Start Server ──
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`)); // ← server.listen not app.listen
