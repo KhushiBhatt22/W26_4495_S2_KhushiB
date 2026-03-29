@@ -14,7 +14,8 @@ const socialRoutes = require('./routes/socialRoutes');
 const storyRoutes = require('./routes/storyRoutes');
 const threadRoutes = require('./routes/threadRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
-const messageRoutes = require('./routes/messageRoutes'); // ← new
+const messageRoutes = require('./routes/messageRoutes'); 
+const surveyRoutes = require('./routes/surveyRoutes'); 
 
 const app = express();
 const server = http.createServer(app); // ← wrap express
@@ -78,7 +79,9 @@ app.use("/api/export", exportRoutes);
 app.use("/api/social", socialRoutes);
 app.use("/api/threads", threadRoutes);
 app.use("/api/analytics", analyticsRoutes);
-app.use("/api/messages", messageRoutes); // ← new
+app.use("/api/messages", messageRoutes);
+// app.use("/api/surveys", surveyRoutes);
+app.use("/api/survey-feedback", surveyRoutes);
 
 // ── Start Server ──
 const PORT = process.env.PORT || 5000;
