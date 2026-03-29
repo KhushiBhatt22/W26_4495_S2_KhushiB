@@ -10,8 +10,6 @@ const userSchema = new mongoose.Schema(
     avatar: { type: String, default: "" },
     bio: { type: String, default: "", maxlength: 160 },
     isPro: { type: Boolean, default: false },
-    age: { type: Number, default: null },
-    gender: { type: String, enum: ["male", "female", "other"], default: null },
     isAdmin: { type: Boolean, default: false },
   },
   { timestamps: true }
