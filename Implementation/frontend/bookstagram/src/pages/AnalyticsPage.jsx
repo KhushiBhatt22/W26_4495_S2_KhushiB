@@ -108,7 +108,7 @@ const AnalyticsPage = () => {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 800, color: "#111827", margin: 0 }}>
-              📊 Analytics Dashboard
+              Analytics Dashboard
             </h1>
             <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 6 }}>Admin only — platform insights</p>
           </div>
@@ -232,7 +232,7 @@ const AnalyticsPage = () => {
 
         {/* Most Active Users */}
         <div style={{ background: "#fff", borderRadius: 20, padding: 24, border: "1px solid #f3e8ff" }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: "#111827", marginTop: 0, marginBottom: 4 }}>👑 Most Active Users</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: "#111827", marginTop: 0, marginBottom: 4 }}> Most Active Users</h2>
           <p style={{ fontSize: 12, color: "#9ca3af", marginBottom: 20, marginTop: 0 }}>Users with highest activity</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {data.userWiseActivity.map((u, i) => (
