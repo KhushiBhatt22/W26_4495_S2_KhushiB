@@ -23,21 +23,21 @@ const getAvatar = (avatar) => {
 // Bot responses
 const BOT_RESPONSES = [
   (q) => q.toLowerCase().includes("recommend") || q.toLowerCase().includes("book")
-    ? "📚 I'd recommend The Stormlight Archive by Brandon Sanderson or The Night Circus by Erin Morgenstern!"
+    ? "I'd recommend The Stormlight Archive by Brandon Sanderson or The Night Circus by Erin Morgenstern!"
     : null,
   (q) => q.toLowerCase().includes("hello") || q.toLowerCase().includes("hi")
-    ? "👋 Hey! I'm Bookbot — ask me for book recommendations or writing tips!"
+    ? "Hey! I'm Bookbot — ask me for book recommendations or writing tips!"
     : null,
   (q) => q.toLowerCase().includes("fantasy")
-    ? "🐉 Top fantasy picks: Mistborn, Name of the Wind, A Court of Thorns and Roses!"
+    ? "Top fantasy picks: Mistborn, Name of the Wind, A Court of Thorns and Roses!"
     : null,
   (q) => q.toLowerCase().includes("romance")
-    ? "💕 For romance: The Hating Game, Beach Read, It Ends with Us!"
+    ? " For romance: The Hating Game, Beach Read, It Ends with Us!"
     : null,
   (q) => q.toLowerCase().includes("tip") || q.toLowerCase().includes("write")
-    ? "✍️ Writing tip: Start strong, write your ending first, don't edit while drafting!"
+    ? " Writing tip: Start strong, write your ending first, don't edit while drafting!"
     : null,
-  () => "🤔 Try asking me for book recommendations or writing tips — that's where I shine! 📖",
+  () => "Try asking me for book recommendations or writing tips — that's where I shine! 📖",
 ];
 
 const getBotReply = (q) => {
@@ -87,7 +87,7 @@ const MessagesPage = () => {
 
   // Bot
   const [botMessages, setBotMessages] = useState([
-    { from: "bot", text: "👋 Hi! I'm Bookbot — ask me for book recommendations or writing tips!", time: "now" },
+    { from: "bot", text: "Hi! I'm Bookbot — ask me for book recommendations or writing tips!", time: "now" },
   ]);
   const [botInput, setBotInput] = useState("");
   const [isBotTyping, setIsBotTyping] = useState(false);
@@ -413,7 +413,7 @@ const MessagesPage = () => {
               </div>
 
               <div style={botStyles.prompts}>
-                {["Recommend a fantasy book 🐉", "Give me a writing tip ✍️", "Best romance novels 💕"].map((p, i) => (
+                {["Recommend a fantasy book", "Give me a writing tip ", "Best romance novels "].map((p, i) => (
                   <button key={i} style={botStyles.promptBtn}
                     onClick={() => {
                       const userMsg = { from: "me", text: p, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) };
