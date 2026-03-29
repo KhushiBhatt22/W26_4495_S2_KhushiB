@@ -445,7 +445,7 @@ const SettingsPage = () => {
           ))}
 
           <div style={formStyles.dangerZone}>
-            <div style={formStyles.dangerTitle}>⚠️ Danger Zone</div>
+            <div style={formStyles.dangerTitle}></div>
             <button style={formStyles.logoutBtn} onClick={logout}>
               <LogOut size={14} /> Log Out
             </button>
