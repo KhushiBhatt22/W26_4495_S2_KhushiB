@@ -58,4 +58,14 @@ export const API_PATHS = {
   ANALYTICS: {
     DASHBOARD: "/api/analytics/dashboard",
   },
+  MESSAGES: {
+    GET_CONVERSATIONS: "/api/messages/conversations",
+    GET_MESSAGES: (otherId) => `/api/messages/${otherId}`,
+    SEND_MESSAGE: "/api/messages/send",
+    GET_USERS: "/api/messages/users",
+  },
+  SURVEY: {
+    SUBMIT: "/api/survey-feedback/submit",
+    ANALYTICS: "/api/survey-feedback/analytics",
+  },
 };

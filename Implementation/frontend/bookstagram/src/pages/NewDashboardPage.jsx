@@ -12,6 +12,7 @@ import { StoriesStrip, StoryViewer } from "../components/stories/StoriesStrip";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../utils/axiosInstance";
 import { API_PATHS, BASE_URL } from "../utils/apiPaths";
+import SurveyModal from "../components/modals/SurveyModal";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const coverUrl = (path) => {
@@ -69,7 +70,7 @@ const BookPostCard = ({ book, onLike, onRead, onAuthorClick }) => {
           />
           {menuOpen && (
             <div style={cardStyles.miniMenu}>
-             
+
               <div
                 style={cardStyles.miniMenuItem}
                 onClick={() => { onAuthorClick(author._id); setMenuOpen(false); }}
@@ -120,7 +121,7 @@ const BookPostCard = ({ book, onLike, onRead, onAuthorClick }) => {
           />
           <span>{book.likesCount || 0}</span>
         </button>
-        
+
       </div>
     </div>
   );
@@ -208,6 +209,7 @@ const NewDashboardPage = () => {
   // Feed
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [surveyBookId, setSurveyBookId] = useState(null);
 
   // Suggested
   const [suggested, setSuggested] = useState([]);
@@ -331,7 +333,8 @@ const NewDashboardPage = () => {
   };
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);
-    navigate(`/editor/${bookId}`);
+    setSurveyBookId(bookId);
+    // navigate(`/editor/${bookId}`);
   };
 
   // Trending = books sorted by likesCount desc
@@ -483,6 +486,15 @@ const NewDashboardPage = () => {
         isOpen={isStoryModalOpen}
         onClose={() => setIsStoryModalOpen(false)}
       />
+      {surveyBookId && (
+        <SurveyModal
+          bookId={surveyBookId}
+          onClose={() => {
+            setSurveyBookId(null);
+            navigate(`/editor/${surveyBookId}`);
+          }}
+        />
+      )}
 
       {activeStory && (
         <StoryViewer

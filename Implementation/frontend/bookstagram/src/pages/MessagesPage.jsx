@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Send, Bot, UserPlus, UserCheck, Search,
-  MessageCircle, Sparkles, X, BookOpen, ChevronRight
+  Send, Bot, UserPlus, Search,
+  MessageCircle, Sparkles, X, ChevronRight, UserCheck
 } from "lucide-react";
 import toast from "react-hot-toast";
 import NewDashboardLayout from "../components/layout/NewDashboardLayout";
@@ -10,170 +10,182 @@ import CreateBookModal from "../components/modals/CreateBookModal";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../utils/axiosInstance";
 import { API_PATHS } from "../utils/apiPaths";
+import socket from "../utils/socket";
 
-// ── Mock Data (replace with real API) ─────────────────────────────────────────
-const MOCK_USERS = [
-  { id: "1", name: "Aditi",  handle: "@aditi_reads",  color: "#d946ef", lastMsg: "Have you read The Name of the Wind? 📖", time: "10:32 AM", unread: 2 },
-  { id: "2", name: "Sara",   handle: "@sara_books",   color: "#fb923c", lastMsg: "Your last book review was amazing! 💙",   time: "Yesterday", unread: 0 },
-  { id: "3", name: "Roshan", handle: "@roshan_lit",   color: "#818cf8", lastMsg: "Dragon's Realm was incredible btw 🐉",    time: "2d ago",    unread: 1 },
-  { id: "4", name: "Priya",  handle: "@priya_pages",  color: "#10b981", lastMsg: "Let's do a book swap sometime!",          time: "3d ago",    unread: 0 },
-];
+const BASE_URL = "http://localhost:8000";
 
-const MOCK_MESSAGES = {
-  "1": [
-    { from: "them", text: "Hey! Have you read The Name of the Wind? 📖", time: "10:30 AM" },
-    { from: "me",   text: "Yes!! It's one of my all-time favorites 🌟",  time: "10:31 AM" },
-    { from: "them", text: "Right?! Kvothe is such a complex character",  time: "10:32 AM" },
-  ],
-  "2": [
-    { from: "them", text: "Your last book review was amazing! 💙", time: "Yesterday" },
-    { from: "me",   text: "Thank you so much Sara! Means a lot 🥰", time: "Yesterday" },
-  ],
-  "3": [
-    { from: "me",   text: "Dragon's Realm was incredible btw 🐉",    time: "2d ago" },
-    { from: "them", text: "Thank you!! Working on the sequel 🔥",     time: "2d ago" },
-    { from: "them", text: "Dragon's Realm was incredible btw 🐉",    time: "2d ago" },
-  ],
-  "4": [
-    { from: "them", text: "Let's do a book swap sometime!", time: "3d ago" },
-  ],
+const getAvatar = (avatar) => {
+  if (!avatar) return null;
+  if (avatar.startsWith("http")) return avatar;
+  return `${BASE_URL}${avatar}`;
 };
 
-// Follow requests mock
-const MOCK_REQUESTS = [
-  { id: "5", name: "Meera",  handle: "@meera_reads",  color: "#f59e0b" },
-  { id: "6", name: "Arjun",  handle: "@arjun_writes", color: "#06b6d4" },
-];
-
-// Chatbot responses
+// Bot responses
 const BOT_RESPONSES = [
   (q) => q.toLowerCase().includes("recommend") || q.toLowerCase().includes("book")
-    ? "📚 Based on your reading history, I'd recommend **The Stormlight Archive** by Brandon Sanderson or **The Night Circus** by Erin Morgenstern! Both are fantastic."
+    ? "I'd recommend The Stormlight Archive by Brandon Sanderson or The Night Circus by Erin Morgenstern!"
     : null,
   (q) => q.toLowerCase().includes("hello") || q.toLowerCase().includes("hi")
-    ? "👋 Hey there! I'm your Bookstagram assistant. Ask me for book recommendations, reading tips, or help with your profile!"
+    ? "Hey! I'm Bookbot — ask me for book recommendations or writing tips!"
     : null,
-  (q) => q.toLowerCase().includes("genre") || q.toLowerCase().includes("fantasy")
-    ? "🐉 Fantasy is amazing! Top picks: **Mistborn**, **Name of the Wind**, **A Court of Thorns and Roses**, and **The Way of Kings**."
+  (q) => q.toLowerCase().includes("fantasy")
+    ? "Top fantasy picks: Mistborn, Name of the Wind, A Court of Thorns and Roses!"
     : null,
   (q) => q.toLowerCase().includes("romance")
-    ? "💕 For romance: **The Hating Game**, **Beach Read**, **It Ends with Us**, and **The Kiss Quotient** are all wonderful!"
+    ? " For romance: The Hating Game, Beach Read, It Ends with Us!"
     : null,
   (q) => q.toLowerCase().includes("tip") || q.toLowerCase().includes("write")
-    ? "✍️ Writing tip: Start with a strong opening line, write your ending first, and don't edit while you draft. Just keep writing!"
+    ? " Writing tip: Start strong, write your ending first, don't edit while drafting!"
     : null,
-  () => "🤔 Interesting question! I'm still learning. Try asking me for book recommendations or writing tips — that's where I shine! 📖",
+  () => "Try asking me for book recommendations or writing tips — that's where I shine! 📖",
 ];
 
-const getBotReply = (question) => {
+const getBotReply = (q) => {
   for (const fn of BOT_RESPONSES) {
-    const reply = fn(question);
-    if (reply) return reply;
+    const r = fn(q);
+    if (r) return r;
   }
   return BOT_RESPONSES[BOT_RESPONSES.length - 1]();
 };
 
-// ── Components ─────────────────────────────────────────────────────────────────
-
-const UserListItem = ({ user, active, onClick }) => (
-  <div
-    style={{
-      ...listStyles.item,
-      background: active ? "linear-gradient(135deg, #fdf4ff, #fff7ed)" : "transparent",
-      borderLeft: active ? `3px solid #d946ef` : "3px solid transparent",
-    }}
-    onClick={onClick}
-  >
-    <div style={{ ...listStyles.avatar, background: `${user.color}22`, color: user.color }}>
-      {user.name.charAt(0)}
-    </div>
-    <div style={listStyles.info}>
-      <div style={listStyles.name}>{user.name}</div>
-      <div style={listStyles.lastMsg}>{user.lastMsg}</div>
-    </div>
-    <div style={listStyles.meta}>
-      <div style={listStyles.time}>{user.time}</div>
-      {user.unread > 0 && <div style={listStyles.unread}>{user.unread}</div>}
-    </div>
-  </div>
-);
-
-const ChatBubble = ({ msg }) => (
-  <div style={{
-    display: "flex",
-    justifyContent: msg.from === "me" ? "flex-end" : "flex-start",
-    marginBottom: 10,
-  }}>
+const ChatBubble = ({ msg, isMe }) => (
+  <div style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start", marginBottom: 10 }}>
     <div style={{
-      maxWidth: "68%",
-      padding: "10px 14px",
-      borderRadius: msg.from === "me" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-      background: msg.from === "me"
+      maxWidth: "68%", padding: "10px 14px",
+      borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+      background: isMe
         ? "linear-gradient(135deg, #d946ef, #fb923c)"
-        : msg.from === "bot"
-        ? "linear-gradient(135deg, #fdf4ff, #ede9fe)"
-        : "#f3f4f6",
-      color: msg.from === "me" ? "#fff" : "#111827",
-      fontSize: 13,
-      lineHeight: 1.55,
-      boxShadow: msg.from === "me"
-        ? "0 2px 10px rgba(217,70,239,0.25)"
-        : "0 1px 4px rgba(0,0,0,0.06)",
+        : msg.from === "bot" ? "linear-gradient(135deg, #fdf4ff, #ede9fe)" : "#f3f4f6",
+      color: isMe ? "#fff" : "#111827",
+      fontSize: 13, lineHeight: 1.55,
+      boxShadow: isMe ? "0 2px 10px rgba(217,70,239,0.25)" : "0 1px 4px rgba(0,0,0,0.06)",
     }}>
       {msg.from === "bot" && (
-        <div style={{ fontSize: 10, fontWeight: 700, color: "#d946ef", marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}>
-          <Bot size={10} /> Bookbot
-        </div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: "#d946ef", marginBottom: 4 }}>🤖 Bookbot</div>
       )}
       {msg.text}
-      <div style={{ fontSize: 10, opacity: 0.6, marginTop: 4, textAlign: "right" }}>{msg.time}</div>
+      <div style={{ fontSize: 10, opacity: 0.6, marginTop: 4, textAlign: "right" }}>
+        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : msg.time}
+      </div>
     </div>
   </div>
 );
 
-// ── Main Page ──────────────────────────────────────────────────────────────────
 const MessagesPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("chats"); // chats | requests | bot
-  const [activeChat, setActiveChat] = useState(MOCK_USERS[0]);
-  const [messages, setMessages] = useState(MOCK_MESSAGES);
+
+  const [activeTab, setActiveTab] = useState("chats");
+  const [conversations, setConversations] = useState([]);
+  const [messageableUsers, setMessageableUsers] = useState([]);
+  const [activeChat, setActiveChat] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [botMessages, setBotMessages] = useState([
-    { from: "bot", text: "👋 Hi! I'm **Bookbot** — your reading assistant. Ask me for book recommendations, writing tips, or anything book-related!", time: "now" },
-  ]);
-  const [botInput, setBotInput] = useState("");
-  const [requests, setRequests] = useState(MOCK_REQUESTS);
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [loadingMsgs, setLoadingMsgs] = useState(false);
+
+  // Bot
+  const [botMessages, setBotMessages] = useState([
+    { from: "bot", text: "Hi! I'm Bookbot — ask me for book recommendations or writing tips!", time: "now" },
+  ]);
+  const [botInput, setBotInput] = useState("");
   const [isBotTyping, setIsBotTyping] = useState(false);
+
   const chatEndRef = useRef(null);
   const botEndRef = useRef(null);
 
+  // Connect socket
+  useEffect(() => {
+    if (!user?._id) return;
+    socket.connect();
+    socket.emit("join", user._id);
+
+    socket.on("receiveMessage", (msg) => {
+      if (activeChat?._id === msg.senderId) {
+        setMessages(prev => [...prev, msg]);
+      } else {
+        toast(`💬 New message!`);
+      }
+      fetchConversations();
+    });
+
+    return () => {
+      socket.off("receiveMessage");
+      socket.disconnect();
+    };
+  }, [user, activeChat]);
+
+  useEffect(() => {
+    fetchConversations();
+    fetchMessageableUsers();
+  }, []);
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, activeChat]);
+  }, [messages]);
 
   useEffect(() => {
     botEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [botMessages]);
 
-  const sendMessage = () => {
+  const fetchConversations = async () => {
+    try {
+      const res = await axiosInstance.get(API_PATHS.MESSAGES.GET_CONVERSATIONS);
+      setConversations(res.data || []);
+    } catch {
+      console.error("Failed to load conversations");
+    }
+  };
+
+  const fetchMessageableUsers = async () => {
+    try {
+      const res = await axiosInstance.get(API_PATHS.MESSAGES.GET_USERS);
+      setMessageableUsers(res.data || []);
+    } catch {
+      console.error("Failed to load users");
+    }
+  };
+
+  const openChat = async (chatUser) => {
+    setActiveChat(chatUser);
+    setLoadingMsgs(true);
+    try {
+      const res = await axiosInstance.get(API_PATHS.MESSAGES.GET_MESSAGES(chatUser._id));
+      setMessages(res.data || []);
+    } catch {
+      toast.error("Failed to load messages");
+    } finally {
+      setLoadingMsgs(false);
+    }
+  };
+
+  const sendMessage = async () => {
     if (!input.trim() || !activeChat) return;
-    const newMsg = { from: "me", text: input, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) };
-    setMessages(prev => ({
-      ...prev,
-      [activeChat.id]: [...(prev[activeChat.id] || []), newMsg],
-    }));
+    const text = input;
     setInput("");
-    // Simulate reply after 1.2s
-    setTimeout(() => {
-      const reply = { from: "them", text: "That sounds amazing! 📚 Let's chat more about it.", time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) };
-      setMessages(prev => ({
-        ...prev,
-        [activeChat.id]: [...(prev[activeChat.id] || []), reply],
-      }));
-    }, 1200);
+
+    try {
+      const res = await axiosInstance.post(API_PATHS.MESSAGES.SEND_MESSAGE, {
+        receiverId: activeChat._id,
+        text,
+      });
+      const newMsg = res.data;
+      setMessages(prev => [...prev, newMsg]);
+
+      // Emit via socket for real-time
+      socket.emit("sendMessage", {
+        senderId: user._id,
+        receiverId: activeChat._id,
+        text,
+        messageId: newMsg._id,
+        createdAt: newMsg.createdAt,
+      });
+
+      fetchConversations();
+    } catch {
+      toast.error("Failed to send message");
+    }
   };
 
   const sendBotMessage = () => {
@@ -184,63 +196,45 @@ const MessagesPage = () => {
     setBotInput("");
     setIsBotTyping(true);
     setTimeout(() => {
-      const reply = { from: "bot", text: getBotReply(question), time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) };
-      setBotMessages(prev => [...prev, reply]);
+      setBotMessages(prev => [...prev, { from: "bot", text: getBotReply(question), time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }]);
       setIsBotTyping(false);
     }, 900);
   };
-
-  const acceptRequest = (id) => {
-    setRequests(prev => prev.filter(r => r.id !== id));
-    toast.success("Follow request accepted!");
-  };
-
-  const declineRequest = (id) => {
-    setRequests(prev => prev.filter(r => r.id !== id));
-    toast("Request declined");
-  };
-
-  const filteredUsers = MOCK_USERS.filter(u =>
-    u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.handle.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);
     navigate(`/editor/${bookId}`);
   };
 
-  const currentMessages = activeChat ? (messages[activeChat.id] || []) : [];
+  const filteredConversations = conversations.filter(c =>
+    c.user?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Users I can start new chat with (not already in conversations)
+  const conversationUserIds = new Set(conversations.map(c => c.user?._id?.toString()));
+  const newChatUsers = messageableUsers.filter(u => !conversationUserIds.has(u._id?.toString()));
 
   return (
-    <NewDashboardLayout onCreateBook={() => setIsCreateModalOpen(true)}hideTopbar={true}>
+    <NewDashboardLayout onCreateBook={() => setIsCreateModalOpen(true)} hideTopbar={true}>
       <div style={pageStyles.wrap}>
 
-        {/* ── LEFT PANEL ── */}
+        {/* LEFT PANEL */}
         <div style={pageStyles.leftPanel}>
-
-          {/* Header */}
           <div style={pageStyles.leftHeader}>
             <h2 style={pageStyles.leftTitle}>Messages</h2>
-            {requests.length > 0 && (
-              <div style={pageStyles.requestBadge}>{requests.length} requests</div>
-            )}
           </div>
 
           {/* Tabs */}
           <div style={pageStyles.tabs}>
             {[
-              { id: "chats",    label: "Chats",    icon: <MessageCircle size={13} /> },
-              { id: "requests", label: "Requests", icon: <UserPlus size={13} />, count: requests.length },
-              { id: "bot",      label: "Bookbot",  icon: <Bot size={13} /> },
+              { id: "chats", label: "Chats", icon: <MessageCircle size={13} /> },
+              { id: "bot", label: "Bookbot", icon: <Bot size={13} /> },
             ].map(tab => (
-              <button
-                key={tab.id}
+              <button key={tab.id}
                 style={{ ...pageStyles.tab, ...(activeTab === tab.id ? pageStyles.tabActive : {}) }}
                 onClick={() => setActiveTab(tab.id)}
               >
                 {tab.icon} {tab.label}
-                {tab.count > 0 && <span style={pageStyles.tabBadge}>{tab.count}</span>}
               </button>
             ))}
           </div>
@@ -258,104 +252,115 @@ const MessagesPage = () => {
             </div>
           )}
 
-          {/* Content by tab */}
           <div style={pageStyles.listWrap}>
-
-            {/* CHATS */}
             {activeTab === "chats" && (
-              filteredUsers.length === 0
-                ? <div style={pageStyles.emptyList}>No conversations found</div>
-                : filteredUsers.map(u => (
-                  <UserListItem
-                    key={u.id}
-                    user={u}
-                    active={activeChat?.id === u.id}
-                    onClick={() => { setActiveChat(u); setActiveTab("chats"); }}
-                  />
-                ))
-            )}
+              <>
+                {/* Existing conversations */}
+                {filteredConversations.map(conv => (
+                  <div key={conv.user._id}
+                    style={{
+                      ...listStyles.item,
+                      background: activeChat?._id === conv.user._id ? "linear-gradient(135deg, #fdf4ff, #fff7ed)" : "transparent",
+                      borderLeft: activeChat?._id === conv.user._id ? "3px solid #d946ef" : "3px solid transparent",
+                    }}
+                    onClick={() => openChat(conv.user)}
+                  >
+                    <div style={listStyles.avatar}>
+                      {getAvatar(conv.user.avatar)
+                        ? <img src={getAvatar(conv.user.avatar)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                        : conv.user.name?.charAt(0).toUpperCase()
+                      }
+                    </div>
+                    <div style={listStyles.info}>
+                      <div style={listStyles.name}>{conv.user.name}</div>
+                      <div style={listStyles.lastMsg}>{conv.lastMessage}</div>
+                    </div>
+                    <div style={listStyles.meta}>
+                      <div style={listStyles.time}>
+                        {conv.lastTime ? new Date(conv.lastTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                      </div>
+                      {conv.unread > 0 && <div style={listStyles.unread}>{conv.unread}</div>}
+                    </div>
+                  </div>
+                ))}
 
-            {/* FOLLOW REQUESTS */}
-            {activeTab === "requests" && (
-              requests.length === 0
-                ? (
+                {/* New chat users */}
+                {newChatUsers.length > 0 && (
+                  <>
+                    <div style={{ padding: "10px 16px 4px", fontSize: 11, color: "#9ca3af", fontWeight: 600, textTransform: "uppercase" }}>
+                      Start New Chat
+                    </div>
+                    {newChatUsers.map(u => (
+                      <div key={u._id}
+                        style={{ ...listStyles.item, borderLeft: "3px solid transparent" }}
+                        onClick={() => openChat(u)}
+                      >
+                        <div style={listStyles.avatar}>
+                          {getAvatar(u.avatar)
+                            ? <img src={getAvatar(u.avatar)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                            : u.name?.charAt(0).toUpperCase()
+                          }
+                        </div>
+                        <div style={listStyles.info}>
+                          <div style={listStyles.name}>{u.name}</div>
+                          <div style={listStyles.lastMsg}>Start a conversation</div>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {filteredConversations.length === 0 && newChatUsers.length === 0 && (
                   <div style={pageStyles.emptyList}>
-                    <UserCheck size={32} color="#d946ef" opacity={0.3} />
-                    <p style={{ marginTop: 10, fontSize: 13, color: "#9ca3af" }}>No pending requests</p>
+                    <MessageCircle size={32} color="#d946ef" opacity={0.3} />
+                    <p style={{ marginTop: 10, fontSize: 13, color: "#9ca3af" }}>
+                      Follow people to start chatting!
+                    </p>
                   </div>
-                )
-                : requests.map(r => (
-                  <div key={r.id} style={reqStyles.card}>
-                    <div style={{ ...reqStyles.avatar, background: `${r.color}22`, color: r.color }}>
-                      {r.name.charAt(0)}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={reqStyles.name}>{r.name}</div>
-                      <div style={reqStyles.handle}>{r.handle}</div>
-                      <div style={reqStyles.wants}>wants to follow you</div>
-                    </div>
-                    <div style={reqStyles.actions}>
-                      <button style={reqStyles.acceptBtn} onClick={() => acceptRequest(r.id)}>
-                        <UserCheck size={12} /> Accept
-                      </button>
-                      <button style={reqStyles.declineBtn} onClick={() => declineRequest(r.id)}>
-                        <X size={12} />
-                      </button>
-                    </div>
-                  </div>
-                ))
+                )}
+              </>
             )}
 
-            {/* BOOKBOT preview in list */}
             {activeTab === "bot" && (
-              <div
-                style={{ ...listStyles.item, background: "linear-gradient(135deg, #fdf4ff, #ede9fe)", borderLeft: "3px solid #d946ef", cursor: "pointer" }}
-                onClick={() => setActiveTab("bot")}
-              >
+              <div style={{ ...listStyles.item, background: "linear-gradient(135deg, #fdf4ff, #ede9fe)", borderLeft: "3px solid #d946ef" }}>
                 <div style={{ ...listStyles.avatar, background: "linear-gradient(135deg, #d946ef, #818cf8)", color: "#fff" }}>
                   <Bot size={16} />
                 </div>
                 <div style={listStyles.info}>
                   <div style={{ ...listStyles.name, color: "#d946ef" }}>Bookbot ✨</div>
-                  <div style={listStyles.lastMsg}>Ask me for book recommendations!</div>
+                  <div style={listStyles.lastMsg}>Ask me for recommendations!</div>
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* ── RIGHT: CHAT AREA ── */}
+        {/* CHAT AREA */}
         <div style={pageStyles.chatArea}>
 
-          {/* CHAT with user */}
+          {/* Real chat */}
           {activeTab === "chats" && activeChat && (
             <>
-              {/* Chat header */}
               <div style={chatStyles.header}>
-                <div style={{ ...chatStyles.headerAvatar, background: `${activeChat.color}22`, color: activeChat.color }}>
-                  {activeChat.name.charAt(0)}
+                <div style={chatStyles.headerAvatar}>
+                  {getAvatar(activeChat.avatar)
+                    ? <img src={getAvatar(activeChat.avatar)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                    : activeChat.name?.charAt(0).toUpperCase()
+                  }
                 </div>
                 <div>
                   <div style={chatStyles.headerName}>{activeChat.name}</div>
-                  <div style={chatStyles.headerHandle}>{activeChat.handle}</div>
+                  <div style={chatStyles.headerHandle}>@{activeChat.name?.toLowerCase().replace(/\s+/g, "_")}</div>
                 </div>
-                <button
-                  style={chatStyles.followBtn}
-                  onClick={() => toast.success(`Following ${activeChat.name}!`)}
-                >
-                  <UserPlus size={13} /> Follow
-                </button>
-                <button
-                  style={chatStyles.profileBtn}
-                  onClick={() => navigate(`/profile`)}
-                >
+                <button style={chatStyles.profileBtn} onClick={() => navigate(`/profile/${activeChat._id}`)}>
                   View Profile <ChevronRight size={13} />
                 </button>
               </div>
 
-              {/* Messages */}
               <div style={chatStyles.messages}>
-                {currentMessages.length === 0 ? (
+                {loadingMsgs ? (
+                  <div style={{ textAlign: "center", color: "#9ca3af", fontSize: 13, marginTop: 40 }}>Loading messages...</div>
+                ) : messages.length === 0 ? (
                   <div style={chatStyles.emptyChat}>
                     <MessageCircle size={40} color="#d946ef" opacity={0.2} />
                     <p style={{ fontSize: 14, color: "#9ca3af", marginTop: 10 }}>
@@ -363,12 +368,17 @@ const MessagesPage = () => {
                     </p>
                   </div>
                 ) : (
-                  currentMessages.map((msg, i) => <ChatBubble key={i} msg={msg} />)
+                  messages.map((msg, i) => (
+                    <ChatBubble
+                      key={msg._id || i}
+                      msg={msg}
+                      isMe={msg.senderId?.toString() === user._id?.toString() || msg.senderId === user._id}
+                    />
+                  ))
                 )}
                 <div ref={chatEndRef} />
               </div>
 
-              {/* Input */}
               <div style={chatStyles.inputWrap}>
                 <input
                   style={chatStyles.input}
@@ -388,7 +398,7 @@ const MessagesPage = () => {
             </>
           )}
 
-          {/* BOOKBOT chat */}
+          {/* Bot chat */}
           {activeTab === "bot" && (
             <>
               <div style={chatStyles.header}>
@@ -399,38 +409,29 @@ const MessagesPage = () => {
                   <div style={{ ...chatStyles.headerName, color: "#d946ef" }}>Bookbot ✨</div>
                   <div style={chatStyles.headerHandle}>Your AI reading assistant</div>
                 </div>
-                <div style={botStyles.badge}>
-                  <Sparkles size={11} /> AI Powered
-                </div>
+                <div style={botStyles.badge}><Sparkles size={11} /> AI Powered</div>
               </div>
 
-              {/* Bot quick prompts */}
               <div style={botStyles.prompts}>
-                {["Recommend a fantasy book 🐉", "Give me a writing tip ✍️", "Best romance novels 💕"].map((p, i) => (
-                  <button
-                    key={i}
-                    style={botStyles.promptBtn}
+                {["Recommend a fantasy book", "Give me a writing tip ", "Best romance novels "].map((p, i) => (
+                  <button key={i} style={botStyles.promptBtn}
                     onClick={() => {
-                      setBotInput(p);
+                      const userMsg = { from: "me", text: p, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) };
+                      setBotMessages(prev => [...prev, userMsg]);
+                      setIsBotTyping(true);
                       setTimeout(() => {
-                        const userMsg = { from: "me", text: p, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) };
-                        setBotMessages(prev => [...prev, userMsg]);
-                        setIsBotTyping(true);
-                        setTimeout(() => {
-                          setBotMessages(prev => [...prev, { from: "bot", text: getBotReply(p), time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }]);
-                          setIsBotTyping(false);
-                        }, 900);
-                        setBotInput("");
-                      }, 50);
+                        setBotMessages(prev => [...prev, { from: "bot", text: getBotReply(p), time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }]);
+                        setIsBotTyping(false);
+                      }, 900);
                     }}
-                  >
-                    {p}
-                  </button>
+                  >{p}</button>
                 ))}
               </div>
 
               <div style={chatStyles.messages}>
-                {botMessages.map((msg, i) => <ChatBubble key={i} msg={msg} />)}
+                {botMessages.map((msg, i) => (
+                  <ChatBubble key={i} msg={msg} isMe={msg.from === "me"} />
+                ))}
                 {isBotTyping && (
                   <div style={{ display: "flex", gap: 4, padding: "8px 14px", alignItems: "center" }}>
                     <div style={botStyles.typingDot} />
@@ -461,14 +462,12 @@ const MessagesPage = () => {
             </>
           )}
 
-          {/* REQUESTS tab — show placeholder in chat area */}
-          {activeTab === "requests" && (
+          {/* No chat selected */}
+          {activeTab === "chats" && !activeChat && (
             <div style={chatStyles.emptyChat}>
-              <UserPlus size={48} color="#d946ef" opacity={0.2} />
-              <p style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginTop: 14 }}>Follow Requests</p>
-              <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 4 }}>
-                {requests.length > 0 ? `You have ${requests.length} pending request${requests.length > 1 ? "s" : ""}` : "No pending requests"}
-              </p>
+              <MessageCircle size={48} color="#d946ef" opacity={0.2} />
+              <p style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginTop: 14 }}>Select a conversation</p>
+              <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 4 }}>Choose someone from the left to start chatting!</p>
             </div>
           )}
         </div>
@@ -483,195 +482,52 @@ const MessagesPage = () => {
   );
 };
 
-// ── Styles ────────────────────────────────────────────────────────────────────
+// Styles (same as before)
 const pageStyles = {
-  wrap: { display: "flex", height: "calc(100vh - 58px)", background: "#fdfaff", overflow: "hidden" },
-  leftPanel: {
-    width: 300, borderRight: "1px solid #f3e8ff",
-    background: "#fff", display: "flex", flexDirection: "column", flexShrink: 0,
-  },
-  leftHeader: {
-    padding: "20px 18px 12px",
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-  },
+  wrap: { display: "flex", height: "100vh", background: "#fdfaff", overflow: "hidden" },
+  leftPanel: { width: 300, borderRight: "1px solid #f3e8ff", background: "#fff", display: "flex", flexDirection: "column", flexShrink: 0 },
+  leftHeader: { padding: "20px 18px 12px", display: "flex", alignItems: "center", justifyContent: "space-between" },
   leftTitle: { fontSize: 18, fontWeight: 700, color: "#111827", margin: 0 },
-  requestBadge: {
-    fontSize: 11, fontWeight: 600, color: "#d946ef",
-    background: "#fdf4ff", border: "1px solid #f3e8ff",
-    padding: "3px 8px", borderRadius: 20,
-  },
   tabs: { display: "flex", gap: 4, padding: "0 12px 12px" },
-  tab: {
-    display: "flex", alignItems: "center", gap: 5,
-    flex: 1, padding: "7px 6px", borderRadius: 10,
-    border: "1px solid #f3e8ff", background: "#fdfaff",
-    fontSize: 11, fontWeight: 500, color: "#6b7280",
-    cursor: "pointer", fontFamily: "inherit", justifyContent: "center",
-    position: "relative",
-  },
-  tabActive: {
-    background: "linear-gradient(135deg, #d946ef, #fb923c)",
-    color: "#fff", border: "1px solid transparent",
-    boxShadow: "0 2px 8px rgba(217,70,239,0.3)",
-  },
-  tabBadge: {
-    position: "absolute", top: -4, right: -4,
-    background: "#ef4444", color: "#fff",
-    fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 10,
-  },
+  tab: { display: "flex", alignItems: "center", gap: 5, flex: 1, padding: "7px 6px", borderRadius: 10, border: "1px solid #f3e8ff", background: "#fdfaff", fontSize: 11, fontWeight: 500, color: "#6b7280", cursor: "pointer", fontFamily: "inherit", justifyContent: "center" },
+  tabActive: { background: "linear-gradient(135deg, #d946ef, #fb923c)", color: "#fff", border: "1px solid transparent", boxShadow: "0 2px 8px rgba(217,70,239,0.3)" },
   searchWrap: { position: "relative", margin: "0 12px 10px" },
   searchIcon: { position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none" },
-  searchInput: {
-    width: "100%", background: "#fdfaff", border: "1px solid #f3e8ff",
-    borderRadius: 20, padding: "7px 14px 7px 30px", fontSize: 12,
-    fontFamily: "inherit", color: "#111827", outline: "none",
-    boxSizing: "border-box",
-  },
+  searchInput: { width: "100%", background: "#fdfaff", border: "1px solid #f3e8ff", borderRadius: 20, padding: "7px 14px 7px 30px", fontSize: 12, fontFamily: "inherit", color: "#111827", outline: "none", boxSizing: "border-box" },
   listWrap: { flex: 1, overflowY: "auto" },
-  emptyList: {
-    display: "flex", flexDirection: "column", alignItems: "center",
-    justifyContent: "center", padding: "40px 20px",
-    fontSize: 13, color: "#9ca3af", textAlign: "center",
-  },
+  emptyList: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px", fontSize: 13, color: "#9ca3af", textAlign: "center" },
   chatArea: { flex: 1, display: "flex", flexDirection: "column", minWidth: 0 },
 };
 
 const listStyles = {
-  item: {
-    display: "flex", alignItems: "center", gap: 10,
-    padding: "12px 16px", cursor: "pointer",
-    borderBottom: "1px solid #fdf4ff",
-    transition: "background 0.1s",
-  },
-  avatar: {
-    width: 40, height: 40, borderRadius: "50%",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: 15, fontWeight: 700, flexShrink: 0,
-  },
+  item: { display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", cursor: "pointer", borderBottom: "1px solid #fdf4ff", transition: "background 0.1s" },
+  avatar: { width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg, #d946ef, #fb923c)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 700, color: "#fff", flexShrink: 0, overflow: "hidden" },
   info: { flex: 1, minWidth: 0 },
   name: { fontSize: 13, fontWeight: 600, color: "#111827" },
   lastMsg: { fontSize: 11, color: "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 2 },
   meta: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 },
   time: { fontSize: 10, color: "#9ca3af" },
-  unread: {
-    background: "linear-gradient(135deg, #d946ef, #fb923c)",
-    color: "#fff", fontSize: 10, fontWeight: 700,
-    padding: "2px 6px", borderRadius: 20,
-  },
+  unread: { background: "linear-gradient(135deg, #d946ef, #fb923c)", color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 20 },
 };
 
 const chatStyles = {
-  header: {
-    padding: "14px 20px",
-    borderBottom: "1px solid #f3e8ff",
-    display: "flex", alignItems: "center", gap: 12,
-    background: "#fff", flexShrink: 0,
-  },
-  headerAvatar: {
-    width: 40, height: 40, borderRadius: "50%",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: 16, fontWeight: 700, flexShrink: 0,
-  },
+  header: { padding: "14px 20px", borderBottom: "1px solid #f3e8ff", display: "flex", alignItems: "center", gap: 12, background: "#fff", flexShrink: 0 },
+  headerAvatar: { width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg, #d946ef, #fb923c)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700, color: "#fff", flexShrink: 0, overflow: "hidden" },
   headerName: { fontSize: 14, fontWeight: 700, color: "#111827" },
   headerHandle: { fontSize: 11, color: "#9ca3af" },
-  followBtn: {
-    display: "flex", alignItems: "center", gap: 5,
-    marginLeft: "auto", padding: "6px 14px",
-    background: "linear-gradient(135deg, #d946ef, #fb923c)",
-    color: "#fff", border: "none", borderRadius: 20,
-    fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-    boxShadow: "0 2px 8px rgba(217,70,239,0.3)",
-  },
-  profileBtn: {
-    display: "flex", alignItems: "center", gap: 4,
-    padding: "6px 12px",
-    background: "#fdfaff", border: "1px solid #f3e8ff",
-    color: "#6b7280", borderRadius: 20,
-    fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
-  },
-  messages: {
-    flex: 1, overflowY: "auto",
-    padding: "20px 24px",
-    background: "#fdfaff",
-  },
-  emptyChat: {
-    flex: 1, display: "flex", flexDirection: "column",
-    alignItems: "center", justifyContent: "center",
-    background: "#fdfaff",
-  },
-  inputWrap: {
-    display: "flex", gap: 10, alignItems: "center",
-    padding: "14px 20px",
-    borderTop: "1px solid #f3e8ff",
-    background: "#fff", flexShrink: 0,
-  },
-  input: {
-    flex: 1, background: "#fdfaff", border: "1px solid #f3e8ff",
-    borderRadius: 24, padding: "10px 18px",
-    fontSize: 13, fontFamily: "inherit", color: "#111827", outline: "none",
-  },
-  sendBtn: {
-    width: 40, height: 40, borderRadius: "50%",
-    background: "linear-gradient(135deg, #d946ef, #fb923c)",
-    border: "none", display: "flex", alignItems: "center", justifyContent: "center",
-    cursor: "pointer", boxShadow: "0 2px 8px rgba(217,70,239,0.3)",
-    flexShrink: 0,
-  },
-};
-
-const reqStyles = {
-  card: {
-    display: "flex", alignItems: "center", gap: 10,
-    padding: "12px 16px", borderBottom: "1px solid #fdf4ff",
-  },
-  avatar: {
-    width: 40, height: 40, borderRadius: "50%",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: 15, fontWeight: 700, flexShrink: 0,
-  },
-  name: { fontSize: 13, fontWeight: 600, color: "#111827" },
-  handle: { fontSize: 11, color: "#9ca3af" },
-  wants: { fontSize: 11, color: "#d946ef", marginTop: 2 },
-  actions: { display: "flex", gap: 6, flexShrink: 0 },
-  acceptBtn: {
-    display: "flex", alignItems: "center", gap: 4,
-    padding: "5px 10px", borderRadius: 20,
-    background: "linear-gradient(135deg, #d946ef, #fb923c)",
-    color: "#fff", border: "none", fontSize: 11, fontWeight: 600,
-    cursor: "pointer", fontFamily: "inherit",
-  },
-  declineBtn: {
-    width: 28, height: 28, borderRadius: "50%",
-    background: "#fdf4ff", border: "1px solid #f3e8ff",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    cursor: "pointer", color: "#9ca3af",
-  },
+  profileBtn: { display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", background: "#fdfaff", border: "1px solid #f3e8ff", color: "#6b7280", borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit", marginLeft: "auto" },
+  messages: { flex: 1, overflowY: "auto", padding: "20px 24px", background: "#fdfaff" },
+  emptyChat: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#fdfaff" },
+  inputWrap: { display: "flex", gap: 10, alignItems: "center", padding: "14px 20px", borderTop: "1px solid #f3e8ff", background: "#fff", flexShrink: 0 },
+  input: { flex: 1, background: "#fdfaff", border: "1px solid #f3e8ff", borderRadius: 24, padding: "10px 18px", fontSize: 13, fontFamily: "inherit", color: "#111827", outline: "none" },
+  sendBtn: { width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg, #d946ef, #fb923c)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 2px 8px rgba(217,70,239,0.3)", flexShrink: 0 },
 };
 
 const botStyles = {
-  badge: {
-    display: "flex", alignItems: "center", gap: 4,
-    fontSize: 11, fontWeight: 600, color: "#818cf8",
-    background: "#ede9fe", padding: "4px 10px", borderRadius: 20,
-    marginLeft: "auto",
-  },
-  prompts: {
-    display: "flex", gap: 8, padding: "10px 20px",
-    borderBottom: "1px solid #f3e8ff",
-    flexWrap: "wrap", background: "#fff", flexShrink: 0,
-  },
-  promptBtn: {
-    padding: "6px 12px", borderRadius: 20,
-    border: "1px solid #f3e8ff", background: "#fdfaff",
-    fontSize: 11, fontWeight: 500, color: "#6b7280",
-    cursor: "pointer", fontFamily: "inherit",
-    transition: "all 0.15s",
-  },
-  typingDot: {
-    width: 7, height: 7, borderRadius: "50%",
-    background: "#d946ef", opacity: 0.6,
-    animation: "bounce 0.6s infinite alternate",
-  },
+  badge: { display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, color: "#818cf8", background: "#ede9fe", padding: "4px 10px", borderRadius: 20, marginLeft: "auto" },
+  prompts: { display: "flex", gap: 8, padding: "10px 20px", borderBottom: "1px solid #f3e8ff", flexWrap: "wrap", background: "#fff", flexShrink: 0 },
+  promptBtn: { padding: "6px 12px", borderRadius: 20, border: "1px solid #f3e8ff", background: "#fdfaff", fontSize: 11, fontWeight: 500, color: "#6b7280", cursor: "pointer", fontFamily: "inherit" },
+  typingDot: { width: 7, height: 7, borderRadius: "50%", background: "#d946ef", opacity: 0.6, animation: "bounce 0.6s infinite alternate" },
 };
 
 export default MessagesPage;
