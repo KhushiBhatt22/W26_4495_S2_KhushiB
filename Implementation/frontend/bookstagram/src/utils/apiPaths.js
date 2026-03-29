@@ -64,4 +64,8 @@ export const API_PATHS = {
     SEND_MESSAGE: "/api/messages/send",
     GET_USERS: "/api/messages/users",
   },
+  SURVEY: {
+    SUBMIT: "/api/survey-feedback/submit",
+    ANALYTICS: "/api/survey-feedback/analytics",
+  },
 };
