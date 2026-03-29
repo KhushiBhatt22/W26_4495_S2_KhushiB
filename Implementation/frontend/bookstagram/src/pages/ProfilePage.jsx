@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Book, Users, UserCheck} from "lucide-react";
+import { Book, Users, UserCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../utils/axiosInstance";
@@ -96,7 +96,7 @@ const ProfilePage = () => {
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);
     setSurveyBookId(bookId);
-    navigate(`/editor/${bookId}`);
+    // navigate(`/editor/${bookId}`);
   };
   const handleDeleteBook = async (bookId) => {
     try {
@@ -131,13 +131,12 @@ const ProfilePage = () => {
         <SurveyModal
           bookId={surveyBookId}
           onClose={() => {
-            const id = surveyBookId;
+            const id = surveyBookId; 
             setSurveyBookId(null);
             navigate(`/editor/${id}`);
           }}
         />
       )}
-
       {/* ── Profile Header ── */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-8">

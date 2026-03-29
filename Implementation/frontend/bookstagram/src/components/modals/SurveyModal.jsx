@@ -26,7 +26,7 @@ const SurveyModal = ({ bookId, onClose }) => {
     setLoading(true);
     try {
       await axiosInstance.post(API_PATHS.SURVEY.SUBMIT, { bookId, ...form, age: parseInt(form.age) });
-      toast.success("Thanks for your feedback! 🎉");
+      toast.success("Thanks for your feedback! ");
       onClose();
     } catch {
       toast.error("Failed to submit survey");
@@ -128,7 +128,7 @@ const SurveyModal = ({ bookId, onClose }) => {
         {/* Step 2 — About Your Book */}
         {step === 2 && (
           <div>
-            <h3 style={s.stepTitle}>📚 About Your Book</h3>
+            <h3 style={s.stepTitle}>About Your Book</h3>
 
             {/* Genre */}
             <div style={s.field}>
@@ -200,7 +200,7 @@ const SurveyModal = ({ bookId, onClose }) => {
         {/* Step 3 — Experience */}
         {step === 3 && (
           <div>
-            <h3 style={s.stepTitle}>⭐ Your Experience</h3>
+            <h3 style={s.stepTitle}>Your Experience</h3>
 
             {/* Rating */}
             <div style={s.field}>
@@ -237,7 +237,7 @@ const SurveyModal = ({ bookId, onClose }) => {
                 disabled={!form.rating || !form.wouldRecommend || loading}
                 style={{ ...s.nextBtn, flex: 1, opacity: form.rating && form.wouldRecommend ? 1 : 0.5 }}
               >
-                {loading ? "Submitting..." : "Submit 🎉"}
+                {loading ? "Submitting..." : "Submit "}
               </button>
             </div>
 

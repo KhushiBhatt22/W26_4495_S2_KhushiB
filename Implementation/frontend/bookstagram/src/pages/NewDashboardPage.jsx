@@ -490,8 +490,9 @@ const NewDashboardPage = () => {
         <SurveyModal
           bookId={surveyBookId}
           onClose={() => {
+            const id = surveyBookId; 
             setSurveyBookId(null);
-            navigate(`/editor/${surveyBookId}`);
+            navigate(`/editor/${id}`); 
           }}
         />
       )}
