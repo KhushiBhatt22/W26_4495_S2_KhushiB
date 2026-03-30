@@ -164,6 +164,43 @@ const generateStoryImage = async (req, res) => {
     res.status(500).json({ message: "Server error during image generation" });
   }
 };
+ 
+// @desc    Generate a colorful chapter/book header image
+// @route   POST /api/ai/generate-chapter-image
+// @access  Private
+const generateChapterImage = async (req, res) => {
+  try {
+    const { title, description, bookTitle } = req.body;
+    if (!title) return res.status(400).json({ message: "Please provide a title" });
+
+    const prompt = `Colorful vibrant illustration for a book chapter titled "${title}"${
+      bookTitle ? ` from the book "${bookTitle}"` : ""
+    }${
+      description ? `. Chapter is about: ${description}` : ""
+    }. Style: bright colors, professional book illustration, engaging, artistic, high quality header image`;
+
+    const blob = await hf.textToImage({
+      model: "black-forest-labs/FLUX.1-schnell",
+      inputs: prompt,
+    });
+
+    // Upload to Cloudinary instead of returning base64
+    const buffer = Buffer.from(await blob.arrayBuffer());
+    const base64 = buffer.toString("base64");
+    const dataUri = `data:image/png;base64,${base64}`;
+
+    const { cloudinary } = require("../config/cloudinary");
+    const uploadResult = await cloudinary.uploader.upload(dataUri, {
+      folder: "bookstagram/chapter-images",
+      transformation: [{ width: 1200, crop: "limit" }],
+    });
+
+    res.status(200).json({ imageUrl: uploadResult.secure_url });
+  } catch (error) {
+    console.error("Error generating chapter image:", error.message);
+    res.status(500).json({ message: "Server error during chapter image generation" });
+  }
+};
 
 
 // @desc    Complete a chapter that the user has already started writing
@@ -387,6 +424,7 @@ module.exports = {
   editAvatar,
   generateChapterContent,
   generateStoryImage,
+  generateChapterImage,
   completeChapterContent,
   generateAvatar,
   improveThread,
