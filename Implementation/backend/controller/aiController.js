@@ -317,8 +317,74 @@ Return ONLY a valid JSON object like this (no extra text):
     res.status(500).json({ message: "Server error" });
   }
 };
+//-------------------EDIT AVATAR
+// @desc    Edit avatar with action prompt using Gemini + FLUX
+// @route   POST /api/ai/edit-avatar
+// @access  Private
+const editAvatar = async (req, res) => {
+  try {
+    const { avatarImageBase64, actionPrompt, style } = req.body;
+
+    if (!avatarImageBase64 || !actionPrompt) {
+      return res.status(400).json({ message: "Avatar image and action prompt are required" });
+    }
+
+    const styleDescriptions = {
+      cartoon: "cartoon style, vibrant colors, Disney-like animation",
+      sketch: "pencil sketch style, black and white, fine lines",
+      storyboard: "comic book style, bold outlines, graphic novel",
+      colorful: "pop-art style, bold vivid colors, colorful illustration",
+    };
+
+    // Strip base64 header if present
+    const base64Data = avatarImageBase64.replace(/^data:image\/\w+;base64,/, "");
+
+    // Step 1 — Gemini analyzes the avatar and combines with action
+    const geminiResponse = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: [
+        {
+          parts: [
+            {
+              inlineData: {
+                mimeType: "image/png",
+                data: base64Data,
+              },
+            },
+            {
+              text: `This is a ${styleDescriptions[style] || styleDescriptions.cartoon} avatar. 
+              Describe this avatar's appearance in detail (hair, eyes, clothing, art style) in 2-3 sentences.
+              Then describe them doing this action: "${actionPrompt}".
+              Write it as a single image generation prompt. Be specific and vivid.`,
+            },
+          ],
+        },
+      ],
+    });
+
+    const enrichedPrompt = geminiResponse.text;
+
+    // Step 2 — FLUX generates the scene
+    const blob = await hf.textToImage({
+      model: "black-forest-labs/FLUX.1-schnell",
+      inputs: `${enrichedPrompt}, high quality, detailed, professional illustration`,
+    });
+
+    const buffer = Buffer.from(await blob.arrayBuffer());
+    const base64 = buffer.toString("base64");
+
+    res.status(200).json({ editedImageUrl: `data:image/png;base64,${base64}` });
+
+  } catch (error) {
+    console.error("Error editing avatar:", error.message);
+    res.status(500).json({ message: "Server error during avatar editing" });
+  }
+};
+
+
 module.exports = {
   generateOutline,
+  editAvatar,
   generateChapterContent,
   generateStoryImage,
   completeChapterContent,
