@@ -451,7 +451,17 @@ const SettingsPage = () => {
             </button>
             <button
               style={formStyles.deleteBtn}
-              onClick={() => toast.error("Please contact support to delete your account")}
+              onClick={async () => {
+                const confirmed = window.confirm("Are you sure? This will delete all your data permanently.");
+                if (!confirmed) return;
+                try {
+                  await axiosInstance.delete(API_PATHS.AUTH.DELETE_ACCOUNT);
+                  toast.success("Account deleted");
+                  logout();
+                } catch (err) {
+                  toast.error(err.response?.data?.message || "Failed to delete account");
+                }
+              }}
             >
               Delete Account
             </button>

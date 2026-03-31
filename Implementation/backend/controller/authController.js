@@ -180,3 +180,34 @@ exports.changePassword = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// @desc    Delete account
+// @route   DELETE /api/auth/account
+// @access  Private
+exports.deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const Follow = require("../models/Follow");
+    const Like = require("../models/Like");
+    const Book = require("../models/Book");
+    const Message = require("../models/Message");
+    const ActivityLog = require("../models/ActivityLog");
+
+    // Delete all user data
+    await Promise.all([
+      Follow.deleteMany({ $or: [{ follower: userId }, { following: userId }] }),
+      Like.deleteMany({ userId }),
+      Book.deleteMany({ userId }),
+      Message.deleteMany({ $or: [{ senderId: userId }, { receiverId: userId }] }),
+      ActivityLog.deleteMany({ userId }),
+    ]);
+
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: "Account deleted successfully" });
+  } catch (error) {
+    console.error("deleteAccount error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

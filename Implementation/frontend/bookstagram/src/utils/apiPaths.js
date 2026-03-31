@@ -8,6 +8,8 @@ export const API_PATHS = {
     GET_PROFILE: "/api/auth/profile",
     UPDATE_PROFILE: "/api/auth/profile",
     CHANGE_PASSWORD: "/api/auth/change-password",
+    DELETE_ACCOUNT: "/api/auth/delete",
+    UPLOAD_AVATAR: "/api/auth/profile/photo",
   },
   BOOKS: {
     CREATE_BOOK: "/api/books",
