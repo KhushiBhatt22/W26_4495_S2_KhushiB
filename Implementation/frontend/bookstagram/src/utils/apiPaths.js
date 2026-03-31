@@ -40,6 +40,7 @@ export const API_PATHS = {
     LIKE: "/api/social/like",
     UNLIKE: "/api/social/like",
     SUGGESTED: "/api/social/suggested",
+    SEARCH: "/api/social/search",
     FEED: "/api/social/feed",    // books from followed users only
     GET_FOLLOWERS: "/api/social/followers",  // Followers lists
     GET_FOLLOWING: "/api/social/following",  // Followning lists
