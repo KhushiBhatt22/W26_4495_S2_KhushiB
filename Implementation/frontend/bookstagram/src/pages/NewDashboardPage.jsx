@@ -357,6 +357,7 @@ const NewDashboardPage = () => {
 
         {/* ── CENTER FEED ── */}
         <div style={pageStyles.feed}>
+          <div style={{ width: "100%", maxWidth:1000}}>
           <div style={pageStyles.feedLabel}>
             <Sparkles size={12} style={{ marginRight: 5, color: "#d946ef" }} />
             Books from people you follow
@@ -402,6 +403,7 @@ const NewDashboardPage = () => {
               />
             ))
           )}
+          </div>
         </div>
 
         {/* ── RIGHT PANEL ── */}
@@ -512,7 +514,7 @@ const NewDashboardPage = () => {
 // ── Styles ────────────────────────────────────────────────────────────────────
 const pageStyles = {
   wrap: { display: "flex", minHeight: "100%", background: "#fdfaff" },
-  feed: { flex: 1, padding: "24px 28px", minWidth: 0 },
+  feed: { flex: 2, padding: "24px 8px", minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center" },
   feedLabel: {
     display: "inline-flex", alignItems: "center",
     fontSize: 11, fontWeight: 600, letterSpacing: "0.5px",
@@ -557,6 +559,7 @@ const cardStyles = {
     background: "#ffffff", border: "1px solid #f3e8ff",
     borderRadius: 16, marginBottom: 18, overflow: "hidden",
     boxShadow: "0 1px 8px rgba(217,70,239,0.06)",
+    maxWidth: 1000, width: "100%",
   },
   header: { display: "flex", alignItems: "center", gap: 10, padding: "12px 14px" },
   authorAvatar: {
@@ -569,8 +572,8 @@ const cardStyles = {
   authorName: { fontSize: 13, fontWeight: 600, color: "#111827" },
   authorHandle: { fontSize: 11, color: "#9ca3af" },
   coverWrap: {
-    position: "relative", width: "100%", aspectRatio: "3/4",
-    cursor: "pointer", overflow: "hidden", background: "#fdf4ff",
+    position: "relative", width: "100%", height: 320,
+    cursor: "pointer", overflow: "hidden", background: "#1a1a2e",
   },
   coverImg: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
   coverPlaceholder: {

@@ -13,12 +13,12 @@ const coverImageUrl = book.coverImage || null;
       className="group relative bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-gray-200 transition-all duration-300 hover:shadow-xl hover:shadow-gray-100/50 hover:-translate-y-1 cursor-pointer"
       onClick={() => navigate(`/view-book/${book._id}`)}
     >
-      <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="relative overflow-hidden bg-black flex items-center justify-center">
         {coverImageUrl ? (
           <img 
             src={coverImageUrl}
             alt={book.title} 
-            className="w-full aspect-[16/25] object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full aspect-[16/25] object-contain transition-transform duration-500 group-hover:scale-105"
             onError={(e) => { e.target.style.display = 'none' }}
           />
         ) : (
