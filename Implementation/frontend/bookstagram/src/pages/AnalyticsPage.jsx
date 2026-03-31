@@ -8,7 +8,7 @@ import axiosInstance from "../utils/axiosInstance";
 import { API_PATHS } from "../utils/apiPaths";
 import NewDashboardLayout from "../components/layout/NewDashboardLayout";
 
-const BASE_URL = "http://localhost:8000";
+import { BASE_URL } from "../utils/apiPaths";
 const COLORS = ["#d946ef", "#fb923c", "#6366f1", "#10b981", "#f59e0b", "#ef4444"];
 
 const StatCard = ({ icon, label, value, gradient }) => (

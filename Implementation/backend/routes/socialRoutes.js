@@ -15,18 +15,15 @@ const {
   getFollowing,
 } = require("../controller/socialController");
 
-router.get("/feed", protect, getFeed);
+router.get("/feed", protect, trackActivity("view_feed"), getFeed);
 router.get("/suggested", protect, getSuggestedUsers);
 router.get("/profile/:userId", protect, getUserProfile);
-router.post("/follow/:userId", protect, followUser);
-router.delete("/follow/:userId", protect, unfollowUser);
+router.post("/follow/:userId", protect, trackActivity("follow"), followUser);
+router.delete("/follow/:userId", protect, trackActivity("unfollow"), unfollowUser);
 router.get("/follow-status/:userId", protect, getFollowStatus);
-router.post("/like/:bookId", protect, likeBook);
-router.delete("/like/:bookId", protect, unlikeBook);
+router.post("/like/:bookId", protect, trackActivity("like"), likeBook);
+router.delete("/like/:bookId", protect, trackActivity("unlike"), unlikeBook);
 router.get("/followers/:userId", protect, getFollowers);
 router.get("/following/:userId", protect, getFollowing);
-router.post("/follow/:userId", protect, trackActivity("follow"), followUser);
-router.post("/like/:bookId", protect, trackActivity("like"), likeBook);
-router.delete("/unlike/:bookId", protect, trackActivity("unlike"), unlikeBook);
 
 module.exports = router;

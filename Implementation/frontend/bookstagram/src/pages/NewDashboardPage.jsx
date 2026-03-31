@@ -570,9 +570,10 @@ const cardStyles = {
   authorHandle: { fontSize: 11, color: "#9ca3af" },
   coverWrap: {
     position: "relative", width: "100%", aspectRatio: "3/4",
-    cursor: "pointer", overflow: "hidden", background: "#fdf4ff",
+    cursor: "pointer", overflow: "hidden", background: "#0d0d0d",
+    display: "flex", alignItems: "center", justifyContent: "center",
   },
-  coverImg: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
+  coverImg: { width: "100%", height: "100%", objectFit: "contain", display: "block" },
   coverPlaceholder: {
     width: "100%", height: "100%",
     display: "flex", alignItems: "center", justifyContent: "center",
