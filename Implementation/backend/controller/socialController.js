@@ -105,6 +105,35 @@ exports.getUserProfile = async (req, res) => {
   }
 };
 
+exports.searchUsersAndBooks = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 2) return res.json({ users: [], books: [] });
+
+    const query = q.trim();
+
+    const [users, books] = await Promise.all([
+      User.find({
+        name: { $regex: query, $options: "i" },
+        _id: { $ne: req.user._id },
+      })
+        .select("name avatar bio")
+        .limit(5),
+
+      Book.find({
+        title: { $regex: query, $options: "i" },
+      })
+        .populate("userId", "name avatar")
+        .select("title coverImage userId")
+        .limit(5),
+    ]);
+
+    res.json({ users, books });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // ─── Feed ─────────────────────────────────────────────────────────────────────
 
 exports.getFeed = async (req, res) => {
