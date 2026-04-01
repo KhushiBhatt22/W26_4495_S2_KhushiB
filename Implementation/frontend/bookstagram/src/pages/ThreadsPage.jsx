@@ -19,23 +19,23 @@ const getAvatarUrl = (avatar) => {
   if (!avatar) return null;
   // Agar Cloudinary URL hai, toh direct return karo (Perfect for your new setup)
   if (avatar.startsWith("http") || avatar.startsWith("https")) return avatar;
-  
+
   // Agar local file hai, toh proper slashes ke sath backend URL banao
   if (avatar.startsWith("/")) return `${BASE_URL}${avatar}`;
-  return `${BASE_URL}/uploads/${avatar}`; 
+  return `${BASE_URL}/uploads/${avatar}`;
 };
 
 const getImageUrl = (img) => {
   if (!img) return null;
   // Agar Cloudinary URL hai, toh direct return karo
   if (img.startsWith("http") || img.startsWith("https") || img.startsWith("data:")) return img;
-  
+
   // Purani local images ke path fix
   if (img.startsWith("/backend")) return `${BASE_URL}${img}`;
   if (img.startsWith("/")) return `${BASE_URL}${img}`;
-  
+
   // Default fallback for old filenames
-  return `${BASE_URL}/backend/uploads/${img}`; 
+  return `${BASE_URL}/backend/uploads/${img}`;
 };
 const timeAgo = (date) => {
   const seconds = Math.floor((new Date() - new Date(date)) / 1000);
@@ -74,7 +74,7 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment, onDelete
 
   //error check for upload
   console.log("Thread Images Array:", images);
-console.log("Avatar URL:", getAvatarUrl(authorAvatar));
+  console.log("Avatar URL:", getAvatarUrl(authorAvatar));
 
   return (
     <div style={cardStyles.card}>
@@ -122,13 +122,13 @@ console.log("Avatar URL:", getAvatarUrl(authorAvatar));
       <div style={cardStyles.header}>
         <div style={cardStyles.avatarWrap}>
           {authorAvatar ? (
-  <img 
-    src={getAvatarUrl(authorAvatar)} 
-    alt={authorName}
-    style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
-    
-  />
-) : (
+            <img
+              src={getAvatarUrl(authorAvatar)}
+              alt={authorName}
+              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+
+            />
+          ) : (
             <span style={{ color: "#fff", fontWeight: 700 }}>{authorName.charAt(0)}</span>
           )}
         </div>
@@ -181,7 +181,7 @@ console.log("Avatar URL:", getAvatarUrl(authorAvatar));
             alt="thread"
             style={{ ...cardStyles.image, cursor: "zoom-in" }}
             onClick={() => setFullImage(getImageUrl(images[currentImageIndex]))}
-            //onError={e => e.target.style.display = "none"}
+          //onError={e => e.target.style.display = "none"}
           />
           {images.length > 1 && (
             <div style={cardStyles.imageCounter}>
@@ -504,6 +504,7 @@ const ThreadsPage = () => {
 
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);
+    localStorage.setItem("newlyCreatedBookId", bookId); // ← add this
     navigate(`/editor/${bookId}`);
   };
 

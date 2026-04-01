@@ -203,6 +203,7 @@ const MessagesPage = () => {
 
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);
+    localStorage.setItem("newlyCreatedBookId", bookId); // ← mark as new
     navigate(`/editor/${bookId}`);
   };
 
