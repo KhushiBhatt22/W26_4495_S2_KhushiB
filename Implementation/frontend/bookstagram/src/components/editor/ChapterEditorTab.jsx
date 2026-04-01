@@ -153,14 +153,14 @@ const ChapterEditorTab = ({
               <Maximize2 className="w-4 h-4" />
             </button>
 
-            {/* <Button
+            <Button
               onClick={() => onGenerateChapterContent(selectedChapterIndex)}
               isLoading={isGenerating === selectedChapterIndex}
               icon={Sparkles}
               size="sm"
             >
               Generate with AI
-            </Button> */}
+            </Button> 
             {/* Writing Mode Selector */}
             <div className="px-8 pb-4 border-t border-gray-50">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Writing Mode</p>
@@ -204,7 +204,7 @@ const ChapterEditorTab = ({
               />
             </div>
 
-              {/* Chapter Image */}
+               {/* Chapter Image */}
               <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-violet-50 to-pink-50 rounded-xl border border-violet-100">
                 {currentChapter.image ? (
                   <img
@@ -216,7 +216,8 @@ const ChapterEditorTab = ({
                   <div className="w-40 h-64 bg-white rounded-lg border-2 border-dashed border-violet-200 flex items-center justify-center flex-shrink-0">
                     <span className="text-xs text-violet-300 text-center px-2">No image yet</span>
                   </div>
-                )}
+                )} 
+
                 <div>
                   <p className="text-sm font-semibold text-slate-700 mb-1">Chapter Illustration</p>
                   <p className="text-xs text-slate-400 mb-3">
@@ -296,8 +297,8 @@ const ChapterEditorTab = ({
               )}
             </div>
 
-            {/* Status Bar */}
-            {/* <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t border-gray-100">
+            {/* Status Bar */} 
+             <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t border-gray-100">
               <div className="flex items-center gap-4">
                 <span>
                   Words: {currentChapter.content ? currentChapter.content.split(/\s+/).filter(word => word.length > 0).length : 0}
@@ -310,8 +311,8 @@ const ChapterEditorTab = ({
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 <span>Auto-saved</span>
               </div>
-            </div> */}
-            {/* ew Status Bar */}
+            </div> 
+            {/* Status Bar */}
             <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t border-gray-100 flex-wrap gap-3">
               <div className="flex items-center gap-4">
                 <span>Words: {currentChapter.content ? currentChapter.content.split(/\s+/).filter(w => w.length > 0).length : 0}</span>
@@ -361,7 +362,7 @@ const ChapterEditorTab = ({
         </div>
       </div>
     </div>
-  </div>
+ </div>
 };
 
 export default ChapterEditorTab;

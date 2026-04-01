@@ -46,6 +46,8 @@ const EditorPage = () => {
   const [isCompleting, setIsCompleting] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isGeneratingContentImages, setIsGeneratingContentImages] = useState(false);
+  
+
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -133,6 +135,30 @@ const EditorPage = () => {
     }
   };
 
+  const handleGenerateBookCover = async () => {
+  if (!book.title) return toast.error("Book needs a title first!");
+  setIsGeneratingCover(true);
+  try {
+    const response = await axiosInstance.post(
+      API_PATHS.AI.GENERATE_BOOK_COVER,
+      {
+        title: book.title,
+        subtitle: book.subtitle || "",
+        style: book.style || "Fiction",
+      }
+    );
+    const updatedBook = { ...book, coverImage: response.data.imageUrl };
+    setBook(updatedBook);
+    await handleSaveChanges(updatedBook, false);
+    toast.success("AI cover generated!");
+  } catch {
+    toast.error("Failed to generate cover.");
+  } finally {
+    setIsGeneratingCover(false);
+  }
+};
+
+
   const handleAddChapter = () => {
     const newChapter = {
       title: `Chapter ${book.chapters.length + 1}`,
@@ -213,35 +239,35 @@ const EditorPage = () => {
   }
 };
 
-  const handleGenerateCover = async () => {
-    if (!book.title) {
-      toast.error("Please add a book title first");
-      return;
-    }
-    try {
-      setIsGeneratingCover(true);
-      toast("Generating cover image with AI... this may take 20-30 seconds ✨");
-      const res = await axiosInstance.post(API_PATHS.AI.GENERATE_CHAPTER_IMAGE, {
-        title: book.title,
-        description: book.subtitle || "",
-        bookTitle: book.title,
-      });
-      const imageUrl = res.data.imageUrl;
-      // Upload to book cover
-      const uploadRes = await axiosInstance.put(
-        `${API_PATHS.BOOKS.UPDATE_COVER}/${book._id}`,
-        { coverImageUrl: imageUrl },
-        { headers: { "Content-Type": "application/json" } }
-      );
-      setBook((prev) => ({ ...prev, coverImage: imageUrl }));
-      toast.success("AI cover generated and saved!");
-    } catch (error) {
-      console.error("Cover generation error:", error);
-      toast.error("Failed to generate cover image");
-    } finally {
-      setIsGeneratingCover(false);
-    }
-  };
+  // const handleGenerateCover = async () => {
+  //   if (!book.title) {
+  //     toast.error("Please add a book title first");
+  //     return;
+  //   }
+  //   try {
+  //     setIsGeneratingCover(true);
+  //     toast("Generating cover image with AI... this may take 20-30 seconds ✨");
+  //     const res = await axiosInstance.post(API_PATHS.AI.GENERATE_CHAPTER_IMAGE, {
+  //       title: book.title,
+  //       description: book.subtitle || "",
+  //       bookTitle: book.title,
+  //     });
+  //     const imageUrl = res.data.imageUrl;
+  //     // Upload to book cover
+  //     const uploadRes = await axiosInstance.put(
+  //       `${API_PATHS.BOOKS.UPDATE_COVER}/${book._id}`,
+  //       { coverImageUrl: imageUrl },
+  //       { headers: { "Content-Type": "application/json" } }
+  //     );
+  //     setBook((prev) => ({ ...prev, coverImage: imageUrl }));
+  //     toast.success("AI cover generated and saved!");
+  //   } catch (error) {
+  //     console.error("Cover generation error:", error);
+  //     toast.error("Failed to generate cover image");
+  //   } finally {
+  //     setIsGeneratingCover(false);
+  //   }
+  // };
 
   const handleGenerateChapterContent = async (index) => {
     const chapter = book.chapters[index];
@@ -503,7 +529,7 @@ const EditorPage = () => {
                 book={book}
                 onBookChange={handleBookChange}
                 onCoverUpload={handleCoverImageUpload}
-                onGenerateCover={handleGenerateCover}
+                onGenerateCover={handleGenerateBookCover}
                 isUploading={isUploading}
                 isGeneratingCover={isGeneratingCover}
                 fileInputRef={fileInputRef}
