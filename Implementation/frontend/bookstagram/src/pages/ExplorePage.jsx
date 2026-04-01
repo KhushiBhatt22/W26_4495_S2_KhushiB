@@ -6,7 +6,7 @@ import NewDashboardLayout from "../components/layout/NewDashboardLayout";
 import CreateBookModal from "../components/modals/CreateBookModal";
 import axiosInstance from "../utils/axiosInstance";
 import { API_PATHS, BASE_URL } from "../utils/apiPaths";
-import SurveyModal from "../components/modals/SurveyModal";
+
 
 const buildCoverUrl = (path) => {
   if (!path) return null;
@@ -75,7 +75,7 @@ const ExplorePage = () => {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [surveyBookId, setSurveyBookId] = useState(null);
+
 
   useEffect(() => { fetchAllBooks(); }, []);
 
@@ -111,8 +111,8 @@ const ExplorePage = () => {
   const handleAuthorClick = (authorId) => { if (authorId) navigate(`/profile/${authorId}`); };
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);
-    setSurveyBookId(bookId);
-    // navigate(`/editor/${bookId}`);
+    localStorage.setItem("newlyCreatedBookId", bookId); // ← mark as new
+    navigate(`/editor/${bookId}`);
   };
 
   return (
@@ -155,16 +155,6 @@ const ExplorePage = () => {
       </div>
 
       <CreateBookModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onBookCreated={handleBookCreated} />
-      {surveyBookId && (
-        <SurveyModal
-          bookId={surveyBookId}
-          onClose={() => {
-            const id = surveyBookId; // ← save id first
-            setSurveyBookId(null);
-            navigate(`/editor/${id}`); // ← use saved id
-          }}
-        />
-      )}
     </NewDashboardLayout>
   );
 };

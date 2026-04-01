@@ -74,6 +74,13 @@ const ProfilePage = () => {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    const pendingBookId = localStorage.getItem("pendingSurveyBookId");
+    if (pendingBookId) {
+      setSurveyBookId(pendingBookId);
+      localStorage.removeItem("pendingSurveyBookId");
+    }
+  }, []);
 
   const handleFollow = async () => {
     try {
@@ -95,8 +102,8 @@ const ProfilePage = () => {
 
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);
-    setSurveyBookId(bookId);
-    // navigate(`/editor/${bookId}`);
+    localStorage.setItem("newlyCreatedBookId", bookId); // ← mark as new
+    navigate(`/editor/${bookId}`);
   };
   const handleDeleteBook = async (bookId) => {
     try {
@@ -131,7 +138,7 @@ const ProfilePage = () => {
         <SurveyModal
           bookId={surveyBookId}
           onClose={() => {
-            const id = surveyBookId; 
+            const id = surveyBookId;
             setSurveyBookId(null);
             navigate(`/editor/${id}`);
           }}

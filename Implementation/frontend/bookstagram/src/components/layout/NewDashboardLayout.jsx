@@ -5,8 +5,6 @@ import {
   Plus, Bell, Search, BookOpen, LogOut, X,BarChart2
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import axiosInstance from "../../utils/axiosInstance";
-import { API_PATHS, BASE_URL } from "../../utils/apiPaths";
 
 const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
   const { user, logout } = useAuth();
@@ -25,14 +23,6 @@ const NewDashboardLayout = ({ children, onCreateBook, hideTopbar }) => {
     { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
      ...(user?.isAdmin ? [{ id: "analytics", label: "Analytics", icon: BarChart2, path: "/analytics" }] : []),
   ];
-
-  //search variable-----------
-  const [searchResults, setSearchResults] = useState({ users: [], books: [] });
-const [isSearching, setIsSearching] = useState(false);
-const [showSearchDrop, setShowSearchDrop] = useState(false);
-const searchRef = useRef(null);
-const searchTimerRef = useRef(null);
-
 
   const isActive = (path) => {
     if (path === "/profile") return location.pathname === "/profile";
@@ -54,60 +44,6 @@ const searchTimerRef = useRef(null);
       ? user.avatar
       : `http://localhost:8000${user.avatar}`
     : null;
-
-
-    // Live search with debounce
-const handleSearchChange = (e) => {
-  const val = e.target.value;
-  setSearchQuery(val);
-
-  if (!val.trim() || val.trim().length < 2) {
-    setShowSearchDrop(false);
-    setSearchResults({ users: [], books: [] });
-    return;
-  }
-
-  clearTimeout(searchTimerRef.current);
-  searchTimerRef.current = setTimeout(async () => {
-    try {
-      setIsSearching(true);
-      setShowSearchDrop(true);
-      const res = await axiosInstance.get(
-        `${API_PATHS.SOCIAL.SEARCH}?q=${encodeURIComponent(val.trim())}`
-      );
-      setSearchResults(res.data);
-    } catch {
-      // silent
-    } finally {
-      setIsSearching(false);
-    }
-  }, 350); // 350ms debounce
-};
-
-// Close dropdown on outside click
-useEffect(() => {
-  const handleClick = (e) => {
-    if (searchRef.current && !searchRef.current.contains(e.target))
-      setShowSearchDrop(false);
-  };
-  document.addEventListener("mousedown", handleClick);
-  return () => document.removeEventListener("mousedown", handleClick);
-}, []);
-
-const handleSearchNavigate = (path) => {
-  setShowSearchDrop(false);
-  setSearchQuery("");
-  setSearchResults({ users: [], books: [] });
-  navigate(path);
-};
-
-const buildCoverUrl = (path) => {
-  if (!path) return null;
-  if (path.startsWith("http")) return path;
-  const clean = path.replace(/\\/g, "/");
-  if (clean.startsWith("/backend")) return `${BASE_URL}${clean}`;
-  return `${BASE_URL}/backend${clean}`;
-};
 
   return (
     <div style={styles.shell}>
@@ -167,22 +103,29 @@ const buildCoverUrl = (path) => {
         <div style={{ flex: 1 }} />
 
         {/* Bottom Profile */}
-        <div style={styles.sidebarProfile} onClick={() => navigate("/profile")}>
-          <div style={styles.avatarCircle}>
-            {/* {user?.avatar
-              ? <img src={user.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
-              : <span style={styles.avatarLetter}>{avatarLetter}</span>
-            } */}
+        <div style={{ ...styles.sidebarProfile, gap: 8 }}>
+          <div style={styles.avatarCircle} onClick={() => navigate("/profile")}>
             {avatarUrl
               ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
               : <span style={styles.avatarLetter}>{avatarLetter}</span>
             }
           </div>
-          <div style={styles.profileMeta}>
+          <div style={{ ...styles.profileMeta, flex: 1 }} onClick={() => navigate("/profile")} >
             <span style={styles.profileName}>{user?.name || "User"}</span>
             <span style={styles.profileHandle}>
               @{user?.name?.toLowerCase().replace(/\s+/g, "_") || "user"}
             </span>
+          </div>
+          <div
+            onClick={logout}
+            title="Sign out"
+            style={{
+              width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", background: "#fff5f5", border: "1px solid #fee2e2",
+            }}
+          >
+            <LogOut size={14} color="#ef4444" />
           </div>
         </div>
       </aside>
@@ -193,162 +136,23 @@ const buildCoverUrl = (path) => {
         {/* TOPBAR */}
         {!hideTopbar && (
           <header style={styles.topbar}>
-            <div style={{ ...styles.searchWrap, position: "relative" }} ref={searchRef}>
-  <Search size={14} style={styles.searchIcon} />
-  <input
-    style={styles.searchInput}
-    type="text"
-    placeholder="Search books, people..."
-    value={searchQuery}
-    onChange={handleSearchChange}
-    onFocus={() => {
-      if (searchQuery.trim().length >= 2) setShowSearchDrop(true);
-    }}
-  />
-  {searchQuery && (
-    <X
-      size={14}
-      style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "#9ca3af" }}
-      onClick={() => {
-        setSearchQuery("");
-        setShowSearchDrop(false);
-        setSearchResults({ users: [], books: [] });
-      }}
-    />
-  )}
-
-  {/* ── Search Dropdown ── */}
-  {showSearchDrop && (
-    <div style={{
-      position: "absolute",
-      top: "calc(100% + 8px)",
-      left: 0,
-      right: 0,
-      background: "#fff",
-      border: "1px solid #f3e8ff",
-      borderRadius: 14,
-      boxShadow: "0 8px 30px rgba(217,70,239,0.12)",
-      zIndex: 100,
-      overflow: "hidden",
-      maxHeight: 400,
-      overflowY: "auto",
-    }}>
-      {isSearching ? (
-        <div style={{ padding: "16px", textAlign: "center", fontSize: 13, color: "#9ca3af" }}>
-          Searching...
-        </div>
-      ) : searchResults.users.length === 0 && searchResults.books.length === 0 ? (
-        <div style={{ padding: "16px", textAlign: "center", fontSize: 13, color: "#9ca3af" }}>
-          No results found for "{searchQuery}"
-        </div>
-      ) : (
-        <>
-          {/* Users Section */}
-          {searchResults.users.length > 0 && (
-            <div>
-              <div style={{ padding: "8px 14px 4px", fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                People
-              </div>
-              {searchResults.users.map((u) => (
-                <div
-                  key={u._id}
-                  onClick={() => handleSearchNavigate(`/profile/${u._id}`)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 10,
-                    padding: "10px 14px", cursor: "pointer",
-                    transition: "background 0.15s",
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = "#fdf4ff"}
-                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                >
-                  <div style={{
-                    width: 34, height: 34, borderRadius: "50%",
-                    background: "linear-gradient(135deg, #d946ef, #fb923c)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    flexShrink: 0, overflow: "hidden",
-                  }}>
-                    {u.avatar ? (
-                      <img
-                        src={u.avatar.startsWith("http") ? u.avatar : `http://localhost:8000${u.avatar}`}
-                        alt={u.name}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
-                    ) : (
-                      <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>
-                        {u.name?.charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{u.name}</div>
-                    <div style={{ fontSize: 11, color: "#9ca3af" }}>
-                      @{u.name?.toLowerCase().replace(/\s+/g, "_")}
-                    </div>
-                  </div>
-                  <span style={{ fontSize: 11, color: "#d946ef" }}>View →</span>
-                </div>
-              ))}
+            <div style={styles.searchWrap}>
+              <Search size={14} style={styles.searchIcon} />
+              <input
+                style={styles.searchInput}
+                type="text"
+                placeholder="Search books, people, threads…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <X
+                  size={14}
+                  style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "#9ca3af" }}
+                  onClick={() => setSearchQuery("")}
+                />
+              )}
             </div>
-          )}
-
-          {/* Divider */}
-          {searchResults.users.length > 0 && searchResults.books.length > 0 && (
-            <div style={{ height: 1, background: "#f3e8ff", margin: "4px 0" }} />
-          )}
-
-          {/* Books Section */}
-          {searchResults.books.length > 0 && (
-            <div>
-              <div style={{ padding: "8px 14px 4px", fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Books
-              </div>
-              {searchResults.books.map((b) => (
-                <div
-                  key={b._id}
-                  onClick={() => handleSearchNavigate(`/view-book/${b._id}`)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 10,
-                    padding: "10px 14px", cursor: "pointer",
-                    transition: "background 0.15s",
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = "#fdf4ff"}
-                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                >
-                  <div style={{
-                    width: 34, height: 44, borderRadius: 6,
-                    background: "linear-gradient(135deg, #fdf4ff, #fff7ed)",
-                    border: "1px solid #f3e8ff",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    flexShrink: 0, overflow: "hidden",
-                  }}>
-                    {b.coverImage ? (
-                      <img
-                        src={buildCoverUrl(b.coverImage)}
-                        alt={b.title}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
-                    ) : (
-                      <span style={{ fontSize: 16 }}>📖</span>
-                    )}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {b.title}
-                    </div>
-                    <div style={{ fontSize: 11, color: "#9ca3af" }}>
-                      by {b.userId?.name || "Unknown"}
-                    </div>
-                  </div>
-                  <span style={{ fontSize: 11, color: "#d946ef" }}>Read →</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  )}
-</div>
 
             <div style={styles.topActions}>
               <div style={styles.iconBtn}>
