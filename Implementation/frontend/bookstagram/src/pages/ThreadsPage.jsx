@@ -94,9 +94,9 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment, onDelete
               src={fullImage}
               alt="full"
               style={{
-                width: "90vw", height: "90vw",
-                maxWidth: 600, maxHeight: 600,
-                objectFit: "cover", borderRadius: 16,
+                maxWidth: "90vw", maxHeight: "90vh",
+                width: "auto", height: "auto",
+                objectFit: "contain", borderRadius: 16,
                 boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
               }}
             />
@@ -176,12 +176,18 @@ const ThreadCard = ({ thread, currentUser, onLike, onDelete, onComment, onDelete
       {/* Images — Instagram carousel */}
       {images.length > 0 && (
         <div style={cardStyles.imageWrap}>
+          <div style={{
+            position: "absolute", inset: 0, zIndex: 1,
+            backgroundImage: `url(${getImageUrl(images[currentImageIndex])})`,
+            backgroundSize: "cover", backgroundPosition: "center",
+            filter: "blur(18px) brightness(0.5)",
+            transform: "scale(1.1)",
+          }} />
           <img
             src={getImageUrl(images[currentImageIndex])}
             alt="thread"
             style={{ ...cardStyles.image, cursor: "zoom-in" }}
             onClick={() => setFullImage(getImageUrl(images[currentImageIndex]))}
-          //onError={e => e.target.style.display = "none"}
           />
           {images.length > 1 && (
             <div style={cardStyles.imageCounter}>
@@ -504,7 +510,6 @@ const ThreadsPage = () => {
 
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);
-    localStorage.setItem("newlyCreatedBookId", bookId); // ← add this
     navigate(`/editor/${bookId}`);
   };
 
@@ -829,8 +834,8 @@ const cardStyles = {
   textWrap: { padding: "0 16px 10px" },
   text: { fontSize: 14, color: "#374151", lineHeight: 1.65, margin: 0 },
   readMore: { fontSize: 12, color: "#d946ef", fontWeight: 600, cursor: "pointer", display: "block", marginTop: 4 },
-  imageWrap: { position: "relative", width: "100%", maxHeight: 400, overflow: "hidden" },
-  image: { width: "100%", maxHeight: 400, objectFit: "cover", display: "block" },
+  imageWrap: { position: "relative", width: "100%", height: 400, overflow: "hidden", background: "#000", display: "flex", alignItems: "center", justifyContent: "center" },
+  image: { position: "relative", zIndex: 2, height: "100%", width: "auto", maxWidth: "100%", objectFit: "contain", display: "block" },
   imageCounter: {
     position: "absolute", top: 10, right: 10,
     background: "rgba(0,0,0,0.5)", color: "#fff",
@@ -840,12 +845,17 @@ const cardStyles = {
     position: "absolute", top: "50%", transform: "translateY(-50%)",
     background: "rgba(0,0,0,0.4)", color: "#fff",
     border: "none", borderRadius: "50%",
-    width: 30, height: 30, fontSize: 20,
+    width: 30, height: 30, fontSize: 20, zIndex: 3,
     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
   },
   imageDots: {
     position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
-    display: "flex", gap: 6,
+    display: "flex", gap: 6, zIndex: 3,
+  },
+  imageCounter: {
+    position: "absolute", top: 10, right: 10, zIndex: 3,
+    background: "rgba(0,0,0,0.5)", color: "#fff",
+    fontSize: 11, fontWeight: 600, padding: "3px 8px", borderRadius: 20,
   },
   dot: { width: 8, height: 8, borderRadius: "50%", cursor: "pointer" },
   hashtags: { padding: "8px 16px 4px", display: "flex", gap: 6, flexWrap: "wrap" },
