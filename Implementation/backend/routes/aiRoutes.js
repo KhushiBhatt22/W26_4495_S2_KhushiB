@@ -2,8 +2,10 @@ const express = require("express");
 const router = express.Router();
 const {
   generateOutline,
+  editAvatar,
   generateChapterContent,
   generateStoryImage,
+  generateChapterImage,
   completeChapterContent,
   generateAvatar,
   improveThread
@@ -16,6 +18,8 @@ router.use(protect);
 router.post("/generate-outline", generateOutline);
 router.post("/generate-chapter-content", generateChapterContent);
 router.post("/generate-story-image", generateStoryImage);
+router.post("/edit-avatar", editAvatar);
+router.post("/generate-chapter-image", generateChapterImage);
 router.post("/complete-chapter-content", protect, completeChapterContent);
 router.post("/generate-avatar",  generateAvatar);
 router.post("/improve-thread", improveThread);

@@ -26,6 +26,11 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
   const fileInputRef = useRef(null);
 
+  //edit avatar state
+  const [avatarAction, setAvatarAction] = useState("");
+const [isEditingAvatar, setIsEditingAvatar] = useState(false);
+const [editedAvatar, setEditedAvatar] = useState(null);
+
   if (!isOpen) return null;
 
   const handleReset = () => {
@@ -38,6 +43,8 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
     setGeneratedAvatar(null);
     setAvatarPrompt("");
     setActiveTab("prompt");
+     setAvatarAction("");
+  setEditedAvatar(null);
     onClose();
   };
 
@@ -54,6 +61,26 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
       setIsGenerating(false);
     }
   };
+
+  //edit avatar with prompt
+  const handleEditAvatar = async () => {
+  if (!generatedAvatar || !avatarAction.trim())
+    return toast.error("Please generate an avatar and enter an action!");
+  try {
+    setIsEditingAvatar(true);
+    const response = await axiosInstance.post(API_PATHS.AI.EDIT_AVATAR, {
+      avatarImageBase64: generatedAvatar,
+      actionPrompt: avatarAction,
+      style: avatarStyle,
+    });
+    setEditedAvatar(response.data.editedImageUrl);
+  } catch {
+    toast.error("Failed to edit avatar!");
+  } finally {
+    setIsEditingAvatar(false);
+  }
+};
+
 
   const handleSave = async () => {
     try {
@@ -106,12 +133,13 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
 
   const handleSaveAvatarStory = async () => {
     if (!generatedAvatar) return toast.error("Please generate an avatar first!");
-    if (!avatarPrompt.trim()) return toast.error("Please write a story prompt!");
+   // if (!avatarPrompt.trim()) return toast.error("Please write a story prompt!");
     try {
       setIsSavingAvatar(true);
+      const finalImage = editedAvatar || generatedAvatar;
       await axiosInstance.post(API_PATHS.STORIES.CREATE_STORY, {
-        imageUrl: generatedAvatar,
-        prompt: avatarPrompt,
+        imageUrl: finalImage,
+        prompt: "AI avatar story",
         style: avatarStyle,
       });
       toast.success("Avatar story saved!");
@@ -323,12 +351,46 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
                       className="w-full object-cover"
                     />
                   </div>
-
-                  {/* Story Prompt */}
+<label className="text-sm font-medium text-slate-700 mb-2 block">
+        🎭 Make your avatar do something!
+      </label>
+      <div className="flex gap-2 mb-3 flex-wrap">
+        {["winking", "making a heart pose", "waving hello", "giving thumbs up", "smiling broadly"].map((action) => (
+          <button
+            key={action}
+            onClick={() => setAvatarAction(action)}
+            className={`text-xs px-3 py-1.5 rounded-full border transition-colors capitalize ${
+              avatarAction === action
+                ? "border-purple-400 bg-purple-100 text-purple-600"
+                : "border-slate-200 text-slate-500 hover:border-purple-300"
+            }`}
+          >
+            {action}
+          </button>
+        ))}
+      </div>
+      <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="or type your own action..."
+                className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                value={avatarAction}
+                onChange={(e) => setAvatarAction(e.target.value)}
+              />
+              <button
+                onClick={handleEditAvatar}
+                disabled={isEditingAvatar || !avatarAction.trim()}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold disabled:opacity-50 whitespace-nowrap"
+              >
+                {isEditingAvatar ? "Editing..." : "✨ Apply"}
+              </button>
+               </div>
+    
+                  {/* Story Prompt
                   <div className="mb-4">
-                    <label className="text-sm font-medium text-slate-700 mb-1 block">
+                     <label className="text-sm font-medium text-slate-700 mb-1 block">
                       Write Your Story Prompt
-                    </label>
+                    </label> 
                     <textarea
                       rows={3}
                       placeholder="e.g. My avatar going on a magical adventure..."
@@ -336,7 +398,7 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
                       value={avatarPrompt}
                       onChange={(e) => setAvatarPrompt(e.target.value)}
                     />
-                  </div>
+                  </div> */}
 
                   <button
                     onClick={handleSaveAvatarStory}
@@ -345,13 +407,30 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
                   >
                     {isSavingAvatar ? "Saving..." : "Save Avatar Story"}
                   </button>
+
+
                 </>
               )}
             </>
           )}
         </div>
       </div>
+       {/* Show edited image if available */}
+    {editedAvatar && (
+      <div className="mb-4 rounded-xl overflow-hidden border border-purple-200">
+        <p className="text-xs text-center text-purple-400 py-1 bg-purple-50">
+          Edited Avatar
+        </p>
+        <img 
+        src={editedAvatar} 
+        alt="Edited avatar" 
+        className="w-full object-cover"
+        style={{ maxHeight: "200px", objectFit: "cover" }}
+        />
+      </div>
+    )}
     </div>
+   
   );
 };
 

@@ -26,6 +26,8 @@ export const API_PATHS = {
     GENERATE_CHAPTER_CONTENT: "/api/ai/generate-chapter-content",
     COMPLETE_CHAPTER_CONTENT: "/api/ai/complete-chapter-content",
     GENERATE_STORY_IMAGE: "/api/ai/generate-story-image",
+    EDIT_AVATAR: "/api/ai/edit-avatar",
+    GENERATE_CHAPTER_IMAGE:"/api/ai/generate-chapter-image",
     GENERATE_AVATAR: "/api/ai/generate-avatar",
   },
   EXPORT: {
@@ -40,6 +42,7 @@ export const API_PATHS = {
     LIKE: "/api/social/like",
     UNLIKE: "/api/social/like",
     SUGGESTED: "/api/social/suggested",
+    SEARCH: "/api/social/search",
     FEED: "/api/social/feed",    // books from followed users only
     GET_FOLLOWERS: "/api/social/followers",  // Followers lists
     GET_FOLLOWING: "/api/social/following",  // Followning lists

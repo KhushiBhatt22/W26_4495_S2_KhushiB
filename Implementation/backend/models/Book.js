@@ -13,6 +13,10 @@ const chapterSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
+  image:{
+    type: String,
+    default: ""
+  },
 });
 
 const bookSchema = new mongoose.Schema(
@@ -37,6 +41,10 @@ const bookSchema = new mongoose.Schema(
     coverImage: {
       type: String,
       default: "",
+    },
+    headerImage:{
+      type: String,
+      default:""
     },
     chapters: [chapterSchema],
     status: {

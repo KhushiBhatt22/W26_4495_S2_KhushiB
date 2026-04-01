@@ -43,6 +43,7 @@ const EditorPage = () => {
   const [aiStyle, setAiStyle] = useState("Informative");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -72,6 +73,34 @@ const EditorPage = () => {
     updatedChapters[selectedChapterIndex][name] = value;
     setBook((prev) => ({ ...prev, chapters: updatedChapters }));
   };
+
+  const handleGenerateChapterImage = async (index) => {
+  const chapter = book.chapters[index];
+  if (!chapter?.title) return toast.error("Chapter needs a title first!");
+
+  setIsGeneratingImage(index);
+  try {
+    const response = await axiosInstance.post(
+      API_PATHS.AI.GENERATE_CHAPTER_IMAGE,
+      {
+        title: chapter.title,
+        description: chapter.description || "",
+        bookTitle: book.title,
+      }
+    );
+
+    const updatedChapters = [...book.chapters];
+    updatedChapters[index].image = response.data.imageUrl;
+    const updatedBook = { ...book, chapters: updatedChapters };
+    setBook(updatedBook);
+    await handleSaveChanges(updatedBook, false);
+    toast.success("Chapter image generated!");
+  } catch {
+    toast.error("Failed to generate chapter image.");
+  } finally {
+    setIsGeneratingImage(false);
+  }
+};
 
   const handleAddChapter = () => {
     const newChapter = {
@@ -402,6 +431,8 @@ const EditorPage = () => {
                 onCompleteChapterContent={handleCompleteChapterContent}
                 onSaveChapter={(index) => handleSaveChanges()}
                 isCompleting={isCompleting}
+                onGenerateChapterImage={handleGenerateChapterImage}
+                isGeneratingImage={isGeneratingImage}
               />
 
             ) : (

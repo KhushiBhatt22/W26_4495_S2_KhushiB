@@ -22,6 +22,8 @@ const ChapterEditorTab = ({
   onCompleteChapterContent = () => { },
   onSaveChapter = () => { },
   isCompleting,
+  onGenerateChapterImage = () => { },
+  isGeneratingImage,
 }) => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -199,6 +201,39 @@ const ChapterEditorTab = ({
               />
             </div>
 
+              {/* Chapter Image */}
+              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-violet-50 to-pink-50 rounded-xl border border-violet-100">
+                {currentChapter.image ? (
+                  <img
+                    src={currentChapter.image}
+                    alt={currentChapter.title}
+                    className="w-40 h-64 object-cover rounded-lg shadow-sm flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-40 h-64 bg-white rounded-lg border-2 border-dashed border-violet-200 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs text-violet-300 text-center px-2">No image yet</span>
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-semibold text-slate-700 mb-1">Chapter Illustration</p>
+                  <p className="text-xs text-slate-400 mb-3">
+                    Generate a colorful AI illustration for this chapter
+                  </p>
+                  <button
+                    onClick={() => onGenerateChapterImage(selectedChapterIndex)}
+                    disabled={isGeneratingImage === selectedChapterIndex}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-violet-500 to-pink-500 text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    {isGeneratingImage === selectedChapterIndex
+                      ? "Generating..."
+                      : currentChapter.image
+                      ? "Regenerate Image"
+                      : "Generate Image"
+                    }
+                  </button>
+                </div>
+              </div>
             {/* Editor/Preview Area */}
             <div className="flex-1 min-h-0">
               {isPreviewMode ? (
@@ -209,7 +244,16 @@ const ChapterEditorTab = ({
                       <span>Preview Mode</span>
                     </div>
                   </div>
+
                   <div className="p-8">
+                    {/* ← Add chapter image as header in preview */}
+                    {currentChapter.image && (
+                      <img
+                        src={currentChapter.image}
+                        alt={currentChapter.title}
+                        className="w-full h-72 object-cover rounded-xl mb-6 shadow-sm"
+                      />
+                    )}
                     <h1 className="text-3xl font-bold mb-6 text-gray-900">
                       {currentChapter.title || 'Untitled Chapter'}
                     </h1>
