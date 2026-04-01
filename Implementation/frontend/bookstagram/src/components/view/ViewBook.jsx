@@ -17,8 +17,15 @@ const ViewBook = ({book}) => {
       .filter(paragraph => paragraph.trim()) 
       .map(paragraph => paragraph.trim())
       .map(paragraph => {
+        // Render images first
+        if (paragraph.match(/^!\[.*?\]\(https?:\/\/.+\)$/)) {
+          const match = paragraph.match(/^!\[(.*?)\]\((https?:\/\/.+)\)$/);
+          if (match) return `<img src="${match[2]}" alt="${match[1]}" style="width:100%;border-radius:12px;margin:20px 0;display:block;" />`;
+        }
+        paragraph = paragraph.replace(/!\[(.*?)\]\((https?:\/\/[^)]+)\)/g, '<img src="$2" alt="$1" style="width:100%;border-radius:12px;margin:20px 0;display:block;" />');
         paragraph = paragraph.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         paragraph = paragraph.replace(/(?<!\*)\*(?!\*)(.*?)\*(?!\*)/g, '<em>$1</em>');
+        if (paragraph.includes('<img')) return paragraph;
         return `<p>${paragraph}</p>`;
       })
       .join('');

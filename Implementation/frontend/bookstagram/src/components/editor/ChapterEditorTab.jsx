@@ -24,6 +24,8 @@ const ChapterEditorTab = ({
   isCompleting,
   onGenerateChapterImage = () => { },
   isGeneratingImage,
+  onGenerateContentImages = () => { },
+  isGeneratingContentImages,
 }) => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -54,6 +56,7 @@ const ChapterEditorTab = ({
       // Bold and Italic
       .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+      .replace(/!\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g, '<img src="$2" alt="$1" style="width:100%;border-radius:10px;margin:16px 0;" />')
 
       // Blockquotes
       .replace(/^> (.*$)/gm, '<blockquote class="border-l-4 border-violet-500 pl-4 italic text-gray-700 my-4">$1</blockquote>')
@@ -230,6 +233,17 @@ const ChapterEditorTab = ({
                       : currentChapter.image
                       ? "Regenerate Image"
                       : "Generate Image"
+                    }
+                  </button>
+                  <button
+                    onClick={() => onGenerateContentImages(selectedChapterIndex)}
+                    disabled={isGeneratingContentImages === selectedChapterIndex}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 mt-2"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    {isGeneratingContentImages === selectedChapterIndex
+                      ? "Generating images..."
+                      : "Generate Content Images (4)"
                     }
                   </button>
                 </div>

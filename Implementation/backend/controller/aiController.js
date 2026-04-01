@@ -418,6 +418,105 @@ const editAvatar = async (req, res) => {
   }
 };
 
+// @desc    Generate 4-5 images from chapter content and embed between paragraphs
+// @route   POST /api/ai/generate-content-images
+// @access  Private
+const generateContentImages = async (req, res) => {
+  try {
+    const { content, chapterTitle, bookTitle } = req.body;
+    if (!content || content.trim().length < 50) {
+      return res.status(400).json({ message: "Chapter needs more content first" });
+    }
+
+    // Step 1: Use Gemini to pick 4-5 key visual moments from content
+    const geminiPrompt = `You are analyzing a book chapter to find the best moments to illustrate with images.
+
+Chapter: "${chapterTitle}" from "${bookTitle || "the book"}"
+
+Content:
+${content.substring(0, 3000)}
+
+Pick exactly 4 key visual moments or scenes from this content that would make great illustrations. For each, give:
+1. A short image generation prompt (max 20 words, vivid and visual, no text in image)
+2. The paragraph number (1-based) AFTER which this image should appear
+
+Return ONLY valid JSON array, no markdown:
+[
+  {"prompt": "...", "afterParagraph": 1},
+  {"prompt": "...", "afterParagraph": 3},
+  {"prompt": "...", "afterParagraph": 5},
+  {"prompt": "...", "afterParagraph": 7}
+]`;
+
+    const geminiResponse = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: geminiPrompt,
+    });
+
+    let moments;
+    try {
+      const text = geminiResponse.text;
+      const start = text.indexOf("[");
+      const end = text.lastIndexOf("]");
+      moments = JSON.parse(text.substring(start, end + 1));
+    } catch {
+      return res.status(500).json({ message: "Failed to parse AI response" });
+    }
+
+    // Step 2: Split content into paragraphs
+    const paragraphs = content.split(/\n\n+/).filter(p => p.trim());
+
+    // Step 3: Generate images for each moment
+    const { cloudinary } = require("../config/cloudinary");
+    const imageResults = [];
+
+    for (const moment of moments.slice(0, 4)) {
+      try {
+        const blob = await hf.textToImage({
+          model: "black-forest-labs/FLUX.1-schnell",
+          inputs: `${moment.prompt}, book illustration style, high quality, no text, no words`,
+        });
+        const buffer = Buffer.from(await blob.arrayBuffer());
+        const base64 = buffer.toString("base64");
+        const dataUri = `data:image/png;base64,${base64}`;
+        const upload = await cloudinary.uploader.upload(dataUri, {
+          folder: "bookstagram/content-images",
+          transformation: [{ width: 900, crop: "limit" }],
+        });
+        imageResults.push({
+          imageUrl: upload.secure_url,
+          afterParagraph: moment.afterParagraph,
+          prompt: moment.prompt,
+        });
+      } catch (err) {
+        console.error("Image gen failed for moment:", moment.prompt, err.message);
+      }
+    }
+
+    // Step 4: Embed images into content between paragraphs
+    const sortedImages = imageResults.sort((a, b) => a.afterParagraph - b.afterParagraph);
+    const resultParagraphs = [...paragraphs];
+    let offset = 0;
+
+    for (const img of sortedImages) {
+      const insertAt = Math.min(img.afterParagraph - 1 + offset, resultParagraphs.length - 1);
+      const markdownImage = `\n\n![${img.prompt}](${img.imageUrl})\n\n`;
+      resultParagraphs.splice(insertAt + 1, 0, markdownImage);
+      offset++;
+    }
+
+    const updatedContent = resultParagraphs.join("\n\n");
+
+    res.status(200).json({
+      updatedContent,
+      imagesGenerated: imageResults.length,
+    });
+
+  } catch (error) {
+    console.error("Error generating content images:", error.message);
+    res.status(500).json({ message: "Server error during content image generation" });
+  }
+};
 
 module.exports = {
   generateOutline,
@@ -425,6 +524,8 @@ module.exports = {
   generateChapterContent,
   generateStoryImage,
   generateChapterImage,
+  // generateCoverImage,
+  generateContentImages,
   completeChapterContent,
   generateAvatar,
   improveThread,
