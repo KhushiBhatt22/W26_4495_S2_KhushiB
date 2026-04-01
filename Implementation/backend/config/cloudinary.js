@@ -13,7 +13,7 @@ const storage = new CloudinaryStorage({
   params: {
     folder: "bookstagram",
     allowed_formats: ["jpg", "jpeg", "png", "gif", "webp"],
-    transformation: [{ width: 1200, crop: "limit" }],
+    transformation: [{ quality: "auto:best", fetch_format: "auto" }],
   },
 });
 

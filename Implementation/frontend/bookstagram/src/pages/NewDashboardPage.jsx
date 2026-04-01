@@ -84,7 +84,16 @@ const BookPostCard = ({ book, onLike, onRead, onAuthorClick }) => {
       {/* Cover */}
       <div style={cardStyles.coverWrap} onClick={() => onRead(book)}>
         {imgUrl ? (
-          <img src={imgUrl} alt={book.title} style={cardStyles.coverImg} />
+          <>
+            <div style={{
+              position: "absolute", inset: 0, zIndex: 1,
+              backgroundImage: `url(${imgUrl})`,
+              backgroundSize: "cover", backgroundPosition: "center",
+              filter: "blur(18px) brightness(0.5)",
+              transform: "scale(1.1)",
+            }} />
+            <img src={imgUrl} alt={book.title} style={cardStyles.coverImg} />
+          </>
         ) : (
           <div style={cardStyles.coverPlaceholder}>
             <BookOpen size={44} color="#d946ef" opacity={0.3} />
@@ -485,7 +494,7 @@ const NewDashboardPage = () => {
         isOpen={isStoryModalOpen}
         onClose={() => setIsStoryModalOpen(false)}
       />
-      
+
 
       {activeStory && (
         <StoryViewer
@@ -563,7 +572,12 @@ const cardStyles = {
     position: "relative", width: "100%", height: 320,
     cursor: "pointer", overflow: "hidden", background: "#1a1a2e",
   },
-  coverImg: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
+  coverImg: {
+    position: "absolute", top: "50%", left: "50%",
+    transform: "translate(-50%, -50%)",
+    height: "100%", width: "auto",
+    maxWidth: "none", objectFit: "contain", display: "block", zIndex: 2,
+  },
   coverPlaceholder: {
     width: "100%", height: "100%",
     display: "flex", alignItems: "center", justifyContent: "center",
