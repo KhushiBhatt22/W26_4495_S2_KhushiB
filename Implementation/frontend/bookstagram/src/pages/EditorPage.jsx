@@ -32,6 +32,7 @@ const EditorPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isGeneratingCover, setIsGeneratingCover] = useState(false);
   const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("editor");
   const fileInputRef = useRef(null);
@@ -44,6 +45,7 @@ const EditorPage = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isGeneratingContentImages, setIsGeneratingContentImages] = useState(false);
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -101,6 +103,35 @@ const EditorPage = () => {
     setIsGeneratingImage(false);
   }
 };
+
+  const handleGenerateContentImages = async (index) => {
+    const chapter = book.chapters[index];
+    if (!chapter?.content || chapter.content.trim().length < 50) {
+      return toast.error("Write some content first before generating images!");
+    }
+    setIsGeneratingContentImages(index);
+    toast.loading("AI is reading your content and generating images...", { id: "content-images" });
+    try {
+      const response = await axiosInstance.post(
+        API_PATHS.AI.GENERATE_CONTENT_IMAGES,
+        {
+          content: chapter.content,
+          chapterTitle: chapter.title,
+          bookTitle: book.title,
+        }
+      );
+      const updatedChapters = [...book.chapters];
+      updatedChapters[index].content = response.data.updatedContent;
+      const updatedBook = { ...book, chapters: updatedChapters };
+      setBook(updatedBook);
+      await handleSaveChanges(updatedBook, false);
+      toast.success(`${response.data.imagesGenerated} images added to your chapter!`, { id: "content-images" });
+    } catch {
+      toast.error("Failed to generate content images.", { id: "content-images" });
+    } finally {
+      setIsGeneratingContentImages(false);
+    }
+  };
 
   const handleAddChapter = () => {
     const newChapter = {
@@ -181,6 +212,36 @@ const EditorPage = () => {
     setIsUploading(false);
   }
 };
+
+  const handleGenerateCover = async () => {
+    if (!book.title) {
+      toast.error("Please add a book title first");
+      return;
+    }
+    try {
+      setIsGeneratingCover(true);
+      toast("Generating cover image with AI... this may take 20-30 seconds ✨");
+      const res = await axiosInstance.post(API_PATHS.AI.GENERATE_CHAPTER_IMAGE, {
+        title: book.title,
+        description: book.subtitle || "",
+        bookTitle: book.title,
+      });
+      const imageUrl = res.data.imageUrl;
+      // Upload to book cover
+      const uploadRes = await axiosInstance.put(
+        `${API_PATHS.BOOKS.UPDATE_COVER}/${book._id}`,
+        { coverImageUrl: imageUrl },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      setBook((prev) => ({ ...prev, coverImage: imageUrl }));
+      toast.success("AI cover generated and saved!");
+    } catch (error) {
+      console.error("Cover generation error:", error);
+      toast.error("Failed to generate cover image");
+    } finally {
+      setIsGeneratingCover(false);
+    }
+  };
 
   const handleGenerateChapterContent = async (index) => {
     const chapter = book.chapters[index];
@@ -433,6 +494,8 @@ const EditorPage = () => {
                 isCompleting={isCompleting}
                 onGenerateChapterImage={handleGenerateChapterImage}
                 isGeneratingImage={isGeneratingImage}
+                onGenerateContentImages={handleGenerateContentImages}
+                isGeneratingContentImages={isGeneratingContentImages}
               />
 
             ) : (
@@ -440,7 +503,9 @@ const EditorPage = () => {
                 book={book}
                 onBookChange={handleBookChange}
                 onCoverUpload={handleCoverImageUpload}
+                onGenerateCover={handleGenerateCover}
                 isUploading={isUploading}
+                isGeneratingCover={isGeneratingCover}
                 fileInputRef={fileInputRef}
               />
             )}
