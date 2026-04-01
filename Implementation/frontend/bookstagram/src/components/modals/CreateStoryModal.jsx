@@ -28,8 +28,14 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
 
   //edit avatar state
   const [avatarAction, setAvatarAction] = useState("");
-const [isEditingAvatar, setIsEditingAvatar] = useState(false);
-const [editedAvatar, setEditedAvatar] = useState(null);
+  const [isEditingAvatar, setIsEditingAvatar] = useState(false);
+  const [editedAvatar, setEditedAvatar] = useState(null);
+
+  //upload tab state
+  const [uploadedStoryPhoto, setUploadedStoryPhoto] = useState(null);
+  const [uploadedStoryCaption, setUploadedStoryCaption] = useState("");
+  const [isSavingUpload, setIsSavingUpload] = useState(false);
+  const uploadStoryRef = useRef(null);
 
   if (!isOpen) return null;
 
@@ -43,8 +49,10 @@ const [editedAvatar, setEditedAvatar] = useState(null);
     setGeneratedAvatar(null);
     setAvatarPrompt("");
     setActiveTab("prompt");
-     setAvatarAction("");
-  setEditedAvatar(null);
+    setAvatarAction("");
+    setEditedAvatar(null);
+    setUploadedStoryPhoto(null);
+    setUploadedStoryCaption("");
     onClose();
   };
 
@@ -64,22 +72,22 @@ const [editedAvatar, setEditedAvatar] = useState(null);
 
   //edit avatar with prompt
   const handleEditAvatar = async () => {
-  if (!generatedAvatar || !avatarAction.trim())
-    return toast.error("Please generate an avatar and enter an action!");
-  try {
-    setIsEditingAvatar(true);
-    const response = await axiosInstance.post(API_PATHS.AI.EDIT_AVATAR, {
-      avatarImageBase64: generatedAvatar,
-      actionPrompt: avatarAction,
-      style: avatarStyle,
-    });
-    setEditedAvatar(response.data.editedImageUrl);
-  } catch {
-    toast.error("Failed to edit avatar!");
-  } finally {
-    setIsEditingAvatar(false);
-  }
-};
+    if (!generatedAvatar || !avatarAction.trim())
+      return toast.error("Please generate an avatar and enter an action!");
+    try {
+      setIsEditingAvatar(true);
+      const response = await axiosInstance.post(API_PATHS.AI.EDIT_AVATAR, {
+        avatarImageBase64: generatedAvatar,
+        actionPrompt: avatarAction,
+        style: avatarStyle,
+      });
+      setEditedAvatar(response.data.editedImageUrl);
+    } catch {
+      toast.error("Failed to edit avatar!");
+    } finally {
+      setIsEditingAvatar(false);
+    }
+  };
 
 
   const handleSave = async () => {
@@ -113,6 +121,35 @@ const [editedAvatar, setEditedAvatar] = useState(null);
     };
     reader.readAsDataURL(file);
   };
+  const handleStoryPhotoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return toast.error("Please upload an image file");
+    if (file.size > 10 * 1024 * 1024) return toast.error("Image must be under 10MB");
+    const reader = new FileReader();
+    reader.onload = (ev) => setUploadedStoryPhoto(ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveUploadedStory = async () => {
+    if (!uploadedStoryPhoto) return toast.error("Please upload a photo first!");
+    setIsSavingUpload(true);
+    try {
+      await axiosInstance.post(API_PATHS.STORIES.CREATE_STORY, {
+        imageUrl: uploadedStoryPhoto,
+        prompt: uploadedStoryCaption || "Photo story",
+        style: "colorful",
+      });
+      toast.success("Story posted! 🎉");
+      setUploadedStoryPhoto(null);
+      setUploadedStoryCaption("");
+      handleReset();
+    } catch {
+      toast.error("Failed to post story!");
+    } finally {
+      setIsSavingUpload(false);
+    }
+  };
 
   const handleGenerateAvatar = async () => {
     if (!uploadedPhotoBase64)
@@ -133,7 +170,7 @@ const [editedAvatar, setEditedAvatar] = useState(null);
 
   const handleSaveAvatarStory = async () => {
     if (!generatedAvatar) return toast.error("Please generate an avatar first!");
-   // if (!avatarPrompt.trim()) return toast.error("Please write a story prompt!");
+    // if (!avatarPrompt.trim()) return toast.error("Please write a story prompt!");
     try {
       setIsSavingAvatar(true);
       const finalImage = editedAvatar || generatedAvatar;
@@ -170,24 +207,30 @@ const [editedAvatar, setEditedAvatar] = useState(null);
         <div className="flex mx-6 mb-5 bg-slate-100 rounded-xl p-1 gap-1">
           <button
             onClick={() => setActiveTab("prompt")}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
-              activeTab === "prompt"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
+            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${activeTab === "prompt"
+              ? "bg-white text-slate-900 shadow-sm"
+              : "text-slate-500 hover:text-slate-700"
+              }`}
           >
-            ✨ From Prompt
+            From Prompt
           </button>
           <button
             onClick={() => setActiveTab("avatar")}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
-              activeTab === "avatar"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
+            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${activeTab === "avatar"
+              ? "bg-white text-slate-900 shadow-sm"
+              : "text-slate-500 hover:text-slate-700"
+              }`}
           >
-            🧑‍🎨 AI Avatar
+            AI Avatar
           </button>
+          <button
+            onClick={() => setActiveTab("upload")}
+            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${activeTab === "upload" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
+          >
+            Upload
+          </button>
+
         </div>
 
         <div className="px-6 pb-6">
@@ -217,11 +260,10 @@ const [editedAvatar, setEditedAvatar] = useState(null);
                     <button
                       key={s}
                       onClick={() => setStyle(s)}
-                      className={`py-2 px-4 rounded-xl border text-sm font-medium transition-colors capitalize ${
-                        style === s
-                          ? "border-pink-400 text-pink-500 bg-pink-50"
-                          : "border-slate-200 text-slate-600 hover:border-pink-400 hover:text-pink-500"
-                      }`}
+                      className={`py-2 px-4 rounded-xl border text-sm font-medium transition-colors capitalize ${style === s
+                        ? "border-pink-400 text-pink-500 bg-pink-50"
+                        : "border-slate-200 text-slate-600 hover:border-pink-400 hover:text-pink-500"
+                        }`}
                     >
                       {s}
                     </button>
@@ -264,11 +306,10 @@ const [editedAvatar, setEditedAvatar] = useState(null);
                 </label>
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className={`w-full border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors ${
-                    uploadedPhoto
-                      ? "border-pink-300 bg-pink-50"
-                      : "border-slate-200 hover:border-pink-300 hover:bg-pink-50"
-                  }`}
+                  className={`w-full border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors ${uploadedPhoto
+                    ? "border-pink-300 bg-pink-50"
+                    : "border-slate-200 hover:border-pink-300 hover:bg-pink-50"
+                    }`}
                   style={{ minHeight: 120 }}
                 >
                   {uploadedPhoto ? (
@@ -287,6 +328,7 @@ const [editedAvatar, setEditedAvatar] = useState(null);
                         JPG, PNG up to 5MB
                       </p>
                     </>
+
                   )}
                 </div>
                 <input
@@ -320,11 +362,10 @@ const [editedAvatar, setEditedAvatar] = useState(null);
                     <button
                       key={s}
                       onClick={() => setAvatarStyle(s)}
-                      className={`py-2 px-4 rounded-xl border text-sm font-medium transition-colors capitalize ${
-                        avatarStyle === s
-                          ? "border-pink-400 text-pink-500 bg-pink-50"
-                          : "border-slate-200 text-slate-600 hover:border-pink-400 hover:text-pink-500"
-                      }`}
+                      className={`py-2 px-4 rounded-xl border text-sm font-medium transition-colors capitalize ${avatarStyle === s
+                        ? "border-pink-400 text-pink-500 bg-pink-50"
+                        : "border-slate-200 text-slate-600 hover:border-pink-400 hover:text-pink-500"
+                        }`}
                     >
                       {s}
                     </button>
@@ -351,41 +392,40 @@ const [editedAvatar, setEditedAvatar] = useState(null);
                       className="w-full object-cover"
                     />
                   </div>
-<label className="text-sm font-medium text-slate-700 mb-2 block">
-        🎭 Make your avatar do something!
-      </label>
-      <div className="flex gap-2 mb-3 flex-wrap">
-        {["winking", "making a heart pose", "waving hello", "giving thumbs up", "smiling broadly"].map((action) => (
-          <button
-            key={action}
-            onClick={() => setAvatarAction(action)}
-            className={`text-xs px-3 py-1.5 rounded-full border transition-colors capitalize ${
-              avatarAction === action
-                ? "border-purple-400 bg-purple-100 text-purple-600"
-                : "border-slate-200 text-slate-500 hover:border-purple-300"
-            }`}
-          >
-            {action}
-          </button>
-        ))}
-      </div>
-      <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="or type your own action..."
-                className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-                value={avatarAction}
-                onChange={(e) => setAvatarAction(e.target.value)}
-              />
-              <button
-                onClick={handleEditAvatar}
-                disabled={isEditingAvatar || !avatarAction.trim()}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold disabled:opacity-50 whitespace-nowrap"
-              >
-                {isEditingAvatar ? "Editing..." : "✨ Apply"}
-              </button>
-               </div>
-    
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">
+                    Make your avatar do something!
+                  </label>
+                  <div className="flex gap-2 mb-3 flex-wrap">
+                    {["winking", "making a heart pose", "waving hello", "giving thumbs up", "smiling broadly"].map((action) => (
+                      <button
+                        key={action}
+                        onClick={() => setAvatarAction(action)}
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors capitalize ${avatarAction === action
+                          ? "border-purple-400 bg-purple-100 text-purple-600"
+                          : "border-slate-200 text-slate-500 hover:border-purple-300"
+                          }`}
+                      >
+                        {action}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="or type your own action..."
+                      className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                      value={avatarAction}
+                      onChange={(e) => setAvatarAction(e.target.value)}
+                    />
+                    <button
+                      onClick={handleEditAvatar}
+                      disabled={isEditingAvatar || !avatarAction.trim()}
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold disabled:opacity-50 whitespace-nowrap"
+                    >
+                      {isEditingAvatar ? "Editing..." : "✨ Apply"}
+                    </button>
+                  </div>
+
                   {/* Story Prompt
                   <div className="mb-4">
                      <label className="text-sm font-medium text-slate-700 mb-1 block">
@@ -412,25 +452,98 @@ const [editedAvatar, setEditedAvatar] = useState(null);
                 </>
               )}
             </>
+
+
+          )}
+          {/* ══ UPLOAD TAB ══ */}
+          {activeTab === "upload" && (
+            <>
+              {/* Upload area */}
+              <div className="mb-4">
+                <label className="text-sm font-medium text-slate-700 mb-2 block">
+                  Choose a photo from your device
+                </label>
+                <div
+                  onClick={() => uploadStoryRef.current?.click()}
+                  className={`w-full border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors ${uploadedStoryPhoto
+                    ? "border-pink-300 bg-pink-50"
+                    : "border-slate-200 hover:border-pink-300 hover:bg-pink-50"
+                    }`}
+                  style={{ minHeight: 200 }}
+                >
+                  {uploadedStoryPhoto ? (
+                    <img
+                      src={uploadedStoryPhoto}
+                      alt="Story"
+                      className="w-full h-56 object-cover rounded-xl"
+                    />
+                  ) : (
+                    <>
+                      <span style={{ fontSize: 40, marginBottom: 8 }}>📸</span>
+                      <p className="text-sm text-slate-500 font-medium">Click to upload photo</p>
+                      <p className="text-xs text-slate-400 mt-1">JPG, PNG up to 10MB</p>
+                    </>
+                  )}
+                </div>
+                <input
+                  ref={uploadStoryRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleStoryPhotoUpload}
+                />
+                {uploadedStoryPhoto && (
+                  <button
+                    onClick={() => setUploadedStoryPhoto(null)}
+                    className="text-xs text-slate-400 hover:text-red-400 mt-1 transition-colors"
+                  >
+                    Remove photo
+                  </button>
+                )}
+              </div>
+
+              {/* Caption */}
+              <div className="mb-4">
+                <label className="text-sm font-medium text-slate-700 mb-1 block">
+                  Caption (optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Add a caption to your story…"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  value={uploadedStoryCaption}
+                  onChange={(e) => setUploadedStoryCaption(e.target.value)}
+                />
+              </div>
+
+              {/* Post button */}
+              <button
+                onClick={handleSaveUploadedStory}
+                disabled={!uploadedStoryPhoto || isSavingUpload}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {isSavingUpload ? "Posting..." : "📸 Post Story"}
+              </button>
+            </>
           )}
         </div>
       </div>
-       {/* Show edited image if available */}
-    {editedAvatar && (
-      <div className="mb-4 rounded-xl overflow-hidden border border-purple-200">
-        <p className="text-xs text-center text-purple-400 py-1 bg-purple-50">
-          Edited Avatar
-        </p>
-        <img 
-        src={editedAvatar} 
-        alt="Edited avatar" 
-        className="w-full object-cover"
-        style={{ maxHeight: "200px", objectFit: "cover" }}
-        />
-      </div>
-    )}
+      {/* Show edited image if available */}
+      {editedAvatar && (
+        <div className="mb-4 rounded-xl overflow-hidden border border-purple-200">
+          <p className="text-xs text-center text-purple-400 py-1 bg-purple-50">
+            Edited Avatar
+          </p>
+          <img
+            src={editedAvatar}
+            alt="Edited avatar"
+            className="w-full object-cover"
+            style={{ maxHeight: "200px", objectFit: "cover" }}
+          />
+        </div>
+      )}
     </div>
-   
+
   );
 };
 
