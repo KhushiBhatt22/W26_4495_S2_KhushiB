@@ -3,22 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../../utils/apiPaths';
 import { Edit, Trash2, Heart } from 'lucide-react'; // ← Heart added
 
-const BookCard = ({book, onDelete}) => {
+const BookCard = ({ book, onDelete }) => {
   const navigate = useNavigate();
 
-const coverImageUrl = book.coverImage || null;
+  const coverImageUrl = book.coverImage || null;
 
   return (
-    <div 
+    <div
       className="group relative bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-gray-200 transition-all duration-300 hover:shadow-xl hover:shadow-gray-100/50 hover:-translate-y-1 cursor-pointer"
       onClick={() => navigate(`/view-book/${book._id}`)}
     >
-      <div className="relative overflow-hidden bg-black flex items-center justify-center">
+      <div className="relative overflow-hidden bg-white flex items-center justify-center">
         {coverImageUrl ? (
-          <img 
+          <img
             src={coverImageUrl}
-            alt={book.title} 
-            className="w-full aspect-[16/25] object-contain transition-transform duration-500 group-hover:scale-105"
+            alt={book.title}
+            className="w-full aspect-[16/25] object-cover transition-transform duration-500 group-hover:scale-105"
             onError={(e) => { e.target.style.display = 'none' }}
           />
         ) : (
@@ -32,7 +32,7 @@ const coverImageUrl = book.coverImage || null;
           <Heart size={11} fill="#e05c5c" stroke="#e05c5c" />
           <span className="text-white text-xs font-semibold">{book.likesCount || 0}</span>
         </div>
-        
+
         <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
           <button
             onClick={(e) => {
@@ -54,7 +54,7 @@ const coverImageUrl = book.coverImage || null;
           </button>
         </div>
       </div>
-      
+
       <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent backdrop-blur-xs"></div>
         <div className="relative">
@@ -66,7 +66,7 @@ const coverImageUrl = book.coverImage || null;
           </p>
         </div>
       </div>
-      
+
       <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-orange-500 via-amber-500 to-rose-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
     </div>
   )

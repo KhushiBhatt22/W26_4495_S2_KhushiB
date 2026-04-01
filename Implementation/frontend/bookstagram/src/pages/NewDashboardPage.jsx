@@ -12,7 +12,6 @@ import { StoriesStrip, StoryViewer } from "../components/stories/StoriesStrip";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../utils/axiosInstance";
 import { API_PATHS, BASE_URL } from "../utils/apiPaths";
-import SurveyModal from "../components/modals/SurveyModal";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const coverUrl = (path) => {
@@ -209,7 +208,6 @@ const NewDashboardPage = () => {
   // Feed
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [surveyBookId, setSurveyBookId] = useState(null);
 
   // Suggested
   const [suggested, setSuggested] = useState([]);
@@ -333,10 +331,9 @@ const NewDashboardPage = () => {
   };
   const handleBookCreated = (bookId) => {
     setIsCreateModalOpen(false);
-    setSurveyBookId(bookId);
-    // navigate(`/editor/${bookId}`);
+    localStorage.setItem("newlyCreatedBookId", bookId); // ← mark as new
+    navigate(`/editor/${bookId}`);
   };
-
   // Trending = books sorted by likesCount desc
   const trending = [...books].sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0)).slice(0, 4);
 
@@ -357,52 +354,52 @@ const NewDashboardPage = () => {
 
         {/* ── CENTER FEED ── */}
         <div style={pageStyles.feed}>
-          <div style={{ width: "100%", maxWidth:1000}}>
-          <div style={pageStyles.feedLabel}>
-            <Sparkles size={12} style={{ marginRight: 5, color: "#d946ef" }} />
-            Books from people you follow
-          </div>
-
-          {isLoading ? (
-            Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} style={pageStyles.skeleton}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#f3e8ff" }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ height: 12, background: "#f3e8ff", borderRadius: 6, width: "40%", marginBottom: 6 }} />
-                    <div style={{ height: 10, background: "#fdf4ff", borderRadius: 6, width: "25%" }} />
-                  </div>
-                </div>
-                <div style={{ height: 200, background: "#fdf4ff", borderRadius: 10 }} />
-              </div>
-            ))
-          ) : books.length === 0 ? (
-            <div style={pageStyles.emptyState}>
-              <div style={pageStyles.emptyIcon}>📚</div>
-              <p style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginTop: 12 }}>
-                Your feed is empty
-              </p>
-              <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 4 }}>
-                Follow readers to see their books here
-              </p>
-              <button
-                style={pageStyles.exploreBtn}
-                onClick={() => navigate("/explore")}
-              >
-                Explore Books
-              </button>
+          <div style={{ width: "100%", maxWidth: 1000 }}>
+            <div style={pageStyles.feedLabel}>
+              <Sparkles size={12} style={{ marginRight: 5, color: "#d946ef" }} />
+              Books from people you follow
             </div>
-          ) : (
-            books.map((book) => (
-              <BookPostCard
-                key={book._id}
-                book={book}
-                onLike={handleLike}
-                onRead={handleRead}
-                onAuthorClick={handleAuthorClick}
-              />
-            ))
-          )}
+
+            {isLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} style={pageStyles.skeleton}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#f3e8ff" }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ height: 12, background: "#f3e8ff", borderRadius: 6, width: "40%", marginBottom: 6 }} />
+                      <div style={{ height: 10, background: "#fdf4ff", borderRadius: 6, width: "25%" }} />
+                    </div>
+                  </div>
+                  <div style={{ height: 200, background: "#fdf4ff", borderRadius: 10 }} />
+                </div>
+              ))
+            ) : books.length === 0 ? (
+              <div style={pageStyles.emptyState}>
+                <div style={pageStyles.emptyIcon}>📚</div>
+                <p style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginTop: 12 }}>
+                  Your feed is empty
+                </p>
+                <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 4 }}>
+                  Follow readers to see their books here
+                </p>
+                <button
+                  style={pageStyles.exploreBtn}
+                  onClick={() => navigate("/explore")}
+                >
+                  Explore Books
+                </button>
+              </div>
+            ) : (
+              books.map((book) => (
+                <BookPostCard
+                  key={book._id}
+                  book={book}
+                  onLike={handleLike}
+                  onRead={handleRead}
+                  onAuthorClick={handleAuthorClick}
+                />
+              ))
+            )}
           </div>
         </div>
 
@@ -488,16 +485,7 @@ const NewDashboardPage = () => {
         isOpen={isStoryModalOpen}
         onClose={() => setIsStoryModalOpen(false)}
       />
-      {surveyBookId && (
-        <SurveyModal
-          bookId={surveyBookId}
-          onClose={() => {
-            const id = surveyBookId; 
-            setSurveyBookId(null);
-            navigate(`/editor/${id}`); 
-          }}
-        />
-      )}
+      
 
       {activeStory && (
         <StoryViewer

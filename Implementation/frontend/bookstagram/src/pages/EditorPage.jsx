@@ -77,32 +77,32 @@ const EditorPage = () => {
   };
 
   const handleGenerateChapterImage = async (index) => {
-  const chapter = book.chapters[index];
-  if (!chapter?.title) return toast.error("Chapter needs a title first!");
+    const chapter = book.chapters[index];
+    if (!chapter?.title) return toast.error("Chapter needs a title first!");
 
-  setIsGeneratingImage(index);
-  try {
-    const response = await axiosInstance.post(
-      API_PATHS.AI.GENERATE_CHAPTER_IMAGE,
-      {
-        title: chapter.title,
-        description: chapter.description || "",
-        bookTitle: book.title,
-      }
-    );
+    setIsGeneratingImage(index);
+    try {
+      const response = await axiosInstance.post(
+        API_PATHS.AI.GENERATE_CHAPTER_IMAGE,
+        {
+          title: chapter.title,
+          description: chapter.description || "",
+          bookTitle: book.title,
+        }
+      );
 
-    const updatedChapters = [...book.chapters];
-    updatedChapters[index].image = response.data.imageUrl;
-    const updatedBook = { ...book, chapters: updatedChapters };
-    setBook(updatedBook);
-    await handleSaveChanges(updatedBook, false);
-    toast.success("Chapter image generated!");
-  } catch {
-    toast.error("Failed to generate chapter image.");
-  } finally {
-    setIsGeneratingImage(false);
-  }
-};
+      const updatedChapters = [...book.chapters];
+      updatedChapters[index].image = response.data.imageUrl;
+      const updatedBook = { ...book, chapters: updatedChapters };
+      setBook(updatedBook);
+      await handleSaveChanges(updatedBook, false);
+      toast.success("Chapter image generated!");
+    } catch {
+      toast.error("Failed to generate chapter image.");
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
 
   const handleGenerateContentImages = async (index) => {
     const chapter = book.chapters[index];
@@ -172,10 +172,14 @@ const EditorPage = () => {
       );
       if (showToast) {
         toast.success("Changes saved successfully!");
+        // ← only set survey flag if this is a NEW book
+        const isNewBook = localStorage.getItem("newlyCreatedBookId");
+        if (isNewBook === bookId) {
+          localStorage.setItem("pendingSurveyBookId", bookId);
+          localStorage.removeItem("newlyCreatedBookId"); // ← clear after setting
+        }
       }
     } catch (error) {
-      console.log("ERRrR", error);
-
       toast.error("Failed to save changes.");
     } finally {
       setIsSaving(false);
@@ -183,35 +187,35 @@ const EditorPage = () => {
   };
 
   const handleCoverImageUpload = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const formData = new FormData();
-  formData.append("coverImage", file);
+    const formData = new FormData();
+    formData.append("coverImage", file);
 
-  try {
-    setIsUploading(true);
+    try {
+      setIsUploading(true);
 
-    const res = await axiosInstance.post(
-      `/api/books/cover/${book._id}`,
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    );
+      const res = await axiosInstance.post(
+        `/api/books/cover/${book._id}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
 
-    setBook((prev) => ({
-      ...prev,
-      coverImage: res.data.coverImage,
-    }));
+      setBook((prev) => ({
+        ...prev,
+        coverImage: res.data.coverImage,
+      }));
 
-    toast.success("Cover image updated!");
-    console.log("Upload successful:", response.data);
-  } catch (error) {
-   console.error("Upload failed:", error);
-    toast.error("Failed to upload cover image.");
-  } finally {
-    setIsUploading(false);
-  }
-};
+      toast.success("Cover image updated!");
+      console.log("Upload successful:", response.data);
+    } catch (error) {
+      console.error("Upload failed:", error);
+      toast.error("Failed to upload cover image.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleGenerateCover = async () => {
     if (!book.title) {
