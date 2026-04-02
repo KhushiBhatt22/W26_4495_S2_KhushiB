@@ -105,12 +105,6 @@ const BookPostCard = ({ book, onLike, onRead, onAuthorClick }) => {
             <div style={cardStyles.bookSubtitle}>{book.subtitle}</div>
           )}
         </div>
-        <div
-          style={cardStyles.readBtn}
-          onClick={(e) => { e.stopPropagation(); onRead(book); }}
-        >
-          Read Story →
-        </div>
       </div>
 
       {/* Actions */}
