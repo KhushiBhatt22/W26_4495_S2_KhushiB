@@ -99,3 +99,19 @@ exports.getMessageableUsers = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+//delete conversation
+exports.deleteConversation = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const otherId = req.params.userId;
+    await Message.deleteMany({
+      $or: [
+        { senderId: userId, receiverId: otherId },
+        { senderId: otherId, receiverId: userId },
+      ]
+    });
+    res.json({ message: "Conversation deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

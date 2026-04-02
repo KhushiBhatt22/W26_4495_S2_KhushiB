@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate,useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Send, Bot, UserPlus, Search,
   MessageCircle, Sparkles, X, ChevronRight, UserCheck
@@ -215,6 +215,16 @@ const MessagesPage = () => {
     navigate(`/editor/${bookId}`);
   };
 
+  const handleDeleteConversation = async (userId) => {
+    try {
+      await axiosInstance.delete(`/api/messages/conversation/${userId}`);
+      setConversations(prev => prev.filter(c => c.user._id !== userId));
+      if (activeChat?._id === userId) setActiveChat(null);
+      toast.success("Chat deleted");
+    } catch {
+      toast.error("Failed to delete chat");
+    }
+  };
   const filteredConversations = conversations.filter(c =>
     c.user?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -271,6 +281,7 @@ const MessagesPage = () => {
                       ...listStyles.item,
                       background: activeChat?._id === conv.user._id ? "linear-gradient(135deg, #fdf4ff, #fff7ed)" : "transparent",
                       borderLeft: activeChat?._id === conv.user._id ? "3px solid #d946ef" : "3px solid transparent",
+                      position: "relative",
                     }}
                     onClick={() => openChat(conv.user)}
                   >
@@ -289,6 +300,22 @@ const MessagesPage = () => {
                         {conv.lastTime ? new Date(conv.lastTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
                       </div>
                       {conv.unread > 0 && <div style={listStyles.unread}>{conv.unread}</div>}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDeleteConversation(conv.user._id); }}
+                        style={{
+                          background: "none", border: "none", cursor: "pointer",
+                          padding: "2px 0", display: "flex", alignItems: "center",
+                        }}
+                        title="Delete chat"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aca6a6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                          <path d="M10 11v6" />
+                          <path d="M14 11v6" />
+                          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 ))}
