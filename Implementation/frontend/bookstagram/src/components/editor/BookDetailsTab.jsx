@@ -57,9 +57,9 @@ const BookDetailsTab = ({
             <button
               onClick={onGenerateCover}
               disabled={isGeneratingCover}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-violet-500 to-pink-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 mt-3"
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-violet-500 to-pink-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 mt-3"
             >
-              <span>✨</span>
+              
               {isGeneratingCover ? "Generating Cover..." : "Generate AI Cover"}
             </button>
 
