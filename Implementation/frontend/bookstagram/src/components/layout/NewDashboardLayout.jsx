@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Home, Compass, MessageSquare, Mail, User, Settings,
-  Plus, Bell, Search, BookOpen, LogOut, X,BarChart2
+  Plus, Search, BookOpen, LogOut, X,BarChart2
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import axiosInstance from "../../utils/axiosInstance";
@@ -357,10 +357,7 @@ const buildCoverUrl = (path) => {
 
 
             <div style={styles.topActions}>
-              <div style={styles.iconBtn}>
-                <Bell size={18} color="#6b7280" strokeWidth={1.8} />
-                <span style={styles.notifDot} />
-              </div>
+              
 
               <div ref={profileRef} style={{ position: "relative" }}>
                 <div style={styles.topAvatar} onClick={() => setShowProfileMenu(v => !v)}>
