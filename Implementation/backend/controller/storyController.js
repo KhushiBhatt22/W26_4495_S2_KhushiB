@@ -30,9 +30,18 @@ const createStory = async (req, res) => {
 // @access  Private
 const getAllStories = async (req, res) => {
   try {
-    // We populate 'user' to get the username and profile picture for the circles
-    const stories = await Story.find()
-      .populate("user", "name avatar") 
+    const Follow = require("../models/Follow");
+    const currentUserId = req.user._id;
+
+    // Get followed users
+    const following = await Follow.find({ follower: currentUserId }).select("following");
+    const followingIds = following.map(f => f.following);
+
+    // Include own stories too
+    followingIds.push(currentUserId);
+
+    const stories = await Story.find({ user: { $in: followingIds } })
+      .populate("user", "name avatar")
       .sort({ createdAt: -1 });
 
     res.status(200).json(stories);
@@ -47,8 +56,8 @@ const getAllStories = async (req, res) => {
 const getUserStories = async (req, res) => {
   try {
     const stories = await Story.find({ user: req.params.userId })
-    .populate("user", "name avatar")
-    .sort({ createdAt: -1 });
+      .populate("user", "name avatar")
+      .sort({ createdAt: -1 });
     res.status(200).json(stories);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
