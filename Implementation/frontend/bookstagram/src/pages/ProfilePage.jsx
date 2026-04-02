@@ -181,9 +181,18 @@ const ProfilePage = () => {
               <div className="flex-1 text-center sm:text-left">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-2">
                   <h1 className="text-2xl font-bold text-gray-900">{profile?.name}</h1>
+                </div>
 
-                  {/* Follow button — only on other's profile */}
-                  {!isOwnProfile && (
+                <p className="text-gray-500 text-sm mb-2">{profile?.email}</p>
+
+                {/* Bio */}
+                {profile?.bio && (
+                  <p className="text-gray-700 text-sm mb-4 max-w-md">{profile.bio}</p>
+                )}
+
+                {/* Follow + Message buttons — below bio */}
+                {!isOwnProfile && (
+                  <div className="flex gap-3 mt-2 mb-4">
                     <button
                       onClick={handleFollow}
                       className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold text-sm transition-all ${isFollowing
@@ -196,16 +205,14 @@ const ProfilePage = () => {
                         : <><Users size={16} /> Follow</>
                       }
                     </button>
-                  )}
-                </div>
-
-                <p className="text-gray-500 text-sm mb-2">{profile?.email}</p>
-
-                {/* Bio */}
-                {profile?.bio && (
-                  <p className="text-gray-700 text-sm mb-4 max-w-md">{profile.bio}</p>
+                    <button
+                      onClick={() => navigate("/messages", { state: { openChat: profile } })}
+                      className="flex items-center gap-2 px-6 py-2 rounded-lg font-semibold text-sm bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-all"
+                    >
+                     Message
+                    </button>
+                  </div>
                 )}
-
                 {/* Stats */}
                 <div className="flex justify-center sm:justify-start gap-8 mt-3">
                   <div className="text-center">

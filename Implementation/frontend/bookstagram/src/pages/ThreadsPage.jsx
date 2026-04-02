@@ -836,11 +836,6 @@ const cardStyles = {
   readMore: { fontSize: 12, color: "#d946ef", fontWeight: 600, cursor: "pointer", display: "block", marginTop: 4 },
   imageWrap: { position: "relative", width: "100%", height: 400, overflow: "hidden", background: "#000", display: "flex", alignItems: "center", justifyContent: "center" },
   image: { position: "relative", zIndex: 2, height: "100%", width: "auto", maxWidth: "100%", objectFit: "contain", display: "block" },
-  imageCounter: {
-    position: "absolute", top: 10, right: 10,
-    background: "rgba(0,0,0,0.5)", color: "#fff",
-    fontSize: 11, fontWeight: 600, padding: "3px 8px", borderRadius: 20,
-  },
   imageArrow: {
     position: "absolute", top: "50%", transform: "translateY(-50%)",
     background: "rgba(0,0,0,0.4)", color: "#fff",
