@@ -140,7 +140,7 @@ const ProfilePage = () => {
           onClose={() => {
             const id = surveyBookId;
             setSurveyBookId(null);
-            navigate(`/editor/${id}`);
+            navigate(`/profile`);
           }}
         />
       )}

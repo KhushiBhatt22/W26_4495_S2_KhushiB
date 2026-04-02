@@ -225,7 +225,7 @@ const ChapterEditorTab = ({
                     <Sparkles className="w-4 h-4" />
                     {isGeneratingContentImages === selectedChapterIndex
                       ? "Generating images..."
-                      : "Generate Content Images (4)"
+                      : "Generate Content Images"
                     }
                   </button>
                 </div>

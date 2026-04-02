@@ -63,11 +63,11 @@ const BookDetailsTab = ({
               {isGeneratingCover ? "Generating Cover..." : "Generate AI Cover"}
             </button>
 
-            {coverImageUrl && (
+            {/* {coverImageUrl && (
               <p className="text-xs text-green-600 font-medium">
                 Cover saved to Cloudinary
               </p>
-            )}
+            )} */}
 
           </div>
         </div>
