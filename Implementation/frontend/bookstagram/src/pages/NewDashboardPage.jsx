@@ -67,7 +67,7 @@ const BookPostCard = ({ book, onLike, onRead, onAuthorClick }) => {
             style={{ cursor: "pointer" }}
             onClick={() => setMenuOpen((v) => !v)}
           />
-          {menuOpen && (
+          {/* {menuOpen && (
             <div style={cardStyles.miniMenu}>
 
               <div
@@ -77,7 +77,7 @@ const BookPostCard = ({ book, onLike, onRead, onAuthorClick }) => {
                 👤 View Profile
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </div>
 
