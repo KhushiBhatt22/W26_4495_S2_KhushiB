@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 
 const GENRES = ["Fantasy", "Romance", "Mystery", "Sci-Fi", "Historical", "Thriller", "Self-Help", "Other"];
 const AUDIENCES = ["Children", "Teens", "Young Adults", "Adults", "All Ages"];
-const TIME_OPTIONS = ["Less than a week", "1-2 weeks", "1 month", "2-3 months", "6+ months"];
+const TIME_OPTIONS = ["Personal experience", "Imagination", "Research", "Passion for storytelling", "Other"];
 
 const SurveyModal = ({ bookId, onClose }) => {
   const [step, setStep] = useState(1);
@@ -61,7 +61,15 @@ const SurveyModal = ({ bookId, onClose }) => {
         maxHeight: "90vh", overflowY: "auto",
       }}>
         {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: 24 }}>
+        <div style={{ textAlign: "center", marginBottom: 24, position: "relative" }}>
+          <button
+            onClick={onClose}
+            style={{
+              position: "absolute", top: -10, right: -10,
+              background: "none", border: "none", cursor: "pointer",
+              color: "#9ca3af", fontSize: 20, lineHeight: 1,
+            }}
+          >✕</button>
           <div style={{ fontSize: 40, marginBottom: 8 }}>📝</div>
           <h2 style={{ fontSize: 20, fontWeight: 800, color: "#111827", margin: 0 }}>
             Quick Survey
@@ -168,7 +176,7 @@ const SurveyModal = ({ bookId, onClose }) => {
 
             {/* Time Taken */}
             <div style={s.field}>
-              <label style={s.label}>How long did it take to write?</label>
+              <label style={s.label}>What inspired you to write this book?</label>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {TIME_OPTIONS.map(t => (
                   <button key={t} onClick={() => set("timeTaken", t)}
