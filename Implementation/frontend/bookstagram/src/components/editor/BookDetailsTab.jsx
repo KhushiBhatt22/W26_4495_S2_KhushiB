@@ -36,7 +36,8 @@ const BookDetailsTab = ({
           
           {/* Cover Preview */}
         {coverImageUrl ? (
-            <img src={coverImageUrl} alt="Cover"  />
+            <img src={coverImageUrl} alt="Cover" 
+            className="w-32 h-48 object-cover rounded-lg border flex-shrink-0" />
                   ) : (
           <div className="w-32 h-48 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border-2 border-dashed border-purple-200 flex flex-col items-center justify-center flex-shrink-0">
               <span className="text-3xl mb-2">📖</span>
@@ -45,8 +46,9 @@ const BookDetailsTab = ({
 
           )}
           {/* Buttons */}
-          <div>
-            <p className="text-sm text-slate-600 mb-4">Upload a new cover image. Recommended size: 600x800px.</p>
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-slate-500">Upload a new cover image. Recommended size: 600x800px.</p>
+            
             <input type="file" ref={fileInputRef} onChange={onCoverUpload} className="hidden" accept="image/*" />
             <Button variant="secondary" onClick={() => fileInputRef.current.click()} isLoading={isUploading} icon={UploadCloud}>
               Upload Your Cover
@@ -55,7 +57,7 @@ const BookDetailsTab = ({
             <button
               onClick={onGenerateCover}
               disabled={isGeneratingCover}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-violet-500 to-pink-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-violet-500 to-pink-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 mt-3"
             >
               <span>✨</span>
               {isGeneratingCover ? "Generating Cover..." : "Generate AI Cover"}

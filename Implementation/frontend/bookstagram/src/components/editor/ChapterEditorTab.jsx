@@ -113,79 +113,82 @@ const ChapterEditorTab = ({
   return <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-white' : 'flex-1'} flex flex-col`}>
     {/* Header */}
     <div className="border-b border-gray-100 bg-white">
-      <div className="px-8 py-6">
-        <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-0 justify-between">
-          <div>
-            <h1 className="text-lg md:text-2xl font-bold text-gray-900">Chapter Editor</h1>
-            <p className="text-sm md:text-base text-gray-500 mt-1">
-              Editing: {currentChapter.title || `Chapter ${selectedChapterIndex + 1}`}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Editor Controls */}
-            <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-              <button
-                onClick={() => setIsPreviewMode(false)}
-                className={`px-3 py-2 text-sm font-medium transition-colors ${!isPreviewMode
-                  ? 'bg-violet-50 text-violet-700 border-r border-violet-200'
-                  : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => setIsPreviewMode(true)}
-                className={`px-3 py-2 text-sm font-medium transition-colors ${isPreviewMode
-                  ? 'bg-violet-50 text-violet-700'
-                  : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-              >
-                Preview
-              </button>
-            </div>
-
+  <div className="px-8 py-4">
+    <div className="flex flex-col gap-4">
+      
+      {/* Row 1 — Title + Edit/Preview/Fullscreen */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-lg md:text-2xl font-bold text-gray-900">Chapter Editor</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Editing: {currentChapter.title || `Chapter ${selectedChapterIndex + 1}`}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
             <button
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600"
-              title="Toggle Fullscreen"
+              onClick={() => setIsPreviewMode(false)}
+              className={`px-3 py-2 text-sm font-medium transition-colors ${!isPreviewMode
+                ? 'bg-violet-50 text-violet-700 border-r border-violet-200'
+                : 'text-gray-600 hover:bg-gray-50'}`}
             >
-              <Maximize2 className="w-4 h-4" />
+              Edit
             </button>
-
-            <Button
-              onClick={() => onGenerateChapterContent(selectedChapterIndex)}
-              isLoading={isGenerating === selectedChapterIndex}
-              icon={Sparkles}
-              size="sm"
+            <button
+              onClick={() => setIsPreviewMode(true)}
+              className={`px-3 py-2 text-sm font-medium transition-colors ${isPreviewMode
+                ? 'bg-violet-50 text-violet-700'
+                : 'text-gray-600 hover:bg-gray-50'}`}
             >
-              Generate with AI
-            </Button> 
-            {/* Writing Mode Selector */}
-            <div className="px-8 pb-4 border-t border-gray-50">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Writing Mode</p>
-              <div className="flex flex-wrap gap-2">
-                <button onClick={() => setWritingMode("manual")}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${writingMode === "manual" ? "bg-blue-50 text-blue-700 border-blue-300" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                    }`}>
-                  <PenLine className="w-4 h-4" /> Write Yourself
-                </button>
-                <button onClick={() => setWritingMode("ai-full")}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${writingMode === "ai-full" ? "bg-violet-50 text-violet-700 border-violet-300" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                    }`}>
-                  <Sparkles className="w-4 h-4" /> Full AI Generation
-                </button>
-                <button onClick={() => setWritingMode("ai-complete")}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${writingMode === "ai-complete" ? "bg-emerald-50 text-emerald-700 border-emerald-300" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                    }`}>
-                  <GitMerge className="w-4 h-4" /> Half Human + Half AI
-                </button>
-              </div>
-            </div>
+              Preview
+            </button>
           </div>
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </button>
         </div>
       </div>
+
+      {/* Row 2 — Writing Mode */}
+      <div>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+          Writing Mode
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => setWritingMode("manual")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+              writingMode === "manual"
+                ? "bg-blue-50 text-blue-700 border-blue-300"
+                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+            }`}>
+            <PenLine className="w-4 h-4" /> Write Yourself
+          </button>
+          <button onClick={() => setWritingMode("ai-full")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+              writingMode === "ai-full"
+                ? "bg-violet-50 text-violet-700 border-violet-300"
+                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+            }`}>
+            <Sparkles className="w-4 h-4" /> Full AI Generation
+          </button>
+          <button onClick={() => setWritingMode("ai-complete")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+              writingMode === "ai-complete"
+                ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+            }`}>
+            <GitMerge className="w-4 h-4" /> Half Human + Half AI
+          </button>
+        </div>
+      </div>
+
     </div>
+  </div>
+</div>
+    
 
     {/* Content Area */}
     <div className="flex-1 overflow-hidden">
@@ -362,7 +365,7 @@ const ChapterEditorTab = ({
         </div>
       </div>
     </div>
- </div>
+</div>
 };
 
 export default ChapterEditorTab;
