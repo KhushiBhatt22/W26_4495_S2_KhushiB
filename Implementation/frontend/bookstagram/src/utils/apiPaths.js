@@ -29,6 +29,7 @@ export const API_PATHS = {
     EDIT_AVATAR: "/api/ai/edit-avatar",
     GENERATE_CHAPTER_IMAGE: "/api/ai/generate-chapter-image",
     GENERATE_AVATAR: "/api/ai/generate-avatar",
+    GENERATE_BOOK_COVER: "/api/ai/generate-book-cover",
     GENERATE_COVER_IMAGE: "/api/ai/generate-cover-image",
     GENERATE_CONTENT_IMAGES: "/api/ai/generate-content-images",
   },

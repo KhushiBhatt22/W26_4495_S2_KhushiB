@@ -202,6 +202,54 @@ const generateChapterImage = async (req, res) => {
   }
 };
 
+// @desc    Generate an AI book cover image
+// @route   POST /api/ai/generate-book-cover
+// @access  Private
+const generateBookCover = async (req, res) => {
+  try {
+    const { title, subtitle, style } = req.body;
+    if (!title) return res.status(400).json({ message: "Please provide a book title" });
+
+    const stylePrompts = {
+      Informative: "professional, clean, modern non-fiction book cover, bold typography style",
+      Fiction: "dramatic, cinematic, story-driven fiction book cover, atmospheric lighting",
+      Fantasy: "magical, ethereal, fantasy book cover with mystical elements, vibrant colors",
+      "Self-Help": "motivational, bright, uplifting self-help book cover, modern design",
+      Romance: "warm, elegant, romantic book cover with soft colors and emotional feel",
+      Mystery: "dark, suspenseful, noir mystery book cover with dramatic shadows",
+      "Sci-Fi": "futuristic, space-age, sci-fi book cover with neon colors and tech elements",
+      Historical: "vintage, classic, historical book cover with rich earthy tones",
+    };
+
+    const styleDesc = stylePrompts[style] || "professional, colorful, eye-catching book cover";
+
+    const prompt = `${styleDesc} for a book titled "${title}"${
+      subtitle ? `, subtitle: "${subtitle}"` : ""
+    }. High quality, detailed illustration, suitable as a book cover, portrait orientation, no text overlay`;
+
+    const blob = await hf.textToImage({
+      model: "black-forest-labs/FLUX.1-schnell",
+      inputs: prompt,
+    });
+
+    // Upload directly to Cloudinary
+    const buffer = Buffer.from(await blob.arrayBuffer());
+    const base64 = buffer.toString("base64");
+    const dataUri = `data:image/png;base64,${base64}`;
+
+    const { cloudinary } = require("../config/cloudinary");
+    const uploadResult = await cloudinary.uploader.upload(dataUri, {
+      folder: "bookstagram/book-covers",
+      transformation: [{ width: 600, height: 800, crop: "fill" }],
+    });
+
+    res.status(200).json({ imageUrl: uploadResult.secure_url });
+  } catch (error) {
+    console.error("Error generating book cover:", error.message);
+    res.status(500).json({ message: "Server error during book cover generation" });
+  }
+};
+
 
 // @desc    Complete a chapter that the user has already started writing
 // @route   POST /api/ai/complete-chapter-content
@@ -524,7 +572,8 @@ module.exports = {
   generateChapterContent,
   generateStoryImage,
   generateChapterImage,
-  // generateCoverImage,
+  //generateCoverImage,
+  generateBookCover,
   generateContentImages,
   completeChapterContent,
   generateAvatar,
