@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useLocation } from "react-router-dom";
 import {
   Send, Bot, UserPlus, Search,
   MessageCircle, Sparkles, X, ChevronRight, UserCheck
@@ -94,6 +94,7 @@ const MessagesPage = () => {
 
   const chatEndRef = useRef(null);
   const botEndRef = useRef(null);
+  const location = useLocation();
 
   // Connect socket
   useEffect(() => {
@@ -120,6 +121,13 @@ const MessagesPage = () => {
     fetchConversations();
     fetchMessageableUsers();
   }, []);
+
+  // Auto open chat if navigated from profile
+  useEffect(() => {
+    if (location.state?.openChat) {
+      openChat(location.state.openChat);
+    }
+  }, [messageableUsers]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
