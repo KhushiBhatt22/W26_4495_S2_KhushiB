@@ -15,16 +15,15 @@ Users can create, edit, and share book-style content, generate AI-powered chapte
 
 ## Features
 
-- Create and share book-style content  
-- Generate AI-powered story outlines and e-books  
-- Post short visual story threads  
-- Engage with a creative community
-- AI-powered chapter completion (multiple writing modes)
-- AI cover image generation
-- Image upload via Cloudinary
-- Secure authentication and user sessions 
+- AI-powered eBook creation with automatic outlines and chapter generation  
+- Multiple writing modes: manual, full AI, and hybrid (human + AI)  
+- AI story generation using prompts and personalized avatar creation  
+- AI-generated and custom cover image support (Cloudinary integration)  
+- Social platform features: follow users, like content, and explore books  
+- Real-time messaging with users and AI chatbot (BookBot)  
+- Export eBooks as PDF or Word documents  
 
-The platform integrates Google Gemini AI for intelligent content generation and uses JWT-based authentication for secure user access.
+The platform leverages Google Gemini AI for generating story content and avatars, and Hugging Face for AI-based image generation, while ensuring secure user authentication through JWT.
 
 ---
 
@@ -34,7 +33,9 @@ The platform integrates Google Gemini AI for intelligent content generation and 
 - Backend: Node.js + Express  
 - Database: MongoDB Atlas  
 - Authentication: JWT  
-- AI Integration: Google Gemini API  
+- AI Integration: 
+- Google Gemini API (for AI-powered content generation)
+- Hugging Face API (for AI-based image generation) 
 
 ---
 
@@ -87,7 +88,7 @@ Run both frontend and backend:
 Backend → http://localhost:8000  
 Frontend → http://localhost:5173  
 
---
+---
 
 # How to Use the Application
 
@@ -99,7 +100,7 @@ Frontend → http://localhost:5173
 
 This demonstrates the core features of the Bookstagram platform.
 
---
+---
 # Additional Documentation
 
 For more detailed setup instructions, please refer to:
