@@ -9,14 +9,20 @@
 
 # Project Name: Bookstagram
 
-Bookstagram is a full-stack MERN (MongoDB, Express, React, Node.js) social platform that transforms writing into a community-driven and AI-powered experience.
+Bookstagram is a full-stack MERN (MongoDB, Express, React, Node.js) application that transforms writing into a community-driven and AI-powered experience.
+
+Users can create, edit, and share book-style content, generate AI-powered chapters, and interact with a creative storytelling community.
 
 ## Features
 
 - Create and share book-style content  
 - Generate AI-powered story outlines and e-books  
 - Post short visual story threads  
-- Engage with a creative community  
+- Engage with a creative community
+- AI-powered chapter completion (multiple writing modes)
+- AI cover image generation
+- Image upload via Cloudinary
+- Secure authentication and user sessions 
 
 The platform integrates Google Gemini AI for intelligent content generation and uses JWT-based authentication for secure user access.
 
@@ -34,90 +40,72 @@ The platform integrates Google Gemini AI for intelligent content generation and 
 
 # Installation Instructions
 
-Follow these steps to run the project locally.
-
-## 1. Clone the Repository
-
-1. Go to the main branch of the repository.
-2. Click Code.
-3. Copy the HTTPS URL.
-4. Open VS Code.
-5. Run:
-
-git clone <repository_url>
-
-6. Navigate into the project folder.
+## Prerequisites
+- Node.js (v18+)
+- npm (v9+)
+- MongoDB Atlas account
+- Git
+- VS Code (recommended)
 
 ---
 
-## 2. MongoDB Atlas Setup
-
-1. Visit https://www.mongodb.com/
-2. Log in or create an account.
-3. Click New Project.
-4. Enter a project name and click Next.
-5. Click Clusters in the side menu.
-6. Click Build a Cluster.
-7. Select Free Tier.
-8. Enter a cluster name.
-9. Choose a cloud provider and region close to you.
-10. Click Create Deployment.
-11. Add IP Address (Allow access from anywhere if unsure).
-12. Create a Database User with username and password.
-13. Click Choose a connection method.
-14. Select Drivers.
-15. Copy the Node.js connection string.
+## Clone Repository
+git clone https://github.com/KhushiBhatt22/W26_4495_S2_KhushiB.git
 
 ---
 
-## 3. Update .env File (Backend Folder)
+## Backend Setup
+cd Implementation/backend
+npm install
 
-Inside Implementation/backend create a .env file and add:
+Create a .env file and add:
 
-MONGO_URI=your_mongodb_connection_string  
-PORT=8000  
-GEMINI_API_KEY=your_gemini_api_key  
-JWT_SECRET=your_generated_secret  
+PORT=8000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_secret_key
+GEMINI_API_KEY=your_gemini_api_key
+HUGGING_FACE_API_KEY=your_hf_key
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 
-Replace <db_password> with your database password.
-
-### Generate JWT Secret
-
-Run:
-
-node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
-
-Copy the output and paste it as JWT_SECRET.
-
----
-
-## 4. Generate Google Gemini API Key
-
-1. Visit https://ai.google.dev/
-2. Generate an API key.
-3. Add to .env:
-
-GEMINI_API_KEY=your_key_here
+Run backend:
+npm run dev
 
 ---
 
-# Running the Project
+## Frontend Setup
+cd Implementation/frontend/bookstagram
+npm install
+npm run dev
 
-## Start Backend
+---
 
-cd Implementation  
-cd backend  
-npm install  
-npm run dev  
+## Run the Application
+Run both frontend and backend:
 
-Backend runs on http://localhost:8000
+Backend → http://localhost:8000  
+Frontend → http://localhost:5173  
 
-## Start Frontend
+--
 
-cd Implementation  
-cd frontend  
-cd bookstagram  
-npm install  
-npm run dev  
+# How to Use the Application
 
-Frontend runs on http://localhost:5173
+1. Register a new account or log in.
+2. Create a new book or story.
+3. Use AI tools to generate chapters or outlines.
+4. Upload or generate a cover image.
+5. Save and explore content created by other users.
+
+This demonstrates the core features of the Bookstagram platform.
+
+--
+# Additional Documentation
+
+For more detailed setup instructions, please refer to:
+
+- Bookstagram_Installation_Guide.docx (available in the Reports/Documentation folder)
+
+For a complete user guide on how to use the application, refer to:
+
+- Bookstagram_User_Guide.doc (available in the Reports/Documentation folder)
