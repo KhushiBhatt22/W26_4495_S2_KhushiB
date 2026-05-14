@@ -22,7 +22,7 @@ const server = http.createServer(app); // ← wrap express
 
 // ── Socket.io ──
 const io = new Server(server, {
-  cors: {
+  cors: {    
     origin: "*",
     methods: ["GET", "POST"],
   },
@@ -58,11 +58,13 @@ io.on("connection", (socket) => {
 });
 
 // ── Middleware ──
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(cors(
+  // {
+//   origin: "https://bookstagramfrontend.vercel.app",
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+//   allowedHeaders: ["Content-Type", "Authorization"],
+// }
+));
 
 connectDB();
 

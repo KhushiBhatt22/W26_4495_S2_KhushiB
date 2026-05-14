@@ -53,7 +53,7 @@ const seed = async () => {
     }
 
     await ActivityLog.insertMany(logs);
-    console.log(`✅ Seeded ${logs.length} activity logs across last 7 days`);
+    console.log(`Seeded ${logs.length} activity logs across last 7 days`);
     process.exit(0);
   } catch (err) {
     console.error("Seed error:", err.message);
